@@ -30,8 +30,11 @@
   const W = {
     about: ['ჩვენ შესახებ', 'About', 'О нас'], rooms: ['ნომრები', 'Rooms', 'Номера'], amen: ['რა გვაქვს', 'Amenities', 'Удобства'],
     gallery: ['ფოტოები', 'Photos', 'Фото'], where: ['სად ვართ', 'Location', 'Где мы'], faq: ['ხშირი კითხვები', 'FAQ', 'Вопросы'],
-    food: ['ახლოს სად ვჭამოთ', 'Where to eat nearby', 'Где поесть рядом'], recommended: ['რეკომენდებული', 'Recommended', 'Рекомендуем'],
-    foodAll: ['ყველა ახლომდებარე რესტორანი', 'All places to eat nearby', 'Все заведения рядом'], foodAllH: ['ახლომდებარე რესტორნები, მანძილის მიხედვით', 'Places to eat, nearest first', 'Где поесть: сначала ближайшие'],
+    food: ['რესტორნები და კაფეები ახლოს', 'Restaurants and cafés nearby', 'Рестораны и кафе рядом'], recommended: ['რეკომენდებული', 'Recommended', 'Рекомендуем'],
+    foodAll: ['ყველა რესტორანი და კაფე ახლოს', 'All restaurants and cafés nearby', 'Все рестораны и кафе рядом'], foodAllH: ['რესტორნები და კაფეები, ჯერ უახლოესი', 'Restaurants and cafés, nearest first', 'Рестораны и кафе, сначала ближайшие'],
+    foodMap: ['რუკაზე ნახვა', 'Open map', 'На карте'], foodWalk: ['ფეხით ~{n} წთ', '~{n} min walk', '~{n} мин пешком'], foodHours: ['ღიაა 10:00–23:00', 'Open 10:00–23:00', 'Открыто 10:00–23:00'],
+    foodDemo: ['დემო: ნამდვილ საიტზე აქ იქნება რესტორნის ტელეფონი, მისამართი, მენიუ და ფოტოები.', 'Demo: the real site shows the phone, address, menu and photos here.', 'Демо: на настоящем сайте здесь будут телефон, адрес, меню и фото.'],
+    foodAllPlaces: ['ყველა რესტორანი და კაფე', 'All restaurants and cafés', 'Все рестораны и кафе'],
     foodKind: ['სამზარეულო', 'Cuisine', 'Кухня'], foodAny: ['ყველა', 'All', 'Все'], close: ['დახურვა', 'Close', 'Закрыть'],
     foodNote: ['სია Visit2.ge-დანაა. „რეკომენდებული“ რესტორნის ფასიანი ადგილია.', 'List from Visit2.ge. “Recommended” is a paid spot.', 'Список от Visit2.ge. «Рекомендуем» — платное размещение.'],
     book: ['დაჯავშნა', 'Book', 'Забронировать'], bookShort: ['ჯავშანი', 'Book', 'Бронь'], checkin: ['შესვლა', 'Check-in', 'Заезд'], checkout: ['გასვლა', 'Check-out', 'Выезд'],
@@ -170,6 +173,10 @@ ${isDemo() ? demoPanel() : ''}`;
   ${all.length > 4 ? `<button type="button" class="btn btn-line food-more" id="foodMore" aria-haspopup="dialog">${w('foodAll')} (${all.length})</button>` : ''}
   <p class="food-note">${w('foodNote')}</p>
 </section>
+<dialog class="food-dlg place-dlg" id="placeDlg" aria-labelledby="placeH">
+  <div class="food-dlg-head"><span></span><button type="button" class="food-x" data-close aria-label="${w('close')}">×</button></div>
+  <div class="place-body"></div>
+</dialog>
 <dialog class="food-dlg" id="foodDlg" aria-labelledby="foodDlgH">
   <div class="food-dlg-head"><h2 id="foodDlgH">${w('foodAllH')}</h2><button type="button" class="food-x" id="foodX" aria-label="${w('close')}">×</button></div>
   <div class="food-filter" role="group" aria-label="${w('foodKind')}"></div>
@@ -178,11 +185,24 @@ ${isDemo() ? demoPanel() : ''}`;
   }
   const dist = m => (m < 1000 ? `${m} ${lang() === 'ka' ? 'მ' : lang() === 'ru' ? 'м' : 'm'}` : `${(m / 1000).toFixed(1)} ${lang() === 'ka' ? 'კმ' : lang() === 'ru' ? 'км' : 'km'}`);
   const kindName = k => { const F = window.V2FOOD; return F.KIND[k][['ka', 'en', 'ru'].indexOf(lang())] || F.KIND[k][0]; };
-  const foodItem = r => `<li class="food-item${r.sponsored ? ' rec' : ''}">
+  const foodItem = r => `<li><button type="button" class="food-item${r.sponsored ? ' rec' : ''}" data-food="${esc(r.name)}">
     ${r.sponsored ? `<span class="food-badge">${w('recommended')}</span>` : ''}
     <b>${esc(r.name)}</b>
     <span class="food-meta">${esc(kindName(r.kind))} · ${dist(r.m)} · ${'₾'.repeat(r.price)}</span>
-  </li>`;
+  </button></li>`;
+  // one place: its card (on the live site the restaurant fills in phone, address, menu and photos)
+  function openPlace(name) {
+    const F = window.V2FOOD, city = (J.hotel || {}).city, r = F.all(city).find(x => x.name === name); if (!r) return;
+    const d = $('#placeDlg');
+    d.querySelector('.place-body').innerHTML = `${r.sponsored ? `<span class="food-badge">${w('recommended')}</span>` : ''}
+      <h2 id="placeH">${esc(r.name)}</h2>
+      <p class="food-meta">${esc(kindName(r.kind))} · ${'₾'.repeat(r.price)}</p>
+      <ul class="place-facts"><li>📍 ${dist(r.m)} · ${w('foodWalk').replace('{n}', Math.max(1, Math.round(r.m / 80)))}</li><li>🕙 ${w('foodHours')}</li></ul>
+      <a class="btn btn-accent" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name + ' ' + city)}" target="_blank" rel="noopener">${w('foodMap')}</a>
+      <p class="food-note">${w('foodDemo')}</p>`;
+    if ($('#foodDlg').open) $('#foodDlg').close();
+    d.showModal();
+  }
   // the full list: every place nearby, nearest first, with a filter by kind
   function openFood() {
     const F = window.V2FOOD, all = F.all((J.hotel || {}).city), dlg = $('#foodDlg');
@@ -298,6 +318,11 @@ ${isDemo() ? demoPanel() : ''}`;
     document.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => { sel.type = b.dataset.pick; summary(); $('#book').scrollIntoView({ behavior: 'smooth' }); if (!sel.from) bar.from.focus(); }));
     $('#sum').addEventListener('click', e => { const b = e.target.closest('[data-next]'); if (!b) return; [sel.from, sel.to] = b.dataset.next.split('|'); bar.from.value = sel.from; bar.to.value = sel.to; summary(); });
     $('#req').addEventListener('submit', send);
+    document.querySelectorAll('#food, #foodDlg').forEach(el => el.addEventListener('click', e => { const b = e.target.closest('[data-food]'); if (b) openPlace(b.dataset.food); }));
+    if ($('#placeDlg')) {
+      $('#placeDlg').querySelector('[data-close]').addEventListener('click', () => $('#placeDlg').close());
+      $('#placeDlg').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+    }
     if ($('#foodMore')) {
       $('#foodMore').addEventListener('click', openFood);
       $('#foodX').addEventListener('click', () => $('#foodDlg').close());

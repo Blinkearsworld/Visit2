@@ -109,11 +109,18 @@ main > section > * { max-width: var(--max); margin-left: auto; margin-right: aut
 
 /* places to eat nearby */
 .food-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; }
-.food-item { position: relative; display: grid; gap: 2px; min-width: 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.food-list > li { min-width: 0; display: grid; }
+.food-item { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; min-height: 44px; position: relative; display: grid; gap: 2px; min-width: 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 .food-item b { font-size: 17px; overflow-wrap: anywhere; }
 .food-meta { color: var(--muted); font-size: 15px; }
 .food-item.rec { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
 .food-badge { justify-self: start; margin-bottom: 4px; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--ink); font-size: 13px; font-weight: 700; }
+.food-item:hover { border-color: var(--accent); }
+.place-body { padding: 0 20px 22px; display: grid; gap: 10px; justify-items: start; }
+.place-body h2 { margin: 0; font-size: 26px; border: 0 !important; padding: 0 !important; text-align: left; }
+.place-body h2::after { display: none !important; }
+.place-body .food-meta { margin: 0; }
+.place-facts { list-style: none; padding: 0; margin: 4px 0 8px; display: grid; gap: 6px; }
 .food-note { margin: 12px 0 0; font-size: 14px; color: var(--muted); }
 .food-more { margin-top: 16px; }
 .food-dlg { width: min(720px, calc(100vw - 24px)); max-height: min(86vh, 900px); padding: 0; border: 0; border-radius: 16px; background: var(--bg); color: var(--ink); }

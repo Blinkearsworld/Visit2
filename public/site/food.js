@@ -24,7 +24,7 @@ window.V2FOOD = (() => {
   const POOL = [['ძველი მარანი', 'wine', 2], ['სოფლის სუფრა', 'georgian', 2], ['დილის ყავა', 'cafe', 1], ['ხაჭაპურის სახლი', 'bakery', 1], ['ცეცხლზე', 'grill', 2],
     ['ეზოს კაფე', 'cafe', 1], ['ბებოს სამზარეულო', 'georgian', 1], ['ტერასა', 'georgian', 3], ['ქვის ფურნე', 'bakery', 1], ['მთის ჩაი', 'cafe', 1]];
   const gen = town => { let h = 0; for (const c of town) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-    return POOL.map((p, i) => [p[0], p[1], 120 + ((h >> (i % 16)) % 18) * 90 + i * 37, p[2], i === h % 4 ? 1 : 0]).slice(0, 7 + (h % 4)); };
+    return POOL.map((p, i) => [p[0], p[1], 120 + ((h >>> (i % 16)) % 18) * 90 + i * 37, p[2], i === h % 4 ? 1 : 0]).slice(0, 7 + (h % 4)); };
   // every place near the hotel, nearest first
   const all = town => (R[town] || (town ? gen(town) : [])).map(([name, kind, m, price, sponsored]) => ({ name, kind, m, price, sponsored: !!sponsored })).sort((a, b) => a.m - b.m);
   // the short list on the hotel page: recommended first, then the nearest
