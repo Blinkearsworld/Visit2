@@ -10,17 +10,13 @@ window.JIJI = (() => {
   // (not proportional): the smallest version that fits the group is used.
   // Prices are SAMPLE values in GEL per night, by season.
   const R = (guests, off, summer, winter, peak) => ({ guests, price: { peak, winter, summer, off } });
+  // Sample rooms for the browser-only demo (GitHub Pages). On the real site rooms and prices come from the server.
   const DEFAULT_TYPES = {
+    std: { name: 'სტანდარტული ორადგილიანი', rates: [R(1, 90, 120, 150, 200), R(2, 110, 140, 180, 240)] },
     family: { name: 'საოჯახო, 1 საძინებლით (4+1)', rates: [R(2, 150, 200, 240, 320), R(3, 165, 220, 265, 350), R(4, 180, 240, 290, 380), R(5, 195, 260, 310, 410)] },
-    budget: { name: 'საოჯახო, 1 საძინებლით (3+1)', rates: [R(2, 120, 160, 200, 270), R(3, 135, 180, 225, 305), R(4, 150, 200, 250, 340)] },
-    duplex: { name: 'დუპლექსი, 2 საძინებლით (5+2)', rates: [R(2, 220, 300, 380, 500), R(3, 250, 340, 430, 560), R(4, 290, 390, 480, 620), R(5, 320, 430, 530, 680), R(6, 350, 470, 580, 740), R(7, 380, 510, 630, 800)] },
-    lux:    { name: 'ლუქსი, 2 საძინებლით (5+1)', rates: [R(2, 210, 290, 370, 480), R(3, 245, 335, 415, 540), R(4, 280, 380, 460, 600), R(5, 310, 420, 505, 655), R(6, 340, 460, 550, 710)] },
+    suite: { name: 'ლუქსი, 2 საძინებლით', rates: [R(2, 210, 290, 370, 480), R(4, 280, 380, 460, 600), R(6, 340, 460, 550, 710)] },
   };
-  // 8 rooms, numbered 1–8 as in the hotel. "4+1" = 4 places and 1 extra bed (max guests = the last price version).
-  const ROOMS = [
-    { id: '1', type: 'family' }, { id: '2', type: 'lux' }, { id: '3', type: 'budget' }, { id: '4', type: 'family' },
-    { id: '5', type: 'budget' }, { id: '6', type: 'lux' }, { id: '7', type: 'duplex' }, { id: '8', type: 'duplex' }
-  ];
+  const ROOMS = [{ id: '1', type: 'std' }, { id: '2', type: 'std' }, { id: '3', type: 'family' }, { id: '4', type: 'family' }, { id: '5', type: 'suite' }];
   const SEASONS = { peak: 'ახალი წელი', winter: 'ზამთარი', summer: 'ზაფხული', off: 'დანარჩენი' };
 
   // ---------- dates as 'YYYY-MM-DD', math in UTC ----------
@@ -43,7 +39,7 @@ window.JIJI = (() => {
   const weekday = s => WD[toD(s).getUTCDay()];
 
   // the hotel's own seasons (from the server): [{id, name, from: 'MM-DD', to: 'MM-DD'}], first match wins
-  let seasonList = null, hotel = null;
+  let seasonList = null, hotel = { name: 'სადემონსტრაციო სასტუმრო', city: 'ბაკურიანი', slug: 'demo', demo: true };
   const inRange = (md, a, b) => (a <= b ? md >= a && md <= b : md >= a || md <= b);
   const seasonOf = s => {
     if (seasonList && seasonList.length) { const md = s.slice(5); const f = seasonList.find(x => inRange(md, x.from, x.to)); return (f || seasonList[seasonList.length - 1]).id; }
@@ -57,7 +53,7 @@ window.JIJI = (() => {
   // ---------- storage ----------
   let state, mode = 'demo', needPayments = false;
   // who is signed in to the admin (the demo is always the main admin) and who changed which booking
-  let me = { id: 'owner', name: 'მირზა', owner: true, perms: ['book', 'money', 'price', 'site'] }, actlog = [];
+  let me = { id: 'owner', name: 'მფლობელი', owner: true, perms: ['book', 'money', 'price', 'site'] }, actlog = [];
   // Which season the site opens in. 'auto' follows the winter date range (MM-DD, may wrap the year).
   const DEFAULT_SETTINGS = { seasonMode: 'auto', winterFrom: '11-15', winterTo: '03-31', gapDiscount: '10' };
   // capacity of a type = its largest guest version
@@ -83,13 +79,13 @@ window.JIJI = (() => {
       types,
       bookings: [
         b('5', 1, 3, 'ნინო ბ.', '+995 555 10 20 30', 2, 'confirmed', 'admin'),
-        b('1', 2, 4, 'გიორგი მ.', '+995 555 22 33 44', 4, 'confirmed', 'site'),
+        b('1', 2, 4, 'გიორგი მ.', '+995 555 22 33 44', 2, 'confirmed', 'site'),
         b('4', 0, 2, 'Anna K.', '+48 600 100 200', 3, 'confirmed', 'chat'),
-        b('2', 5, 5, 'დავით ლ.', '+995 555 77 88 99', 4, 'confirmed', 'admin'),
+        b('2', 5, 5, 'დავით ლ.', '+995 555 77 88 99', 2, 'confirmed', 'admin'),
         b('3', 6, 2, 'Irina S.', '+7 900 123 45 67', 2, 'confirmed', 'chat'),
-        b('7', 8, 3, 'თამარ ჯ.', '+995 555 40 50 60', 4, 'confirmed', 'site'),
+        b('5', 8, 3, 'თამარ ჯ.', '+995 555 40 50 60', 4, 'confirmed', 'site'),
         pending('family', 3, 3, 'ლევან ქ.', '+995 555 12 12 12', 4, 'chat'),
-        pending('budget', 9, 2, 'Mark T.', '+44 7700 900123', 2, 'site')
+        pending('std', 9, 2, 'Mark T.', '+44 7700 900123', 2, 'site')
       ],
       payments: [],
       guestNotes: {},

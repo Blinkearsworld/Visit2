@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>სასტუმრო · Visit2.ge</title>
 <meta name="description" content="სასტუმრო Visit2.ge-ზე: ნომრები, ფასები და დაჯავშნა პირდაპირ, საკომისიოს გარეშე.">
-<link rel="icon" href="/favicon.ico">
+<link rel="icon" href="favicon.ico">
 <link rel="stylesheet" href="css/chat.css?v=202611220323">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,6 +58,7 @@ p{margin:0}
 .nav a:hover{opacity:1;color:var(--lamp)}
 .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
 .logo span{font:italic 600 26px/1 Cormorant,serif;letter-spacing:.02em;white-space:nowrap}
+.hero .name{overflow-wrap:anywhere}@media(max-width:600px){.hero .name{font-size:46px!important;line-height:1.05}}
 .logo{flex:0 1 auto;min-width:0}.logo span{overflow:hidden;text-overflow:ellipsis;max-width:42vw}
 @media(max-width:600px){.logo span{font-size:18px!important;max-width:34vw}}
 .right{display:flex;justify-content:flex-end;align-items:center;gap:14px;font-size:13px;margin-left:auto}
@@ -503,7 +504,7 @@ const io=new IntersectionObserver(es=>{const vis=es[0].isIntersecting&&!reduce;i
 </script>
 <script>
 /* Visit2: the hotel's name, city and room count from the server */
-JIJI.ready.then(()=>{const h=JIJI.hotel||{};if(h.name){document.querySelectorAll('[data-hn]').forEach(e=>e.textContent=h.name);document.title=h.name+(h.city?' · '+h.city:'')}
+JIJI.ready.then(()=>{const h=JIJI.hotel||{};if(h.demo&&!document.getElementById('demoBar')){const d=document.createElement('div');d.id='demoBar';d.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:50;background:#0E857D;color:#fff;font:14px/1.4 system-ui,sans-serif;padding:8px 12px;text-align:center';d.innerHTML='Visit2.ge · დემო: მონაცემები მხოლოდ ამ ბრაუზერში ინახება · <a href="admin.html" style="color:#fff;font-weight:600">ადმინი (PIN 1234)</a>';document.body.appendChild(d)}if(h.name){document.querySelectorAll('[data-hn]').forEach(e=>e.textContent=h.name);document.title=h.name+(h.city?' · '+h.city:'')}
  document.querySelectorAll('[data-hcity]').forEach(e=>e.textContent=h.city||'');const f=document.getElementById('factRooms');if(f)f.textContent=JIJI.ROOMS.length||'–'});
 </script>
 </body>
