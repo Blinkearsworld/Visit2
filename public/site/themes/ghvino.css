@@ -21,4 +21,4 @@ h2 { font-weight: 700; padding-bottom: 12px; border-bottom: 3px double var(--lin
 .gallery img { aspect-ratio: 3 / 2; }
 .where { background: var(--band); color: var(--on-band); }
 .where .btn-ghost { color: var(--on-band); }
-@media (max-width: 760px) { body { border-width: 0; } .about, .room { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { body { border-width: 0; } .about, .room { grid-template-columns: 1fr; } }

@@ -30,7 +30,7 @@
   const W = {
     about: ['ჩვენ შესახებ', 'About', 'О нас'], rooms: ['ნომრები', 'Rooms', 'Номера'], amen: ['რა გვაქვს', 'Amenities', 'Удобства'],
     gallery: ['ფოტოები', 'Photos', 'Фото'], where: ['სად ვართ', 'Location', 'Где мы'], faq: ['ხშირი კითხვები', 'FAQ', 'Вопросы'],
-    book: ['დაჯავშნა', 'Book', 'Забронировать'], checkin: ['შესვლა', 'Check-in', 'Заезд'], checkout: ['გასვლა', 'Check-out', 'Выезд'],
+    book: ['დაჯავშნა', 'Book', 'Забронировать'], bookShort: ['ჯავშანი', 'Book', 'Бронь'], checkin: ['შესვლა', 'Check-in', 'Заезд'], checkout: ['გასვლა', 'Check-out', 'Выезд'],
     adults: ['სტუმარი 10 წლიდან', 'Guests 10+', 'Гости от 10 лет'], kids: ['ბავშვი 10 წლამდე', 'Children under 10', 'Дети до 10 лет'],
     name: ['სახელი', 'Name', 'Имя'], phone: ['ტელეფონი', 'Phone', 'Телефон'], wish: ['სპეციალური მოთხოვნა', 'Special request', 'Особые пожелания'],
     optional: ['არასავალდებულო', 'optional', 'необязательно'], send: ['მოთხოვნის გაგზავნა', 'Send request', 'Отправить запрос'],
@@ -120,7 +120,7 @@
   <a class="brand" href="#top">${esc(caps(h.name || ''))}</a>
   <nav class="links"><a href="#about">${w('about')}</a><a href="#rooms">${w('rooms')}</a><a href="#where">${w('where')}</a></nav>
   <div class="langs" role="group" aria-label="Language">${['ka', 'en', 'ru'].map(l => `<button type="button" data-lang="${l}" aria-pressed="${l === lang()}">${l.toUpperCase()}</button>`).join('')}</div>
-  <a class="btn btn-accent top-book" href="#book">${w('book')}</a>
+  <a class="btn btn-accent top-book" href="#book"><span class="long">${w('book')}</span><span class="short">${w('bookShort')}</span></a>
 </header>
 <main id="top">
   <section class="hero">

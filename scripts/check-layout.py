@@ -19,7 +19,9 @@ SIZES = [('phone', 375, 812, True), ('tablet', 820, 1180, True), ('desktop', 144
 THEMES = [('kva', 'mta'), ('ezo', 'nino'), ('kalaki', 'dzveli'), ('zghva', 'mta'), ('ghvino', 'nino'), ('minimali', 'dzveli'),
           ('tye', 'kotejebi'), ('butiki', 'mta'), ('peradi', 'nino'), ('klasika', 'dzveli')]
 PAGES = [('home', 'index.html?lang=ka'), ('owners', 'owners.html?lang=ka')] + \
-        [(f'hotel-{t}', f'hotel.html?h={h}&theme={t}') for t, h in THEMES] + [('admin', 'admin.html?h=mta')]
+        [(f'hotel-{t}', f'hotel.html?h={h}&theme={t}') for t, h in THEMES] + [('admin', 'admin.html?h=mta')] + \
+        [('home-ru', 'index.html?lang=ru'), ('owners-ru', 'owners.html?lang=ru')] + \
+        [(f'long-{t}', f'hotel.html?h=test-long&theme={t}&lang=ru') for t, _ in THEMES]  # longest names, Russian
 
 OVERFLOW_JS = """() => {
   const W = document.documentElement.clientWidth, out = [];

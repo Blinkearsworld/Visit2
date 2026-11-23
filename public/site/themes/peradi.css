@@ -24,4 +24,4 @@ h1, h2 { font-weight: 800; }
 .gallery img:nth-child(odd) { transform: rotate(-1.5deg); }
 .gallery img:nth-child(even) { transform: rotate(1.5deg); }
 .book-sum { border: 2px solid var(--ink); border-left-width: 8px; border-left-color: var(--accent); border-radius: 14px; }
-@media (max-width: 760px) { .hero { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .hero { grid-template-columns: 1fr; } }

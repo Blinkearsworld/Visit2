@@ -37,6 +37,8 @@ window.V2DEMO = (() => {
         location: { text: { ka: 'ობსერვატორიის გზა, ცენტრიდან 3 კმ.', en: 'Observatory road, 3 km from the centre.', ru: 'Дорога к обсерватории, 3 км от центра.' }, map: 'https://www.google.com/maps/search/?api=1&query=Abastumani' } } },
   ];
 
+  // only for scripts/check-layout.py: the longest name and town we expect, never listed
+  const STRESS = { slug: 'test-long', hidden: true, name: 'საოჯახო სასტუმრო „დიდი მთის ძველი სახლი“', city: 'სტეფანწმინდა (ყაზბეგი)', theme: 'kva', accent: '#0E857D', types: types(1.4), site: HOTELS[0].site };
   const MINE = 'v2-my-hotel';
   const mine = () => { try { return JSON.parse(localStorage.getItem(MINE) || 'null'); } catch (e) { return null; } };
   function saveMine({ name, city, theme, accent, email }) {
@@ -48,6 +50,6 @@ window.V2DEMO = (() => {
     return h;
   }
   const list = () => [...(mine() ? [mine()] : []), ...HOTELS];
-  const get = slug => list().find(h => h.slug === slug) || null;
+  const get = slug => list().find(h => h.slug === slug) || (slug === STRESS.slug ? STRESS : null);
   return { list, get, mine, saveMine, ROOMS, THEMES: ['kva', 'ezo', 'kalaki', 'zghva', 'ghvino', 'minimali', 'tye', 'butiki', 'peradi', 'klasika'] };
 })();

@@ -27,7 +27,7 @@ h2 { font-size: clamp(24px, 3.4vw, 34px); }
 .gallery .grid img:first-child { grid-row: span 2; aspect-ratio: auto; }
 .where { background: var(--band); color: var(--on-band); }
 .where .btn-ghost { color: var(--on-band); }
-@media (max-width: 760px) {
+@media (max-width: 640px) {
   .room { grid-template-columns: 1fr; }
   .gallery .grid { grid-template-columns: 1fr 1fr; }
   .gallery .grid img:first-child { grid-column: span 2; grid-row: auto; aspect-ratio: 4 / 3; }

@@ -10,7 +10,7 @@
 .bar { background: var(--band); color: var(--ink); }
 .room { grid-template-columns: 1fr; border-bottom: 1px solid var(--line); padding-bottom: 20px; background: none; }
 .amen li { border-radius: var(--radius); }
-@media (min-width: 1000px) {
+@media (min-width: 1025px) {
   main { display: grid; grid-template-columns: minmax(0, 44%) minmax(0, 1fr); }
   .hero { grid-column: 1; grid-row: 1 / span 20; position: relative; }
   .hero-media { position: sticky; top: 64px; height: calc(100vh - 64px); max-width: none !important; }
