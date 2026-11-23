@@ -16,6 +16,8 @@ jobs:
       - name: Push public/ to gh-pages
         run: |
           cp -r public /tmp/site && touch /tmp/site/.nojekyll
+          # stamp our own files with this commit, so phones never keep an old copy
+          sed -i -E "s/\?v=[0-9a-z]+\"/?v=${GITHUB_SHA::7}\"/g" /tmp/site/*.html
           cd /tmp/site
           git init -q -b gh-pages
           git config user.name "github-actions[bot]"

@@ -3,6 +3,7 @@
    /api/content (content.site), edited in admin. Templates differ in CSS (site/themes/*.css) and a few layout flags. */
 (() => {
   const J = window.JIJI, I = window.I18N, $ = s => document.querySelector(s);
+  const V = (document.currentScript && document.currentScript.src.split('?v=')[1]) || '1';
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const lang = () => (I ? I.lang : 'ka');
   // Georgian capitals (mtavruli): CSS uppercase does not map Georgian, so the Stone template converts the text itself
@@ -110,7 +111,7 @@
     const s = S(), h = J.hotel || {}, c = contact(), th = theme();
     document.documentElement.dataset.theme = th;
     document.documentElement.style.setProperty('--accent', accent());
-    $('#themeCss').href = `site/themes/${th}.css`;
+    $('#themeCss').href = `site/themes/${th}.css?v=${V}`;
     document.title = (h.name || '') + (h.city ? ' · ' + h.city : '');
     const tel = c.digits ? `tel:+${c.digits}` : '';
     const wasOpen = !!document.querySelector('.demo[open]');

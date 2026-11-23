@@ -20,6 +20,7 @@
     navHotels: ['სასტუმროები', 'Hotels', 'Отели'], navOwners: ['მფლობელებს', 'For owners', 'Владельцам'],
     gH1: ['იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ', 'Find a place to stay in Georgia and book it direct', 'Найдите жильё в Грузии и бронируйте напрямую'],
     gLead: ['ფასს სასტუმრო თავად აწესებს, შუამავალი არ არის. თავისუფალი ნომრები ნამდვილია: სასტუმროები ჯავშნებს Visit2.ge-ზე მართავენ.', 'Hotels set their own prices, with no middleman. Availability is real: hotels manage their bookings on Visit2.ge.', 'Цены устанавливает сам отель, без посредников. Свободные номера настоящие: отели ведут брони на Visit2.ge.'],
+    popular: ['პოპულარული', 'Popular', 'Популярные'], allPlaces: ['ყველა ადგილი ანბანით', 'All places A–Z', 'Все места по алфавиту'],
     city: ['ქალაქი ან კურორტი', 'City or resort', 'Город или курорт'], all: ['ყველა', 'All', 'Все'], in: ['შესვლა', 'Check-in', 'Заезд'], out: ['გასვლა', 'Check-out', 'Выезд'],
     guests: ['სტუმარი', 'Guests', 'Гости'], search: ['ძებნა', 'Search', 'Найти'],
     why1: ['<b>პირდაპირ სასტუმროსთან</b>მოთხოვნა სასტუმროს ეგზავნება და ისინი გირეკავენ დასადასტურებლად.', '<b>Straight to the hotel</b>Your request goes to the hotel, and they call you to confirm.', '<b>Напрямую в отель</b>Запрос уходит в отель, и вам перезвонят для подтверждения.'],
@@ -63,8 +64,12 @@
   const PLACES = window.V2PLACES || [];
   const TOWN = Object.fromEntries(PLACES.map(p => [p[0], [p[1], p[2]]]));
   const town = c => (lang === 'ka' || !TOWN[c] ? c : TOWN[c][lang === 'en' ? 0 : 1]);
-  // every town in the list plus any town an owner typed; popular ones first
-  const allTowns = () => { const own = D.list().map(h => h.city).filter(c => !TOWN[c]); return [...PLACES.map(p => p[0]), ...new Set(own)]; };
+  // every town in the list plus any town an owner typed, alphabetically in the visitor's language
+  const allTowns = () => {
+    const own = [...new Set(D.list().map(h => h.city).filter(c => !TOWN[c]))];
+    return [...PLACES.map(p => p[0]), ...own].sort((a, b) => town(a).localeCompare(town(b), lang));
+  };
+  // popular places in order of popularity (the order in places.js)
   const popular = () => [...new Set([...PLACES.filter(p => p[3]).map(p => p[0]), ...D.list().map(h => h.city)])];
   const NAME = { 'მთის სახლი': ['Mountain House', 'Горный дом'], 'ნინოს ეზო': ["Nino's Courtyard", 'Двор Нино'], 'ძველი უბნის ბინები': ['Old Town Apartments', 'Апартаменты в Старом городе'], 'ტყის კოტეჯები': ['Forest Cottages', 'Лесные коттеджи'] };
   const hname = h => (lang === 'ka' || !NAME[h.name] ? h.name : NAME[h.name][lang === 'en' ? 0 : 1]);
@@ -79,7 +84,7 @@
   function setLang(l) {
     if (!LANGS.includes(l)) return; lang = l;
     try { localStorage.setItem(KEY, l); } catch (e) {}
-    applyLang(); render(); listeners.forEach(f => f(l));
+    applyLang(); fillTowns(); render(); listeners.forEach(f => f(l));
   }
   document.querySelectorAll('[data-plang]').forEach(b => b.addEventListener('click', () => setLang(b.dataset.plang)));
 
@@ -117,6 +122,13 @@
   const link = (h, q) => `hotel.html?h=${encodeURIComponent(h.slug)}${q.from && q.to ? `&from=${q.from}&to=${q.to}&g=${q.g}` : ''}`;
   window.V2FIND = { find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t };
 
+  // the town list: popular places first, in order of popularity, then every place alphabetically
+  function fillTowns() {
+    const f = $('#search'); if (!f) return;
+    const cur = f.city.value, opt = c => `<option value="${esc(c)}">${esc(town(c))}</option>`;
+    f.city.innerHTML = `<option value="">${esc(t('all'))}</option><optgroup label="${esc(t('popular'))}">${popular().map(opt).join('')}</optgroup><optgroup label="${esc(t('allPlaces'))}">${allTowns().map(opt).join('')}</optgroup>`;
+    f.city.value = cur;
+  }
   function search() {
     const f = $('#search'); if (!f) return;
     const q = { city: f.city.value, from: f.from.value, to: f.to.value, g: +f.g.value }, dated = q.from && q.to && q.to > q.from;
@@ -133,11 +145,10 @@
   ${price ? `<p class="card-price">${price}</p>` : ''}<p class="card-tag">${tag}</p></div></a>`;
     }).join('') || `<p>${t('none')}</p>`;
     document.querySelectorAll('#cities button').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.city === q.city)); b.textContent = town(b.dataset.city); });
-    [...f.city.options].forEach(o => { if (o.value) o.textContent = town(o.value); });
   }
   if ($('#search')) {
     const f = $('#search');
-    f.city.insertAdjacentHTML('beforeend', allTowns().map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join(''));
+    fillTowns();
     $('#cities').innerHTML = popular().map(c => `<button type="button" data-city="${esc(c)}" aria-pressed="false">${esc(c)}</button>`).join('');
     f.from.min = today(); f.to.min = addDays(today(), 1);
     f.addEventListener('change', e => {
@@ -178,7 +189,7 @@
   }
   if ($('#ownerForm')) {
     const dl = document.createElement('datalist'); dl.id = 'towns';
-    dl.innerHTML = PLACES.map(p => `<option value="${esc(p[0])}">`).join('');
+    dl.innerHTML = PLACES.map(p => p[0]).sort((a, b) => a.localeCompare(b, 'ka')).map(c => `<option value="${esc(c)}">`).join('');
     document.body.appendChild(dl); $('#ownerForm').city.setAttribute('list', 'towns');
     $('#ownerForm').addEventListener('submit', e => {
       e.preventDefault();
