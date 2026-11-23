@@ -37,6 +37,10 @@
     foodAllPlaces: ['ყველა რესტორანი და კაფე', 'All restaurants and cafés', 'Все рестораны и кафе'],
     foodKind: ['სამზარეულო', 'Cuisine', 'Кухня'], foodAny: ['ყველა', 'All', 'Все'], close: ['დახურვა', 'Close', 'Закрыть'],
     foodNote: ['სია Visit2.ge-დანაა. „რეკომენდებული“ რესტორნის ფასიანი ადგილია.', 'List from Visit2.ge. “Recommended” is a paid spot.', 'Список от Visit2.ge. «Рекомендуем» — платное размещение.'],
+    sampleName: ['შენი სასტუმრო', 'Your Hotel', 'Ваш отель'], sampleCity: ['ქალაქი', 'Town', 'Город'],
+    sampleTag: ['აქ ერთი წინადადება შენს სასტუმროზე', 'One sentence about your place', 'Одно предложение о вашем отеле'],
+    sampleAbout: ['აქ იქნება შენი სასტუმროს აღწერა: რით არის გამორჩეული, რა არის ახლოს და რატომ ბრუნდებიან სტუმრები. ტექსტს და ფოტოებს ადმინში შეცვლი.', 'Your description goes here: what makes your place special, what is nearby and why guests come back. Change texts and photos in the admin.', 'Здесь будет описание: чем особенно ваше место, что рядом и почему гости возвращаются. Тексты и фото меняются в админке.'],
+    sampleAddr: ['შენი მისამართი', 'Your address', 'Ваш адрес'],
     book: ['დაჯავშნა', 'Book', 'Забронировать'], bookShort: ['ჯავშანი', 'Book', 'Бронь'], checkin: ['შესვლა', 'Check-in', 'Заезд'], checkout: ['გასვლა', 'Check-out', 'Выезд'],
     adults: ['სტუმარი 10 წლიდან', 'Guests 10+', 'Гости от 10 лет'], kids: ['ბავშვი 10 წლამდე', 'Children under 10', 'Дети до 10 лет'],
     name: ['სახელი', 'Name', 'Имя'], phone: ['ტელეფონი', 'Phone', 'Телефон'], wish: ['სპეციალური მოთხოვნა', 'Special request', 'Особые пожелания'],
@@ -87,6 +91,7 @@
   // ---------- state ----------
   let C = {}; // site content from the server (or DEMO)
   const params = new URLSearchParams(location.search);
+  const sample = params.get('sample') === '1';
   const isDemo = () => !!(J.hotel && J.hotel.demo);
   const slug = () => (J.hotel && J.hotel.slug) || 'demo';
   const demoHotel = () => (isDemo() && window.V2DEMO ? window.V2DEMO.get(slug()) : null);
@@ -115,7 +120,9 @@
   const img = (src, alt = '', cls = '') => src ? `<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async">` : `<div class="ph ${cls}" aria-hidden="true"></div>`;
 
   function render() {
-    const s = S(), h = J.hotel || {}, c = contact(), th = theme();
+    // a template sample (?sample=1) shows placeholder words instead of a real hotel's name and texts
+    const s = sample ? { ...S(), hero: { ...S().hero, tagline: w('sampleTag') }, about: { ...S().about, text: w('sampleAbout') }, location: { ...S().location, text: w('sampleAddr') } } : S();
+    const h = sample ? { ...(J.hotel || {}), name: w('sampleName'), city: w('sampleCity') } : (J.hotel || {}), c = contact(), th = theme();
     document.documentElement.dataset.theme = th;
     document.documentElement.style.setProperty('--accent', accent());
     $('#themeCss').href = `site/themes/${th}.css?v=${V}`;
@@ -155,7 +162,7 @@
       ${s.location?.map || c.map ? `<a class="btn btn-ghost" href="${esc(s.location?.map || c.map)}" target="_blank" rel="noopener">${w('map')}</a>` : ''}
     </div>
   </section>
-  ${foodSection(h)}
+  ${foodSection(J.hotel || {})}
 </main>
 <footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span><a href="https://visit2.ge" rel="noopener">Visit2.ge · ${w('directly')}</a></footer>
 ${isDemo() ? demoPanel() : ''}`;

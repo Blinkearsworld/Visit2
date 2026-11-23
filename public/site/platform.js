@@ -275,7 +275,7 @@
   function renderOwners() {
     if (!$('#ownerForm')) return;
     const cur = $('#ownerForm').theme?.value || 'kva', curC = $('#ownerForm').accent?.value || COLORS[0];
-    $('#tplList').innerHTML = TPL.map(([id, demo, nm, note]) => `<figure class="tpl-item"><img src="img/templates/${id}.jpg" alt="${esc(nm[L()])}" loading="lazy"><figcaption><b>${esc(nm[L()])}</b><p>${esc(note[L()])}</p><a href="hotel.html?h=${demo}&theme=${id}${BUILD ? '&v=' + BUILD : ''}">${t('sample')}</a></figcaption></figure>`).join('');
+    $('#tplList').innerHTML = TPL.map(([id, demo, nm, note]) => `<figure class="tpl-item"><img src="img/templates/${id}.jpg" alt="${esc(nm[L()])}" loading="lazy"><figcaption><b>${esc(nm[L()])}</b><p>${esc(note[L()])}</p><a href="hotel.html?h=${demo}&theme=${id}&sample=1${BUILD ? '&v=' + BUILD : ''}">${t('sample')}</a></figcaption></figure>`).join('');
     $('#tplChoice').innerHTML = TPL.map(([id, , nm]) => `<label><input type="radio" name="theme" value="${id}"${id === cur ? ' checked' : ''}><span class="opt">${esc(nm[L()])}</span></label>`).join('');
     $('#colChoice').innerHTML = COLORS.map(c => `<label><input type="radio" name="accent" value="${c}"${c === curC ? ' checked' : ''} aria-label="${t('fCol')} ${c}"><span class="opt dot" style="--c:${c}"></span></label>`).join('');
     const mine = D.mine(); if (mine) showDone(mine);
