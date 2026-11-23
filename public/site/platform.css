@@ -29,6 +29,7 @@ p { margin: 0 0 1em; }
 
 /* guests: search */
 .g-hero { padding: clamp(28px, 6vw, 72px) 0 28px; }
+.slogan { margin: 0 0 10px; font-weight: 700; font-size: clamp(16px, 1.8vw, 19px); color: var(--teal-dark); }
 .g-hero p.lead { font-size: clamp(17px, 2vw, 20px); color: var(--muted); max-width: 52ch; }
 .search { display: grid; grid-template-columns: 1.3fr 1fr 1fr .8fr auto; gap: 10px; align-items: end; padding: 14px; margin-top: 22px; background: #fff; border-radius: 18px; box-shadow: 0 1px 0 var(--line), 0 18px 40px -24px rgba(31, 26, 23, .35); }
 .search label { min-width: 0; }

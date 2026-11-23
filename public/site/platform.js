@@ -33,6 +33,7 @@
     fromP: ['{p} ₾-დან', 'from {p} ₾', 'от {p} ₾'], tagFree: ['✓ თავისუფალია ამ თარიღებზე', '✓ Available on these dates', '✓ Свободно на эти даты'],
     tagNo: ['ამ თარიღებზე თავისუფალი არ არის', 'Not available on these dates', 'На эти даты мест нет'], tagReal: ['✓ ნამდვილი თავისუფალი ნომრები', '✓ Real availability', '✓ Реальная доступность'],
     yours: ['შენი სასტუმრო', 'your hotel', 'ваш отель'], none: ['ამ ქალაქში სასტუმრო ჯერ არ არის.', 'No hotels in this city yet.', 'В этом городе пока нет отелей.'],
+    oSlogan: ['შენი ვიზიტ2 უკვე გეძებს', 'Your guests are already looking for you', 'Ваши гости уже ищут вас'],
     oH1: ['შენი სასტუმროს საიტი, ჯავშნები და ჩატბოტი ერთ ადგილას', 'Your hotel website, bookings and chatbot in one place', 'Сайт отеля, брони и чат-бот в одном месте'],
     oLead: ['აირჩიე შაბლონი, ჩაწერე სახელი, და საიტი მზადაა. ჯავშნებს, ფასებს და კალენდარს ადმინში მართავ, სტუმრებს ჩატბოტი პასუხობს.', 'Pick a template, type your name, and the site is ready. Manage bookings, prices and the calendar in the admin; the chatbot answers guests.', 'Выберите шаблон, впишите название, и сайт готов. Брони, цены и календарь в админке, гостям отвечает чат-бот.'],
     oPrice: ['50₾ თვეში, საკომისიოს გარეშე. პირველი 30 დღე უფასოა, ბარათი არ გჭირდება.', '50₾ a month, no commission. The first 30 days are free, no card needed.', '50₾ в месяц, без комиссии. Первые 30 дней бесплатно, карта не нужна.'],
