@@ -29,6 +29,12 @@
     bandH: ['გაქვს სასტუმრო ან ბინა?', 'Own a hotel or a flat?', 'У вас отель или квартира?'],
     bandP: ['მიიღე საიტი, ჯავშნების ადმინი და ჩატბოტი. ფიქსირებული 50₾ თვეში, პროცენტის გარეშე. პირველი 30 დღე უფასოა.', 'Get a website, a booking admin and a chatbot. A flat 50₾ a month, no commission. The first 30 days are free.', 'Сайт, админка для броней и чат-бот. 50₾ в месяц, без процентов. Первые 30 дней бесплатно.'],
     bandBtn: ['მფლობელებისთვის', 'For owners', 'Владельцам'], demo: ['დემო: მონაცემები მხოლოდ ამ ბრაუზერში ინახება', 'Demo: data stays in this browser', 'Демо: данные только в этом браузере'],
+    mapOpen: ['რუკაზე ძებნა', 'Search on the map', 'Поиск на карте'], mapHint: ['დააჭირე რუკაზე ადგილს, სადაც სასტუმრო გინდა', 'Tap the place on the map where you want to stay', 'Нажмите на карте место, где хотите остановиться'],
+    mapHint2: ['ადგილის შესაცვლელად რუკაზე სხვაგან დააჭირე', 'Tap elsewhere on the map to move the point', 'Нажмите в другом месте, чтобы сменить точку'],
+    nearMe: ['📍 ჩემთან ახლოს', '📍 Near me', '📍 Рядом со мной'], mapClear: ['გასუფთავება', 'Clear', 'Сбросить'], kmU: ['კმ', 'km', 'км'],
+    kmAway: ['{k} კმ', '{k} km away', '{k} км'], mapTitle: ['{r} კმ-ის რადიუსში', 'Within {r} km', 'В радиусе {r} км'],
+    mapNone: ['ამ რადიუსში სასტუმრო ჯერ არ არის. გაზარდე რადიუსი ან აირჩიე სხვა ადგილი.', 'Nothing within this radius yet. Make it larger or pick another point.', 'В этом радиусе пока ничего нет. Увеличьте радиус или выберите другую точку.'],
+    locating: ['ვეძებ შენს ადგილს…', 'Finding you…', 'Определяем место…'], noLoc: ['ადგილი ვერ განისაზღვრა. დააჭირე რუკაზე.', 'Could not get your location. Tap the map instead.', 'Не удалось определить место. Нажмите на карте.'],
     destH: ['სად წავიდეთ', 'Where to go', 'Куда поехать'], howH: ['როგორ მუშაობს', 'How it works', 'Как это работает'],
     nHotels: ['{n} სასტუმრო', '{n} places to stay', 'Мест: {n}'], nHotel1: ['1 სასტუმრო', '1 place to stay', '1 место'],
     hotels: ['სასტუმროები', 'Hotels', 'Отели'], pickDates: ['აირჩიე თარიღები, რომ ნახო თავისუფალი ნომრები და ფასი', 'Choose dates to see free rooms and the price', 'Выберите даты, чтобы увидеть свободные номера и цену'],
@@ -94,7 +100,7 @@
   function setLang(l) {
     if (!LANGS.includes(l)) return; lang = l;
     try { localStorage.setItem(KEY, l); } catch (e) {}
-    applyLang(); fillTowns(); render(); listeners.forEach(f => f(l));
+    applyLang(); fillTowns(); renderRadius(); render(); listeners.forEach(f => f(l));
   }
   document.querySelectorAll('[data-plang]').forEach(b => b.addEventListener('click', () => setLang(b.dataset.plang)));
 
@@ -124,10 +130,15 @@
     }
     return { minFrom, best, n: nights(from, to) };
   }
-  const find = ({ city = '', from = '', to = '', g = 2, kind = '' }) => {
+  // distance in km between two points (haversine)
+  const km = (a, b) => { const R = 6371, r = x => x * Math.PI / 180, dLa = r(b.lat - a.lat), dLn = r(b.lng - a.lng);
+    return 2 * R * Math.asin(Math.sqrt(Math.sin(dLa / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLn / 2) ** 2)); };
+  const find = ({ city = '', from = '', to = '', g = 2, kind = '', center = null, r = 5 }) => {
     const dated = from && to && to > from;
-    return D.list().filter(h => !h.hidden && (!city || h.city === city) && (!kind || h.kind === kind)).map(h => ({ h, o: offer(h, from, to, g) }))
-      .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) : 0) || (!!b.h.promo - !!a.h.promo) || (dated ? (a.o.best?.total || 0) - (b.o.best?.total || 0) : 0));
+    return D.list().filter(h => !h.hidden && (!city || h.city === city) && (!kind || h.kind === kind))
+      .map(h => ({ h, o: offer(h, from, to, g), d: center && h.lat ? km(center, h) : null }))
+      .filter(x => !center || (x.d != null && x.d <= r))
+      .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) : 0) || (center ? a.d - b.d : 0) || (!!b.h.promo - !!a.h.promo) || (dated ? (a.o.best?.total || 0) - (b.o.best?.total || 0) : 0));
   };
   // this build's stamp (from our own script tag), so a hotel page never comes from an old browser copy
   const BUILD = ((document.querySelector('script[src*="site/platform.js"]') || {}).src || '').split('?v=')[1] || '';
@@ -143,23 +154,62 @@
   }
   function search() {
     const f = $('#search'); if (!f) return;
-    const q = { city: f.city.value, from: f.from.value, to: f.to.value, g: +f.g.value, kind: curKind }, dated = q.from && q.to && q.to > q.from;
+    const q = { city: f.city.value, from: f.from.value, to: f.to.value, g: +f.g.value, kind: curKind, center: mapCenter, r: radius }, dated = q.from && q.to && q.to > q.from;
     const rows = find(q);
-    $('#resTitle').textContent = q.city ? `${t('hotels')}: ${town(q.city)}` : q.kind ? kindName(q.kind) : t('hotels');
+    $('#resTitle').textContent = q.center ? t('mapTitle', { r: q.r }) : q.city ? `${t('hotels')}: ${town(q.city)}` : q.kind ? kindName(q.kind) : t('hotels');
     $('#resNote').textContent = dated ? `${fmt(q.from)} – ${fmt(q.to)} · ${q.g} ${t('guestsW')} · ${rows.filter(r => r.o.best).length} ${t('free')}` : t('pickDates');
-    $('#cards').innerHTML = rows.map(({ h, o }) => {
+    $('#cards').innerHTML = rows.map(({ h, o, d }) => {
       const img = h.cover ? `img/h/${h.cover}-s.jpg` : h.site?.hero?.img || '';
       const price = dated ? (o.best ? `${o.best.total} ₾ <small>${o.n} ${t('nightsW')}</small>` : '') : `${t('fromP', { p: o.minFrom })} <small>/ ${t('perNight')}</small>`;
       const tag = dated ? (o.best ? `${t('tagFree')} · ${esc(tname(o.best.type))}` : t('tagNo')) : t('tagReal');
       return `<a class="card${h.promo ? ' promo' : ''}" href="${link(h, q)}" data-free="${dated && !o.best ? 'no' : 'yes'}">
   <div class="card-ph">${h.promo ? `<span class="card-promo">${t('promo')}</span>` : ''}${h.kind ? `<span class="card-kind">${esc(kindName(h.kind))}</span>` : ''}
   ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : ''}</div>
-  <div class="card-body"><p class="card-city">${esc(town(h.city))}${h.mine ? ' · ' + t('yours') : ''}</p><h3>${esc(hname(h))}</h3>
+  <div class="card-body"><p class="card-city">${esc(town(h.city))}${h.mine ? ' · ' + t('yours') : ''}${d != null ? ' · ' + t('kmAway', { k: d < 10 ? d.toFixed(1) : Math.round(d) }) : ''}</p><h3>${esc(hname(h))}</h3>
   ${price ? `<p class="card-price">${price}</p>` : ''}<p class="card-tag">${tag}</p></div></a>`;
-    }).join('') || `<p class="empty">${t('none')}</p>`;
+    }).join('') || `<p class="empty">${t(q.center ? 'mapNone' : 'none')}</p>`;
+    drawMap(rows, q);
     document.querySelectorAll('#cities button').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.city === q.city)); b.textContent = town(b.dataset.city); });
     renderKinds(); renderDest();
   }
+  // ---------- map search: tap a point, pick a radius ----------
+  let map = null, mapCenter = null, radius = 5, layer = null;
+  const RADII = [1, 3, 5, 10, 25];
+  function initMap() {
+    if (map || !window.L) return;
+    map = window.L.map('map', { scrollWheelZoom: false }).setView([42.1, 43.6], 7);
+    window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
+    layer = window.L.layerGroup().addTo(map);
+    map.on('click', e => setCenter({ lat: e.latlng.lat, lng: e.latlng.lng }));
+    search();
+  }
+  function setCenter(c, zoom = true) {
+    mapCenter = c; $('#mapClear').hidden = !c; $('#mapHint').textContent = t(c ? 'mapHint2' : 'mapHint');
+    search();
+    if (c && zoom && map) map.fitBounds(window.L.latLng(c.lat, c.lng).toBounds(radius * 2200));
+  }
+  function renderRadius() {
+    const el = $('#radius'); if (!el) return;
+    el.innerHTML = RADII.map(r => `<button type="button" class="chip" data-r="${r}" aria-pressed="${r === radius}">${r} ${t('kmU')}</button>`).join('');
+  }
+  function drawMap(rows, q) {
+    if (!map) return;
+    layer.clearLayers();
+    if (q.center) {
+      window.L.circle([q.center.lat, q.center.lng], { radius: q.r * 1000, color: '#0E857D', weight: 2, fillColor: '#0E857D', fillOpacity: .1 }).addTo(layer);
+      window.L.circleMarker([q.center.lat, q.center.lng], { radius: 6, color: '#fff', weight: 2, fillColor: '#0A3A37', fillOpacity: 1 }).addTo(layer);
+    }
+    const dated = q.from && q.to && q.to > q.from;
+    const shown = q.center ? rows : find({ ...q, center: null });
+    for (const { h, o } of shown) {
+      if (!h.lat) continue;
+      const price = dated ? (o.best ? o.best.total + ' ₾' : '—') : t('fromP', { p: o.minFrom });
+      const icon = window.L.divIcon({ className: '', html: `<span class="pin${h.promo ? ' promo' : ''}${dated && !o.best ? ' no' : ''}">${esc(price)}</span>`, iconSize: null });
+      window.L.marker([h.lat, h.lng], { icon, title: hname(h) }).addTo(layer)
+        .bindPopup(`<a class="pop" href="${link(h, q)}"><img src="img/h/${h.cover}-s.jpg" alt=""><b>${esc(hname(h))}</b><span>${esc(town(h.city))} · ${esc(price)}</span></a>`);
+    }
+  }
+
   // kinds of stay (mountains, sea, wine, city, nature), each with a photo
   let curKind = '';
   const KIND_PH = { mountain: 'bakuriani-chalet', sea: 'sea-resort', wine: 'qvevri-pods', city: 'tbilisi-yard', nature: 'barrel-cabins' };
@@ -187,6 +237,18 @@
     });
     f.addEventListener('submit', e => { e.preventDefault(); search(); $('#results').scrollIntoView({ behavior: 'smooth' }); });
     $('#cities').addEventListener('click', e => { const b = e.target.closest('[data-city]'); if (!b) return; f.city.value = f.city.value === b.dataset.city ? '' : b.dataset.city; search(); });
+    renderRadius();
+    $('#mapBtn').addEventListener('click', () => {
+      const box = $('#mapBox'), open = box.hidden; box.hidden = !open; $('#mapBtn').setAttribute('aria-expanded', String(open));
+      if (open) { initMap(); setTimeout(() => map && map.invalidateSize(), 50); } else setCenter(null, false);
+    });
+    $('#radius').addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; radius = +b.dataset.r; renderRadius(); setCenter(mapCenter); });
+    $('#mapClear').addEventListener('click', () => { setCenter(null, false); map && map.setView([42.1, 43.6], 7); });
+    $('#nearMe').addEventListener('click', () => {
+      if (!navigator.geolocation) return;
+      $('#mapHint').textContent = t('locating');
+      navigator.geolocation.getCurrentPosition(p => setCenter({ lat: p.coords.latitude, lng: p.coords.longitude }), () => { $('#mapHint').textContent = t('noLoc'); }, { timeout: 10000 });
+    });
     $('#kinds').addEventListener('click', e => { const b = e.target.closest('[data-kind]'); if (!b) return; curKind = curKind === b.dataset.kind ? '' : b.dataset.kind; search(); });
     $('#dest').addEventListener('click', e => { const b = e.target.closest('[data-dest]'); if (!b) return; f.city.value = b.dataset.dest; curKind = ''; search(); $('#results').scrollIntoView({ behavior: 'smooth' }); });
   }

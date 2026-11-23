@@ -8,6 +8,7 @@
 <link rel="icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="site/platform.css?v=20261123c">
 <link rel="preload" as="image" href="img/h/sighnaghi-terrace.jpg">
 </head>
@@ -41,7 +42,19 @@
 
   <section class="results" id="results" aria-live="polite">
     <div class="wrap">
-      <div class="res-head"><h2 id="resTitle">სასტუმროები</h2><p id="resNote"></p></div>
+      <div class="res-head"><h2 id="resTitle">სასტუმროები</h2><p id="resNote"></p>
+        <button type="button" class="btn btn-map" id="mapBtn" aria-expanded="false" aria-controls="mapBox"><span aria-hidden="true">🗺️</span> <span data-t="mapOpen">რუკაზე ძებნა</span></button></div>
+      <div class="map-box" id="mapBox" hidden>
+        <div class="map-tools">
+          <p class="map-hint" id="mapHint" data-t="mapHint">დააჭირე რუკაზე ადგილს, სადაც სასტუმრო გინდა</p>
+          <div class="map-row">
+            <div class="radius" id="radius" role="group" aria-label="Radius"></div>
+            <button type="button" class="chip" id="nearMe" data-t="nearMe">📍 ჩემთან ახლოს</button>
+            <button type="button" class="chip" id="mapClear" data-t="mapClear" hidden>გასუფთავება</button>
+          </div>
+        </div>
+        <div class="map" id="map"></div>
+      </div>
       <div class="cards" id="cards"></div>
     </div>
   </section>
@@ -82,6 +95,7 @@
     <p class="small" data-t="demo">დემო: მონაცემები მხოლოდ ამ ბრაუზერში ინახება</p>
   </div>
 </footer>
+<script src="vendor/leaflet/leaflet.js"></script>
 <script src="site/places.js?v=20261123c"></script>
 <script src="site/hotels.js?v=20261123c"></script>
 <script src="site/platform.js?v=20261123c"></script>
