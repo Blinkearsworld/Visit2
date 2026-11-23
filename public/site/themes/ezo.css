@@ -1,0 +1,40 @@
+/* ეზო (Courtyard): a family guesthouse. Photos in tall arches, like the windows of a carved wooden balcony;
+   serif headings, white and sage-green ground, soft round shapes. */
+:root {
+  --bg: #FFFFFF; --surface: #FFFFFF; --ink: #22302A; --muted: #5B6A61; --line: #DCE5DF; --band: #EEF3EF; --on-band: #22302A;
+  --display: "Noto Serif Georgian", Georgia, serif; --radius: 14px; --arch: 999px 999px 16px 16px;
+}
+body { line-height: 1.7; }
+.btn { border-radius: 999px; }
+.top { background: color-mix(in srgb, #fff 94%, transparent); }
+.hero { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 5vw, 64px); align-items: center; max-width: calc(var(--max) + 2 * var(--pad)); margin: 0 auto; padding: clamp(28px, 5vw, 64px) var(--pad) !important; }
+.hero-media { order: 2; }
+.hero-media img, .hero-media .ph { aspect-ratio: 4 / 5; border-radius: var(--arch); }
+.hero-city { margin: 0 0 10px; color: var(--accent); font-weight: 700; }
+.hero-name { font-size: clamp(40px, 6.5vw, 76px); font-weight: 700; overflow-wrap: anywhere; }
+.hero-tag { color: var(--muted); }
+.bar { max-width: var(--max); margin: 0 auto; border-radius: 22px; padding: 18px; box-shadow: 0 1px 0 var(--line); }
+.bar input, .bar select { border-radius: 12px; }
+.about { background: var(--band); }
+.about-media img { border-radius: var(--arch); aspect-ratio: 3 / 4; max-width: 440px; margin: 0 auto; }
+.amen li { border-color: transparent; background: var(--band); }
+.room-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 28px; }
+.room { border-radius: var(--radius); }
+.room-media { display: block; }
+.room-media img:first-child, .room-media .ph { aspect-ratio: 4 / 4.4; border-radius: var(--arch); }
+.room-media .second { display: none; }
+.room-body { padding: 18px 6px 4px; text-align: center; }
+.room-text { margin-left: auto; margin-right: auto; }
+.room.picked { outline-offset: 4px; border-radius: 24px; }
+.gallery .grid { gap: 14px; }
+.gallery img { border-radius: var(--radius); }
+.gallery .grid img:nth-child(3n+2) { border-radius: var(--arch); }
+.book { background: var(--band); }
+.book-sum { border-left: 0; border-radius: var(--radius); }
+.book input, .book textarea { border-radius: 12px; }
+@media (max-width: 760px) {
+  .hero { grid-template-columns: 1fr; text-align: center; }
+  .hero-media { order: 0; max-width: 360px; margin: 0 auto; width: 100%; }
+  .hero-tag { margin-left: auto; margin-right: auto; }
+  .bar { margin: 0 var(--pad); }
+}
