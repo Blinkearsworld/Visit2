@@ -129,7 +129,9 @@
     return D.list().filter(h => !h.hidden && (!city || h.city === city) && (!kind || h.kind === kind)).map(h => ({ h, o: offer(h, from, to, g) }))
       .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) : 0) || (!!b.h.promo - !!a.h.promo) || (dated ? (a.o.best?.total || 0) - (b.o.best?.total || 0) : 0));
   };
-  const link = (h, q) => `hotel.html?h=${encodeURIComponent(h.slug)}${q.from && q.to ? `&from=${q.from}&to=${q.to}&g=${q.g}` : ''}`;
+  // this build's stamp (from our own script tag), so a hotel page never comes from an old browser copy
+  const BUILD = ((document.querySelector('script[src*="site/platform.js"]') || {}).src || '').split('?v=')[1] || '';
+  const link = (h, q) => `hotel.html?h=${encodeURIComponent(h.slug)}${q.from && q.to ? `&from=${q.from}&to=${q.to}&g=${q.g}` : ''}${BUILD ? '&v=' + BUILD : ''}`;
   window.V2FIND = { find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t };
 
   // the town list: popular places first, in order of popularity, then every place alphabetically
@@ -205,13 +207,13 @@
   const COLORS = ['#0E857D', '#3F7A4E', '#1F7FB0', '#2F5A8A', '#B4472F', '#E2563B', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
   const showDone = h => {
     $('#doneTitle').textContent = t('ready', { n: h.name });
-    $('#doneSite').href = 'hotel.html?h=my'; $('#doneAdmin').href = 'admin.html?h=my';
+    $('#doneSite').href = 'hotel.html?h=my' + (BUILD ? '&v=' + BUILD : ''); $('#doneAdmin').href = 'admin.html?h=my' + (BUILD ? '&v=' + BUILD : '');
     $('#done').classList.add('show');
   };
   function renderOwners() {
     if (!$('#ownerForm')) return;
     const cur = $('#ownerForm').theme?.value || 'kva', curC = $('#ownerForm').accent?.value || COLORS[0];
-    $('#tplList').innerHTML = TPL.map(([id, demo, nm, note]) => `<figure class="tpl-item"><img src="img/templates/${id}.jpg" alt="${esc(nm[L()])}" loading="lazy"><figcaption><b>${esc(nm[L()])}</b><p>${esc(note[L()])}</p><a href="hotel.html?h=${demo}&theme=${id}">${t('sample')}</a></figcaption></figure>`).join('');
+    $('#tplList').innerHTML = TPL.map(([id, demo, nm, note]) => `<figure class="tpl-item"><img src="img/templates/${id}.jpg" alt="${esc(nm[L()])}" loading="lazy"><figcaption><b>${esc(nm[L()])}</b><p>${esc(note[L()])}</p><a href="hotel.html?h=${demo}&theme=${id}${BUILD ? '&v=' + BUILD : ''}">${t('sample')}</a></figcaption></figure>`).join('');
     $('#tplChoice').innerHTML = TPL.map(([id, , nm]) => `<label><input type="radio" name="theme" value="${id}"${id === cur ? ' checked' : ''}><span class="opt">${esc(nm[L()])}</span></label>`).join('');
     $('#colChoice').innerHTML = COLORS.map(c => `<label><input type="radio" name="accent" value="${c}"${c === curC ? ' checked' : ''} aria-label="${t('fCol')} ${c}"><span class="opt dot" style="--c:${c}"></span></label>`).join('');
     const mine = D.mine(); if (mine) showDone(mine);
