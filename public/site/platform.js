@@ -32,7 +32,7 @@
     free: ['თავისუფალი', 'available', 'свободно'], nightsW: ['ღამე', 'nights', 'ноч.'], guestsW: ['სტუმარი', 'guests', 'гост.'], perNight: ['ღამე', 'night', 'ночь'],
     fromP: ['{p} ₾-დან', 'from {p} ₾', 'от {p} ₾'], tagFree: ['✓ თავისუფალია ამ თარიღებზე', '✓ Available on these dates', '✓ Свободно на эти даты'],
     tagNo: ['ამ თარიღებზე თავისუფალი არ არის', 'Not available on these dates', 'На эти даты мест нет'], tagReal: ['✓ ნამდვილი თავისუფალი ნომრები', '✓ Real availability', '✓ Реальная доступность'],
-    yours: ['შენი სასტუმრო', 'your hotel', 'ваш отель'], none: ['ამ ქალაქში სასტუმრო ჯერ არ არის.', 'No hotels in this city yet.', 'В этом городе пока нет отелей.'],
+    yours: ['შენი სასტუმრო', 'your hotel', 'ваш отель'], none: ['აქ Visit2.ge-ზე სასტუმრო ან ბინა ჯერ არ არის. სცადე ახლომდებარე ადგილი.', 'No hotels or flats here on Visit2.ge yet. Try a place nearby.', 'Здесь на Visit2.ge пока нет отелей и квартир. Попробуйте место рядом.'],
     oSlogan: ['შენი ვიზიტ2 უკვე გეძებს', 'Your guests are already looking for you', 'Ваши гости уже ищут вас'],
     oH1: ['შენი სასტუმროს საიტი, ჯავშნები და ჩატბოტი ერთ ადგილას', 'Your hotel website, bookings and chatbot in one place', 'Сайт отеля, брони и чат-бот в одном месте'],
     oLead: ['აირჩიე შაბლონი, ჩაწერე სახელი, და საიტი მზადაა. ჯავშნებს, ფასებს და კალენდარს ადმინში მართავ, სტუმრებს ჩატბოტი პასუხობს.', 'Pick a template, type your name, and the site is ready. Manage bookings, prices and the calendar in the admin; the chatbot answers guests.', 'Выберите шаблон, впишите название, и сайт готов. Брони, цены и календарь в админке, гостям отвечает чат-бот.'],
@@ -60,8 +60,12 @@
   const t = (k, v = {}) => String((T[k] || [k])[L()] ?? T[k][0]).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');
   const MONTHS = { ka: ['იან', 'თებ', 'მარ', 'აპრ', 'მაი', 'ივნ', 'ივლ', 'აგვ', 'სექ', 'ოქტ', 'ნოე', 'დეკ'], en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], ru: ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'] };
   // town names shown to visitors in their language (the demo towns; owners type their own)
-  const TOWN = { 'ბაკურიანი': ['Bakuriani', 'Бакуриани'], 'ბორჯომი': ['Borjomi', 'Боржоми'], 'თბილისი': ['Tbilisi', 'Тбилиси'], 'აბასთუმანი': ['Abastumani', 'Абастумани'] };
+  const PLACES = window.V2PLACES || [];
+  const TOWN = Object.fromEntries(PLACES.map(p => [p[0], [p[1], p[2]]]));
   const town = c => (lang === 'ka' || !TOWN[c] ? c : TOWN[c][lang === 'en' ? 0 : 1]);
+  // every town in the list plus any town an owner typed; popular ones first
+  const allTowns = () => { const own = D.list().map(h => h.city).filter(c => !TOWN[c]); return [...PLACES.map(p => p[0]), ...new Set(own)]; };
+  const popular = () => [...new Set([...PLACES.filter(p => p[3]).map(p => p[0]), ...D.list().map(h => h.city)])];
   const NAME = { 'მთის სახლი': ['Mountain House', 'Горный дом'], 'ნინოს ეზო': ["Nino's Courtyard", 'Двор Нино'], 'ძველი უბნის ბინები': ['Old Town Apartments', 'Апартаменты в Старом городе'], 'ტყის კოტეჯები': ['Forest Cottages', 'Лесные коттеджи'] };
   const hname = h => (lang === 'ka' || !NAME[h.name] ? h.name : NAME[h.name][lang === 'en' ? 0 : 1]);
   const TYPE = { 'სტანდარტული ორადგილიანი': ['Standard double', 'Стандартный двухместный'], 'საოჯახო, 1 საძინებლით (4+1)': ['Family, 1 bedroom', 'Семейный, 1 спальня'], 'ლუქსი, 2 საძინებლით': ['Suite, 2 bedrooms', 'Люкс, 2 спальни'] };
@@ -111,7 +115,7 @@
       .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) || ((a.o.best?.total || 0) - (b.o.best?.total || 0)) : 0));
   };
   const link = (h, q) => `hotel.html?h=${encodeURIComponent(h.slug)}${q.from && q.to ? `&from=${q.from}&to=${q.to}&g=${q.g}` : ''}`;
-  window.V2FIND = { find, link, cities: () => [...new Set(D.list().map(h => h.city))], town, hname, fmt, today, addDays, t };
+  window.V2FIND = { find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t };
 
   function search() {
     const f = $('#search'); if (!f) return;
@@ -132,9 +136,9 @@
     [...f.city.options].forEach(o => { if (o.value) o.textContent = town(o.value); });
   }
   if ($('#search')) {
-    const f = $('#search'), cities = window.V2FIND.cities();
-    f.city.insertAdjacentHTML('beforeend', cities.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join(''));
-    $('#cities').innerHTML = cities.map(c => `<button type="button" data-city="${esc(c)}" aria-pressed="false">${esc(c)}</button>`).join('');
+    const f = $('#search');
+    f.city.insertAdjacentHTML('beforeend', allTowns().map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join(''));
+    $('#cities').innerHTML = popular().map(c => `<button type="button" data-city="${esc(c)}" aria-pressed="false">${esc(c)}</button>`).join('');
     f.from.min = today(); f.to.min = addDays(today(), 1);
     f.addEventListener('change', e => {
       if (e.target === f.from && f.from.value && (!f.to.value || f.to.value <= f.from.value)) f.to.value = addDays(f.from.value, 2);
@@ -173,6 +177,9 @@
     const mine = D.mine(); if (mine) showDone(mine);
   }
   if ($('#ownerForm')) {
+    const dl = document.createElement('datalist'); dl.id = 'towns';
+    dl.innerHTML = PLACES.map(p => `<option value="${esc(p[0])}">`).join('');
+    document.body.appendChild(dl); $('#ownerForm').city.setAttribute('list', 'towns');
     $('#ownerForm').addEventListener('submit', e => {
       e.preventDefault();
       const f = e.target, name = f.name.value.trim(), city = f.city.value.trim(), msg = $('#formMsg');

@@ -13,6 +13,8 @@
     gFind: ['🔎 სასტუმროს პოვნა', '🔎 Find a hotel', '🔎 Найти отель'], gHow: ['როგორ ვჯავშნი?', 'How do I book?', 'Как забронировать?'],
     gPay: ['როგორ ვიხდი?', 'How do I pay?', 'Как оплатить?'], gOwner: ['სასტუმრო მაქვს', 'I own a hotel', 'У меня отель'],
     gWhere: ['სად გინდა დასვენება?', 'Where would you like to stay?', 'Где хотите остановиться?'], gAny: ['სულ ერთია', 'Anywhere', 'Неважно'],
+    gNoTown: ['ეს ადგილი ვერ ვიპოვე. აირჩიე ღილაკით ან სხვანაირად ჩაწერე.', 'I could not find that place. Pick a button or try another spelling.', 'Не нашёл такое место. Выберите кнопку или напишите иначе.'],
+    gWhere2: ['ან ჩაწერე ქალაქის სახელი', 'or type a town', 'или напишите город'],
     gWhen: ['როდის?', 'When?', 'Когда?'], gThisWk: ['ამ შაბათ-კვირას', 'This weekend', 'В эти выходные'], gNextWk: ['შემდეგ შაბათ-კვირას', 'Next weekend', 'В следующие выходные'],
     gOther: ['სხვა თარიღი', 'Other dates', 'Другие даты'], gAskDates: ['ჩაწერე თარიღები ასე: 15.01–18.01', 'Type the dates like this: 15.01–18.01', 'Напишите даты так: 15.01–18.01'],
     gBadDates: ['ვერ გავიგე. ჩაწერე ასე: 15.01–18.01', 'I did not get that. Type like: 15.01–18.01', 'Не понял. Напишите так: 15.01–18.01'],
@@ -91,8 +93,13 @@
   }
   const gMore = () => choose([{ t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]);
   function gWhere() {
-    say(esc(m('gWhere')));
-    choose([...F.cities().map(c => ({ t: F.town(c), f: () => { q.city = c; gWhen(); } })), { t: m('gAny'), f: () => { q.city = ''; gWhen(); } }]);
+    say(esc(m('gWhere')) + '<br><small>' + esc(m('gWhere2')) + '</small>');
+    choose([...F.cities().slice(0, 10).map(c => ({ t: F.town(c), f: () => { q.city = c; gWhen(); } })), { t: m('gAny'), f: () => { q.city = ''; gWhen(); } }]);
+    onText = v => {
+      const k = v.trim().toLowerCase(), hit = F.allTowns().find(c => [c, F.town(c)].some(n => n.toLowerCase().startsWith(k) || n.toLowerCase().includes(k)));
+      if (!hit) { ask(m('gNoTown'), onText); return; }
+      say(esc(F.town(hit))); q.city = hit; onText = null; gWhen();
+    };
   }
   function gWhen() {
     say(esc(m('gWhen')));
