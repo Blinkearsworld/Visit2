@@ -1,0 +1,14 @@
+{
+  "name": "visit2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler d1 migrations apply DB --local && wrangler d1 execute DB --local --file scripts/seed-dev.sql && wrangler dev",
+    "test": "node scripts/check-sql.mjs && vitest run"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.9.0",
+    "vitest": "^4.1.12",
+    "wrangler": "^4.166.0"
+  }
+}
