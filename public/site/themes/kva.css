@@ -12,7 +12,8 @@ h2 { font-size: clamp(24px, 3.4vw, 34px); }
 .hero-text { position: absolute; left: var(--pad); right: var(--pad); bottom: clamp(28px, 6vw, 64px); max-width: var(--max); }
 .hero-city { margin: 0 0 6px; font-weight: 700; letter-spacing: .04em; color: color-mix(in srgb, var(--accent) 45%, #fff); }
 .hero-name { font-size: clamp(44px, 10vw, 128px); line-height: .95; margin: 0 0 14px; overflow-wrap: anywhere; }
-.hero-tag { opacity: .92; }
+.hero-tag { opacity: .95; }
+.hero-text { text-shadow: 0 1px 12px rgba(0,0,0,.3); }
 .bar { border-top: 4px solid var(--accent); }
 .bar input, .bar select { background: #33414A; color: #fff; border-color: #44535C; color-scheme: dark; }
 .about-media img { aspect-ratio: 3 / 4; }

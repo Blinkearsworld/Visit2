@@ -6,7 +6,7 @@
 .btn { border-radius: 999px; }
 .btn-ghost, .btn-line { color: var(--ink); }
 .hero { display: grid; padding: clamp(16px, 3vw, 28px) var(--pad) 0 !important; }
-.hero-media { max-width: none !important; }
+.hero-media { max-width: none !important; width: 100%; }
 .hero-media img, .hero-media .ph { height: min(74vh, 700px); border-radius: var(--radius); }
 .hero-text { position: relative; margin: -120px auto 0 !important; width: calc(100% - 2 * var(--pad)); padding: 26px 28px; background: var(--surface); border-radius: var(--radius); max-width: 760px; }
 .hero-city { margin: 0 0 4px; color: var(--accent); font-weight: 700; filter: brightness(1.6); }

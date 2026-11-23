@@ -2,7 +2,7 @@
    The hotel edits them in admin → საიტის მართვა; only the changes are stored (D1 on Cloudflare, this browser in the demo).
    Elements marked data-c="key" in index.html are editable; anything not changed keeps the page's own text. */
 (() => {
-  const DEMO = /github\.io$/.test(location.hostname) || location.protocol === 'file:' || location.port === '8765';
+  const DEMO = /github\.io$/.test(location.hostname) || location.protocol === 'file:' || ['8765', '8799'].includes(location.port);
   const K_CACHE = 'v2-content', K_DEMO = 'v2-content-demo', K_PREVIEW = 'v2-content-preview';
   const ls = {
     get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } },
