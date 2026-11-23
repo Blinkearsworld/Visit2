@@ -14,42 +14,95 @@ window.V2DEMO = (() => {
   const P = 'img/demo/';
   const roomsPh = { std: { photos: [P + 'room-std.jpg', P + 'room-std2.jpg'] }, family: { photos: [P + 'room-family.jpg', P + 'room-family2.jpg'] }, suite: { photos: [P + 'room-suite.jpg', P + 'room-suite2.jpg'] } };
 
+  // kind: what guests look for on Visit2.ge (mountain, sea, wine, city, nature)
+  const I = n => 'img/h/' + n + '.jpg';
+  const T3 = (ka, en, ru) => ({ ka, en, ru });
+  const H = (slug, name, nameEn, nameRu, city, kind, theme, accent, k, photos, tag, about, amenities, loc, extra = {}) => ({
+    slug, name, nameT: { en: nameEn, ru: nameRu }, city, kind, theme, accent, types: types(k), cover: photos[0], ...extra,
+    site: { hero: { img: I(photos[0]), tagline: tag }, about: { img: I(photos[1] || photos[0]), text: about },
+      amenities, gallery: photos.slice(1).map(I), rooms: roomsPh, location: { text: loc, map: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(city) } },
+  });
   const HOTELS = [
-    { slug: 'mta', name: 'მთის სახლი', city: 'ბაკურიანი', theme: 'kva', accent: '#0E857D', types: types(1),
-      site: { hero: { img: P + 'hero.jpg', tagline: { ka: 'რვა თბილი ნომერი ტყის პირას, საბაგიროდან ხუთ წუთში', en: 'Eight warm rooms at the forest edge, five minutes from the lifts', ru: 'Восемь тёплых номеров у леса, в пяти минутах от подъёмника' } },
-        about: { img: P + 'facade.jpg', text: { ka: 'პატარა საოჯახო სასტუმრო, სადაც დილით ტყის სუნი შემოდის და საღამოს ბუხართან ვსხდებით. ყველა ნომერს აქვს სამზარეულო და აივანი.', en: 'A small family hotel: pine-scented mornings and evenings by the fire. Every room has a kitchen and a balcony.', ru: 'Небольшой семейный отель: утром пахнет лесом, вечером собираемся у камина. В каждом номере кухня и балкон.' } },
-        amenities: ['wifi', 'parking', 'kitchen', 'fireplace', 'ski', 'pets'], gallery: [P + 'lounge.jpg', P + 'fire.jpg', P + 'garden.jpg', P + 'games.jpg', P + 'pool.jpg', P + 'pergola.jpg'], rooms: roomsPh,
-        location: { text: { ka: 'ტყის ქუჩა 12. საბაგირომდე 400 მ.', en: '12 Forest St. 400 m to the lifts.', ru: 'Лесная ул. 12. До подъёмника 400 м.' }, map: 'https://www.google.com/maps/search/?api=1&query=Bakuriani' } } },
-    { slug: 'nino', name: 'ნინოს ეზო', city: 'ბორჯომი', theme: 'ezo', accent: '#3F7A4E', promo: true, types: types(.8),
-      site: { hero: { img: P + 'garden.jpg', tagline: { ka: 'საოჯახო სახლი დიდი ეზოთი, მინერალური წყლების პარკთან ახლოს', en: 'A family house with a big garden near the mineral water park', ru: 'Семейный дом с большим двором рядом с парком минеральных вод' } },
-        about: { img: P + 'pergola.jpg', text: { ka: 'ეზოში ბავშვები თამაშობენ, ფანჩატურში საუზმე იშლება, საღამოს კი მაყალი ინთება. ნინო და მისი ოჯახი ყველა სტუმარს სახლში ხვდება.', en: 'Kids play in the garden, breakfast is served in the pergola and the grill is lit at night. Nino and her family welcome every guest at home.', ru: 'Дети играют во дворе, завтрак накрывают в беседке, вечером разжигают мангал. Нино с семьёй встречают каждого гостя дома.' } },
-        amenities: ['wifi', 'parking', 'breakfast', 'garden', 'bbq', 'kids', 'pool'], gallery: [P + 'pergola.jpg', P + 'pool.jpg', P + 'garden.jpg', P + 'games.jpg'], rooms: roomsPh,
-        location: { text: { ka: 'რუსთაველის ქუჩა 40, ცენტრალურ პარკამდე 7 წუთი.', en: '40 Rustaveli St, 7 minutes to the central park.', ru: 'ул. Руставели 40, 7 минут до центрального парка.' }, map: 'https://www.google.com/maps/search/?api=1&query=Borjomi' } } },
-    { slug: 'dzveli', name: 'ძველი უბნის ბინები', city: 'თბილისი', theme: 'kalaki', accent: '#B4472F', types: types(.9),
-      site: { hero: { img: P + 'lounge.jpg', tagline: { ka: 'ბინები ძველ თბილისში, აბანოთუბნიდან ხუთ წუთში ფეხით', en: 'Apartments in Old Tbilisi, five minutes on foot from the baths', ru: 'Апартаменты в Старом Тбилиси, в пяти минутах от бань' } },
-        about: { img: P + 'room-suite.jpg', text: { ka: 'ხუთი ბინა ერთ შენობაში: თითოეულს აქვს სამზარეულო, სწრაფი ინტერნეტი და თვითჩეკინი. ქალაქის ცენტრი კარს გარეთაა.', en: 'Five apartments in one building, each with a kitchen, fast internet and self check-in. The centre is right outside.', ru: 'Пять квартир в одном доме: кухня, быстрый интернет и самостоятельное заселение. Центр прямо за дверью.' } },
-        amenities: ['wifi', 'kitchen', 'center', 'transfer', 'balcony'], gallery: [P + 'room-std.jpg', P + 'room-family.jpg', P + 'lounge.jpg', P + 'room-suite2.jpg'], rooms: roomsPh,
-        location: { text: { ka: 'ლესელიძის ქუჩა 8, ძველი თბილისი.', en: '8 Leselidze St, Old Tbilisi.', ru: 'ул. Леселидзе 8, Старый Тбилиси.' }, map: 'https://www.google.com/maps/search/?api=1&query=Old+Tbilisi' } } },
-    { slug: 'kotejebi', name: 'ტყის კოტეჯები', city: 'აბასთუმანი', theme: 'tye', accent: '#3E9B5F', types: types(.75),
-      site: { hero: { img: P + 'pool.jpg', tagline: { ka: 'ხის კოტეჯები ფიჭვნარში, აუზით და სიჩუმით', en: 'Wooden cottages in a pine forest, with a pool and silence', ru: 'Деревянные коттеджи в сосновом лесу, бассейн и тишина' } },
-        about: { img: P + 'fire.jpg', text: { ka: 'აბასთუმნის ჰაერი, ხის სახლები და ბუხარი. მოდით დასასვენებლად, ქალაქის ხმაურისგან შორს.', en: 'Abastumani air, wooden houses and a fireplace. Come to rest far from city noise.', ru: 'Воздух Абастумани, деревянные дома и камин. Отдых вдали от городского шума.' } },
-        amenities: ['wifi', 'parking', 'pool', 'fireplace', 'bbq', 'pets'], gallery: [P + 'pool.jpg', P + 'fire.jpg', P + 'garden.jpg'], rooms: roomsPh,
-        location: { text: { ka: 'ობსერვატორიის გზა, ცენტრიდან 3 კმ.', en: 'Observatory road, 3 km from the centre.', ru: 'Дорога к обсерватории, 3 км от центра.' }, map: 'https://www.google.com/maps/search/?api=1&query=Abastumani' } } },
+    H('mta', 'მთის სახლი', 'Mountain House', 'Горный дом', 'ბაკურიანი', 'mountain', 'kva', '#0E857D', 1, ['bakuriani-chalet', 'ski-spa', 'gudauri-lodge'],
+      T3('თბილი ხის სახლი ნაძვნარში, საბაგიროდან ხუთ წუთში', 'A warm wooden house in the firs, five minutes from the lifts', 'Тёплый деревянный дом среди елей, в пяти минутах от подъёмника'),
+      T3('რვა ნომერი, ბუხარი მისაღებში და თხილამურების ოთახი. დილით ცხელი საუზმე, საღამოს ცხელი ღვინო.', 'Eight rooms, a fireplace in the lounge and a ski room. Hot breakfast in the morning, mulled wine at night.', 'Восемь номеров, камин в гостиной и комната для лыж. Утром горячий завтрак, вечером глинтвейн.'),
+      ['wifi', 'parking', 'fireplace', 'ski', 'breakfast', 'pets'], T3('დიდველის გზა 4, საბაგირომდე 400 მ.', '4 Didveli Rd, 400 m to the lifts.', 'Дорога Дидвели 4, 400 м до подъёмника.')),
+    H('nino', 'ნინოს ეზო', "Nino's Courtyard", 'Двор Нино', 'ბორჯომი', 'nature', 'ezo', '#3F7A4E', .8, ['blue-house', 'imereti-garden', 'marani-yard'],
+      T3('ცისფერი სახლი დიდ ეზოში, კაკლის ხის ჩრდილში', 'A blue house in a big garden, in the shade of a walnut tree', 'Голубой дом в большом саду, в тени ореха'),
+      T3('საუზმე ეზოში იშლება, ბავშვები ბალახზე თამაშობენ, მინერალური წყლების პარკამდე ათი წუთია.', 'Breakfast is served in the garden, kids play on the grass, and the mineral water park is ten minutes away.', 'Завтрак во дворе, дети играют на траве, до парка минеральных вод десять минут.'),
+      ['wifi', 'parking', 'breakfast', 'garden', 'bbq', 'kids'], T3('რუსთაველის ქუჩა 40.', '40 Rustaveli St.', 'ул. Руставели 40.'), { promo: true }),
+    H('dzveli', 'ძველი უბნის ბინები', 'Old Town Apartments', 'Апартаменты в Старом городе', 'თბილისი', 'city', 'kalaki', '#B4472F', .9, ['tbilisi-yard', 'kutaisi-pink'],
+      T3('ბინები თბილისურ ეზოში, აბანოთუბნიდან ხუთ წუთში', 'Apartments in a Tbilisi courtyard, five minutes from the baths', 'Квартиры в тбилисском дворике, в пяти минутах от бань'),
+      T3('ხუთი ბინა ხის აივნებით: სამზარეულო, სწრაფი ინტერნეტი და თვითჩეკინი. ქალაქი კარს გარეთაა.', 'Five flats with wooden balconies: kitchen, fast internet and self check-in. The city is right outside.', 'Пять квартир с деревянными балконами: кухня, быстрый интернет, самостоятельное заселение.'),
+      ['wifi', 'kitchen', 'center', 'balcony'], T3('ლესელიძის ქუჩა 8.', '8 Leselidze St.', 'ул. Леселидзе 8.')),
+    H('kotejebi', 'ტყის კოტეჯები', 'Forest Cottages', 'Лесные коттеджи', 'აბასთუმანი', 'nature', 'tye', '#3E9B5F', .75, ['barrel-cabins', 'a-frame'],
+      T3('ხის კოტეჯები ფიჭვნარში, ცხელი აბაზანით ღია ცის ქვეშ', 'Wooden cabins in the pines, with an outdoor hot tub', 'Деревянные домики в соснах, с купелью под открытым небом'),
+      T3('ოთხი კოტეჯი, თითოს საკუთარი ტერასა. ჰაერი, სიჩუმე და ღამით ვარსკვლავები ობსერვატორიის მხრიდან.', 'Four cabins, each with its own deck. Clean air, silence and the stars from the observatory hill at night.', 'Четыре домика, у каждого своя терраса. Воздух, тишина и звёзды над обсерваторией.'),
+      ['wifi', 'parking', 'bbq', 'pets', 'balcony'], T3('ობსერვატორიის გზა, ცენტრიდან 3 კმ.', 'Observatory road, 3 km from the centre.', 'Дорога к обсерватории, 3 км от центра.')),
+    H('alazani', 'ალაზნის ვილა', 'Alazani Villa', 'Вилла Алазани', 'თელავი', 'wine', 'ghvino', '#7A2638', 1.3, ['kakheti-villa', 'stone-pool', 'marani-yard'],
+      T3('ქვის ვილა ვენახში, აუზით და კავკასიონის ხედით', 'A stone villa in the vineyard, with a pool and a view of the Caucasus', 'Каменная вилла среди виноградников, с бассейном и видом на Кавказ'),
+      T3('საკუთარი მარანი და ღვინის დეგუსტაცია, საღამოს ვახშამი ტერასაზე, დილით აუზი და ალაზნის ველი.', 'Our own marani and tastings, dinner on the terrace, a morning swim above the Alazani valley.', 'Свой марани и дегустации, ужин на террасе, утром бассейн над Алазанской долиной.'),
+      ['wifi', 'parking', 'pool', 'breakfast', 'garden', 'balcony'], T3('წინანდლის გზა, თელავიდან 6 კმ.', 'Tsinandali road, 6 km from Telavi.', 'Дорога на Цинандали, 6 км от Телави.'), { promo: true }),
+    H('qvevri', 'ქვევრის სახლები', 'Qvevri Houses', 'Дома-квеври', 'ყვარელი', 'wine', 'peradi', '#B4472F', 1.1, ['qvevri-pods', 'marani-yard'],
+      T3('იცხოვრე ქვევრში: სამი ოთახი ვენახის შუაგულში', 'Sleep in a qvevri: three rooms in the middle of a vineyard', 'Ночь в квеври: три номера посреди виноградника'),
+      T3('ქვევრის ფორმის სახლები დიდი ფანჯრით ველზე. ღვინო ჩვენი მარნიდან, საუზმე ტერასაზე.', 'Qvevri-shaped houses with a big window onto the valley. Wine from our marani, breakfast on the deck.', 'Дома в форме квеври с большим окном на долину. Вино из нашего марани, завтрак на террасе.'),
+      ['wifi', 'parking', 'breakfast', 'balcony'], T3('ვენახის გზა, ყვარლის ცენტრიდან 4 კმ.', 'Vineyard road, 4 km from Kvareli.', 'Дорога через виноградники, 4 км от Кварели.')),
+    H('terasa', 'სიღნაღის ტერასა', 'Sighnaghi Terrace', 'Терраса Сигнахи', 'სიღნაღი', 'wine', 'klasika', '#8A5A2B', .95, ['sighnaghi-terrace', 'tbilisi-yard'],
+      T3('საუზმე ტერასაზე, ქვემოთ მთელი ალაზნის ველი', 'Breakfast on the terrace with the whole Alazani valley below', 'Завтрак на террасе, внизу вся Алазанская долина'),
+      T3('სიყვარულის ქალაქის ძველ ქუჩაზე: ექვსი ნომერი თაღოვანი ფანჯრებით და ველის ხედით.', 'On an old street of the city of love: six rooms with arched windows and valley views.', 'На старой улице города любви: шесть номеров с арочными окнами и видом на долину.'),
+      ['wifi', 'breakfast', 'center', 'balcony'], T3('ბარატაშვილის ქუჩა 15.', '15 Baratashvili St.', 'ул. Бараташвили 15.')),
+    H('zghva', 'ზღვის ხედი', 'Sea View', 'Вид на море', 'ბათუმი', 'sea', 'zghva', '#1F7FB0', 1.2, ['sea-resort', 'sea-deck'],
+      T3('აუზი, ბაღი და ზღვამდე ორმოცი ნაბიჯი', 'A pool, a garden and forty steps to the sea', 'Бассейн, сад и сорок шагов до моря'),
+      T3('ნომრები აივნით ზღვაზე, აუზი ჰორტენზიების ბაღში, ბულვარამდე ფეხით ათი წუთი.', 'Rooms with sea-facing balconies, a pool in a hydrangea garden, ten minutes on foot to the boulevard.', 'Номера с балконами на море, бассейн в саду гортензий, до бульвара десять минут пешком.'),
+      ['wifi', 'pool', 'sea', 'breakfast', 'parking'], T3('მწვანე კონცხის გზა, ბათუმის ცენტრიდან 8 კმ.', 'Green Cape road, 8 km from central Batumi.', 'Дорога на Зелёный мыс, 8 км от центра Батуми.')),
+    H('gonio', 'გონიოს სახლი', 'Gonio Hill House', 'Дом на холме в Гонио', 'გონიო', 'sea', 'minimali', '#1F1A17', 1, ['sea-deck', 'sea-resort'],
+      T3('შუშის სახლი ბორცვზე, ჯაკუზით და ზღვის ხედით', 'A glass house on the hill, with a hot tub and a sea view', 'Стеклянный дом на холме, с джакузи и видом на море'),
+      T3('ორისთვის: საწოლიდან ზღვა ჩანს, ტერასაზე ჯაკუზია, ქვემოთ ციტრუსების ბაღი.', 'For two: the sea from your bed, a hot tub on the deck, a citrus garden below.', 'Для двоих: море видно из кровати, джакузи на террасе, внизу цитрусовый сад.'),
+      ['wifi', 'sea', 'parking', 'balcony'], T3('გონიოს ზედა გზა.', 'Upper Gonio road.', 'Верхняя дорога Гонио.')),
+    H('gudauri', 'გუდაური ლოჯი', 'Gudauri Lodge', 'Гудаури Лодж', 'გუდაური', 'mountain', 'minimali', '#2F5A8A', 1.25, ['gudauri-lodge', 'ski-spa'],
+      T3('თანამედროვე ლოჯი ფერდობზე: თხილამურით კარამდე', 'A modern lodge on the slope: ski in, ski out', 'Современный лодж на склоне: на лыжах до двери'),
+      T3('თორმეტი ნომერი აივნით მთაზე, სადილი პანორამულ რესტორანში, საბაგირო ასი მეტრში.', 'Twelve rooms with mountain balconies, dinner in the panoramic restaurant, the lift a hundred metres away.', 'Двенадцать номеров с балконами на горы, ужин в панорамном ресторане, подъёмник в ста метрах.'),
+      ['wifi', 'parking', 'ski', 'breakfast'], T3('ახალი გუდაური, ქვემო ტრასასთან.', 'New Gudauri, by the lower run.', 'Новый Гудаури, у нижней трассы.')),
+    H('alpine', 'ალპური სპა', 'Alpine Spa', 'Альпийский спа', 'გუდაური', 'mountain', 'butiki', '#B08D57', 1.8, ['ski-spa', 'gudauri-lodge'],
+      T3('გათბობილი აუზი თოვლში, ტრასების ხედით', 'A heated pool in the snow, facing the slopes', 'Подогреваемый бассейн среди снега, с видом на трассы'),
+      T3('ბუტიკ სასტუმრო ქვისა და ხისგან: სპა, სააუნა და აუზი, რომელიც ზამთარშიც თბილია.', 'A boutique hotel of stone and wood: spa, sauna and a pool that stays warm all winter.', 'Бутик-отель из камня и дерева: спа, сауна и бассейн, тёплый даже зимой.'),
+      ['wifi', 'pool', 'ski', 'breakfast', 'parking'], T3('გუდაურის ზედა პლატო.', 'Upper Gudauri plateau.', 'Верхнее плато Гудаури.')),
+    H('svaneti', 'სვანური სახლი', 'Svan House', 'Сванский дом', 'მესტია', 'mountain', 'kva', '#8A5A2B', .85, ['mestia-house', 'kazbegi-stone'],
+      T3('ქვის სახლი სვანური კოშკის გვერდით', 'A stone house next to a Svan tower', 'Каменный дом рядом со сванской башней'),
+      T3('ოჯახური სასტუმრო: სვანური მარილი და კუბდარი სუფრაზე, აივნიდან უშბა ჩანს.', 'A family guesthouse: Svan salt and kubdari at the table, Ushba from the balcony.', 'Семейный гостевой дом: сванская соль и кубдари за столом, с балкона видна Ушба.'),
+      ['wifi', 'breakfast', 'parking', 'balcony'], T3('სეტის მოედნიდან 600 მ.', '600 m from Seti square.', '600 м от площади Сети.')),
+    H('kazbegi', 'ყაზბეგის ქვა', 'Kazbegi Stone', 'Казбеги Стоун', 'სტეფანწმინდა (ყაზბეგი)', 'mountain', 'butiki', '#2F5A8A', 1.15, ['kazbegi-stone', 'mestia-house'],
+      T3('ვარდისფერი ქვის სასტუმრო მყინვარწვერის ძირას', 'A pink stone hotel at the foot of Kazbek', 'Отель из розового камня у подножия Казбека'),
+      T3('ცამეტი ნომერი ფრანგული აივნებით, ტერასა მწვადით და ნათელი კიბე მთის ხედზე.', 'Thirteen rooms with French balconies, a terrace with a grill and a glass staircase facing the mountains.', 'Тринадцать номеров с французскими балконами, терраса с мангалом и стеклянная лестница с видом на горы.'),
+      ['wifi', 'parking', 'breakfast', 'bbq'], T3('ყაზბეგის ქუჩა 21.', '21 Kazbegi St.', 'ул. Казбеги 21.')),
+    H('racha', 'რაჭის ბაღი', 'Racha Garden', 'Рачинский сад', 'ამბროლაური', 'nature', 'ezo', '#3F7A4E', .8, ['imereti-garden', 'blue-house'],
+      T3('ძველი სახლი ვაზის ფანჩატურით და აუზით მთებში', 'An old house with a vine pergola and a pool in the hills', 'Старый дом с виноградной беседкой и бассейном в горах'),
+      T3('ხვანჭკარის მხარე: საუზმე ფანჩატურში, აუზი ბაღში, ოჯახური ვახშამი.', 'Khvanchkara country: breakfast under the vines, a pool in the garden, family dinners.', 'Край хванчкары: завтрак под лозой, бассейн в саду, семейные ужины.'),
+      ['wifi', 'pool', 'garden', 'breakfast', 'kids'], T3('ამბროლაურის ცენტრიდან 2 კმ.', '2 km from Ambrolauri.', '2 км от Амбролаури.')),
+    H('tba', 'ტბის სასტუმრო', 'Lake Hotel', 'Отель у озера', 'ლაგოდეხი', 'nature', 'minimali', '#0E857D', 1.05, ['lake-hotel', 'forest-concrete'],
+      T3('ტბის პირას: ნავი, ხიდური და ტყე უკან', 'By the lake: a boat, a jetty and the forest behind', 'На берегу озера: лодка, причал и лес за спиной'),
+      T3('ნაკრძალის კარიბჭესთან: ტერასა წყალზე, დილით ნავით გასეირნება, საღამოს ჩანჩქერისკენ ბილიკი.', 'At the gate of the reserve: a terrace on the water, a morning row, an evening walk to the waterfall.', 'У ворот заповедника: терраса над водой, утром лодка, вечером тропа к водопаду.'),
+      ['wifi', 'parking', 'breakfast', 'kids'], T3('ნაკრძალის გზა.', 'Reserve road.', 'Дорога к заповеднику.')),
+    H('kutaisi', 'ქუთაისის სახლი', 'Kutaisi House', 'Дом в Кутаиси', 'ქუთაისი', 'city', 'klasika', '#B4472F', .7, ['kutaisi-pink', 'tbilisi-yard'],
+      T3('ძველი სახლი ცენტრში, ეზოთი ვაზის ქვეშ', 'An old house in the centre, with a courtyard under the vines', 'Старый дом в центре, с двором под лозой'),
+      T3('ექვსი ნომერი ცოლის ქუჩაზე: ფეხით ბაზრამდე და თეთრი ხიდამდე, ეზოში ღვინის საღამოები.', 'Six rooms on a quiet street: walk to the market and the White Bridge, wine evenings in the yard.', 'Шесть номеров на тихой улице: пешком до рынка и Белого моста, винные вечера во дворе.'),
+      ['wifi', 'center', 'breakfast'], T3('ტაბიძის ქუჩა 11.', '11 Tabidze St.', 'ул. Табидзе 11.')),
   ];
+  const KINDS = { mountain: ['მთა', 'Mountains', 'Горы'], sea: ['ზღვა', 'Sea', 'Море'], wine: ['ღვინო და კახეთი', 'Wine country', 'Вино и Кахетия'], city: ['ქალაქი', 'City', 'Город'], nature: ['ბუნება', 'Nature', 'Природа'] };
 
   // only for scripts/check-layout.py: the longest name and town we expect, never listed
-  const STRESS = { slug: 'test-long', hidden: true, name: 'საოჯახო სასტუმრო „დიდი მთის ძველი სახლი“', city: 'სტეფანწმინდა (ყაზბეგი)', theme: 'kva', accent: '#0E857D', types: types(1.4), site: HOTELS[0].site };
+  const STRESS = { slug: 'test-long', hidden: true, name: 'საოჯახო სასტუმრო „დიდი მთის ძველი სახლი“', city: 'სტეფანწმინდა (ყაზბეგი)', theme: 'kva', accent: '#0E857D', types: types(1.4), site: HOTELS[0].site, kind: 'mountain', cover: 'bakuriani-chalet' };
   const MINE = 'v2-my-hotel';
   const mine = () => { try { return JSON.parse(localStorage.getItem(MINE) || 'null'); } catch (e) { return null; } };
   function saveMine({ name, city, theme, accent, email }) {
-    const h = { slug: 'my', mine: true, name, city, theme, accent, email, types: types(1),
-      site: { hero: { img: P + 'facade.jpg', tagline: { ka: 'აქ დაწერეთ ერთი წინადადება თქვენს სასტუმროზე', en: 'One sentence about your hotel', ru: 'Одно предложение о вашем отеле' } },
-        about: { img: P + 'garden.jpg', text: { ka: 'აქ იქნება თქვენი სასტუმროს აღწერა. ტექსტს და ფოტოებს ადმინში შეცვლით.', en: 'Your hotel description goes here. Change texts and photos in admin.', ru: 'Здесь будет описание вашего отеля. Тексты и фото меняются в админке.' } },
+    const h = { slug: 'my', mine: true, name, city, theme, accent, email, types: types(1), kind: 'nature', cover: 'forest-concrete',
+      site: { hero: { img: I('forest-concrete'), tagline: { ka: 'აქ დაწერეთ ერთი წინადადება თქვენს სასტუმროზე', en: 'One sentence about your hotel', ru: 'Одно предложение о вашем отеле' } },
+        about: { img: I('stone-pool'), text: { ka: 'აქ იქნება თქვენი სასტუმროს აღწერა. ტექსტს და ფოტოებს ადმინში შეცვლით.', en: 'Your hotel description goes here. Change texts and photos in admin.', ru: 'Здесь будет описание вашего отеля. Тексты и фото меняются в админке.' } },
         amenities: ['wifi', 'parking'], gallery: [], rooms: roomsPh, location: { text: city } } };
     try { localStorage.setItem(MINE, JSON.stringify(h)); localStorage.removeItem('v2-demo-my'); localStorage.removeItem('v2-demo-look-my'); } catch (e) {}
     return h;
   }
   const list = () => [...(mine() ? [mine()] : []), ...HOTELS];
   const get = slug => list().find(h => h.slug === slug) || (slug === STRESS.slug ? STRESS : null);
-  return { list, get, mine, saveMine, ROOMS, THEMES: ['kva', 'ezo', 'kalaki', 'zghva', 'ghvino', 'minimali', 'tye', 'butiki', 'peradi', 'klasika'] };
+  return { list, get, mine, saveMine, ROOMS, KINDS, THEMES: ['kva', 'ezo', 'kalaki', 'zghva', 'ghvino', 'minimali', 'tye', 'butiki', 'peradi', 'klasika'] };
 })();

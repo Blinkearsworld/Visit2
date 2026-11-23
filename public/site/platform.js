@@ -29,6 +29,8 @@
     bandH: ['გაქვს სასტუმრო ან ბინა?', 'Own a hotel or a flat?', 'У вас отель или квартира?'],
     bandP: ['მიიღე საიტი, ჯავშნების ადმინი და ჩატბოტი. ფიქსირებული 50₾ თვეში, პროცენტის გარეშე. პირველი 30 დღე უფასოა.', 'Get a website, a booking admin and a chatbot. A flat 50₾ a month, no commission. The first 30 days are free.', 'Сайт, админка для броней и чат-бот. 50₾ в месяц, без процентов. Первые 30 дней бесплатно.'],
     bandBtn: ['მფლობელებისთვის', 'For owners', 'Владельцам'], demo: ['დემო: მონაცემები მხოლოდ ამ ბრაუზერში ინახება', 'Demo: data stays in this browser', 'Демо: данные только в этом браузере'],
+    destH: ['სად წავიდეთ', 'Where to go', 'Куда поехать'], howH: ['როგორ მუშაობს', 'How it works', 'Как это работает'],
+    nHotels: ['{n} სასტუმრო', '{n} places to stay', 'Мест: {n}'], nHotel1: ['1 სასტუმრო', '1 place to stay', '1 место'],
     hotels: ['სასტუმროები', 'Hotels', 'Отели'], pickDates: ['აირჩიე თარიღები, რომ ნახო თავისუფალი ნომრები და ფასი', 'Choose dates to see free rooms and the price', 'Выберите даты, чтобы увидеть свободные номера и цену'],
     free: ['თავისუფალი', 'available', 'свободно'], nightsW: ['ღამე', 'nights', 'ноч.'], guestsW: ['სტუმარი', 'guests', 'гост.'], perNight: ['ღამე', 'night', 'ночь'],
     fromP: ['{p} ₾-დან', 'from {p} ₾', 'от {p} ₾'], tagFree: ['✓ თავისუფალია ამ თარიღებზე', '✓ Available on these dates', '✓ Свободно на эти даты'],
@@ -80,8 +82,7 @@
   };
   // popular places in order of popularity (the order in places.js)
   const popular = () => [...new Set([...PLACES.filter(p => p[3]).map(p => p[0]), ...D.list().map(h => h.city)])];
-  const NAME = { 'მთის სახლი': ['Mountain House', 'Горный дом'], 'ნინოს ეზო': ["Nino's Courtyard", 'Двор Нино'], 'ძველი უბნის ბინები': ['Old Town Apartments', 'Апартаменты в Старом городе'], 'ტყის კოტეჯები': ['Forest Cottages', 'Лесные коттеджи'] };
-  const hname = h => (lang === 'ka' || !NAME[h.name] ? h.name : NAME[h.name][lang === 'en' ? 0 : 1]);
+  const hname = h => (lang === 'ka' || !h.nameT ? h.name : h.nameT[lang] || h.name);
   const TYPE = { 'სტანდარტული ორადგილიანი': ['Standard double', 'Стандартный двухместный'], 'საოჯახო, 1 საძინებლით (4+1)': ['Family, 1 bedroom', 'Семейный, 1 спальня'], 'ლუქსი, 2 საძინებლით': ['Suite, 2 bedrooms', 'Люкс, 2 спальни'] };
   const tname = n => (lang === 'ka' || !TYPE[n] ? n : TYPE[n][lang === 'en' ? 0 : 1]);
 
@@ -123,9 +124,9 @@
     }
     return { minFrom, best, n: nights(from, to) };
   }
-  const find = ({ city = '', from = '', to = '', g = 2 }) => {
+  const find = ({ city = '', from = '', to = '', g = 2, kind = '' }) => {
     const dated = from && to && to > from;
-    return D.list().filter(h => !h.hidden && (!city || h.city === city)).map(h => ({ h, o: offer(h, from, to, g) }))
+    return D.list().filter(h => !h.hidden && (!city || h.city === city) && (!kind || h.kind === kind)).map(h => ({ h, o: offer(h, from, to, g) }))
       .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) : 0) || (!!b.h.promo - !!a.h.promo) || (dated ? (a.o.best?.total || 0) - (b.o.best?.total || 0) : 0));
   };
   const link = (h, q) => `hotel.html?h=${encodeURIComponent(h.slug)}${q.from && q.to ? `&from=${q.from}&to=${q.to}&g=${q.g}` : ''}`;
@@ -140,21 +141,37 @@
   }
   function search() {
     const f = $('#search'); if (!f) return;
-    const q = { city: f.city.value, from: f.from.value, to: f.to.value, g: +f.g.value }, dated = q.from && q.to && q.to > q.from;
+    const q = { city: f.city.value, from: f.from.value, to: f.to.value, g: +f.g.value, kind: curKind }, dated = q.from && q.to && q.to > q.from;
     const rows = find(q);
-    $('#resTitle').textContent = q.city ? `${t('hotels')}: ${town(q.city)}` : t('hotels');
+    $('#resTitle').textContent = q.city ? `${t('hotels')}: ${town(q.city)}` : q.kind ? kindName(q.kind) : t('hotels');
     $('#resNote').textContent = dated ? `${fmt(q.from)} – ${fmt(q.to)} · ${q.g} ${t('guestsW')} · ${rows.filter(r => r.o.best).length} ${t('free')}` : t('pickDates');
     $('#cards').innerHTML = rows.map(({ h, o }) => {
-      const img = h.site?.hero?.img || '';
-      const price = dated ? (o.best ? `${o.best.total} ₾ <small>${o.n} ${t('nightsW')} · ${esc(tname(o.best.type))}</small>` : '') : `${t('fromP', { p: o.minFrom })} <small>/ ${t('perNight')}</small>`;
-      const tag = dated ? (o.best ? t('tagFree') : t('tagNo')) : t('tagReal');
+      const img = h.cover ? `img/h/${h.cover}-s.jpg` : h.site?.hero?.img || '';
+      const price = dated ? (o.best ? `${o.best.total} ₾ <small>${o.n} ${t('nightsW')}</small>` : '') : `${t('fromP', { p: o.minFrom })} <small>/ ${t('perNight')}</small>`;
+      const tag = dated ? (o.best ? `${t('tagFree')} · ${esc(tname(o.best.type))}` : t('tagNo')) : t('tagReal');
       return `<a class="card${h.promo ? ' promo' : ''}" href="${link(h, q)}" data-free="${dated && !o.best ? 'no' : 'yes'}">
-  ${h.promo ? `<span class="card-promo">${t('promo')}</span>` : ''}
-  ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : ''}
+  <div class="card-ph">${h.promo ? `<span class="card-promo">${t('promo')}</span>` : ''}${h.kind ? `<span class="card-kind">${esc(kindName(h.kind))}</span>` : ''}
+  ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : ''}</div>
   <div class="card-body"><p class="card-city">${esc(town(h.city))}${h.mine ? ' · ' + t('yours') : ''}</p><h3>${esc(hname(h))}</h3>
   ${price ? `<p class="card-price">${price}</p>` : ''}<p class="card-tag">${tag}</p></div></a>`;
-    }).join('') || `<p>${t('none')}</p>`;
+    }).join('') || `<p class="empty">${t('none')}</p>`;
     document.querySelectorAll('#cities button').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.city === q.city)); b.textContent = town(b.dataset.city); });
+    renderKinds(); renderDest();
+  }
+  // kinds of stay (mountains, sea, wine, city, nature), each with a photo
+  let curKind = '';
+  const KIND_PH = { mountain: 'bakuriani-chalet', sea: 'sea-resort', wine: 'qvevri-pods', city: 'tbilisi-yard', nature: 'barrel-cabins' };
+  const kindName = k => (D.KINDS[k] ? D.KINDS[k][L()] : k);
+  function renderKinds() {
+    const el = $('#kinds'); if (!el) return;
+    el.innerHTML = Object.keys(D.KINDS).map(k => `<button type="button" class="kind" data-kind="${k}" aria-pressed="${k === curKind}"><img src="img/h/${KIND_PH[k]}-s.jpg" alt="" loading="lazy">${esc(kindName(k))}</button>`).join('');
+  }
+  // places to go: towns with hotels, the first one large
+  const DEST = ['ბაკურიანი', 'თელავი', 'ბათუმი', 'თბილისი', 'გუდაური'];
+  function renderDest() {
+    const el = $('#dest'); if (!el) return;
+    el.innerHTML = DEST.map(c => { const hs = D.list().filter(h => h.city === c && !h.hidden); if (!hs.length) return '';
+      return `<button type="button" class="dest-tile" data-dest="${esc(c)}"><img src="img/h/${hs[0].cover}${c === DEST[0] ? '' : '-s'}.jpg" alt="" loading="lazy"><div><b>${esc(town(c))}</b><span>${t(hs.length === 1 ? 'nHotel1' : 'nHotels', { n: hs.length })}</span></div></button>`; }).join('');
   }
   if ($('#search')) {
     const f = $('#search');
@@ -168,6 +185,8 @@
     });
     f.addEventListener('submit', e => { e.preventDefault(); search(); $('#results').scrollIntoView({ behavior: 'smooth' }); });
     $('#cities').addEventListener('click', e => { const b = e.target.closest('[data-city]'); if (!b) return; f.city.value = f.city.value === b.dataset.city ? '' : b.dataset.city; search(); });
+    $('#kinds').addEventListener('click', e => { const b = e.target.closest('[data-kind]'); if (!b) return; curKind = curKind === b.dataset.kind ? '' : b.dataset.kind; search(); });
+    $('#dest').addEventListener('click', e => { const b = e.target.closest('[data-dest]'); if (!b) return; f.city.value = b.dataset.dest; curKind = ''; search(); $('#results').scrollIntoView({ behavior: 'smooth' }); });
   }
 
   // ---------- owners: templates and sign-up ----------
@@ -175,13 +194,13 @@
     ['kva', 'mta', ['ქვა', 'Stone', 'Камень'], ['მთის სახლისთვის: ფოტო მთელ ეკრანზე და სახელი დიდი მთავრულით.', 'Mountain house: a full-screen photo and the name in large Georgian capitals.', 'Горный дом: фото на весь экран и название крупными грузинскими заглавными.']],
     ['ezo', 'nino', ['ეზო', 'Courtyard', 'Двор'], ['საოჯახო სასტუმროსთვის: თაღოვანი ფოტოები, რბილი ფერები.', 'Family guesthouse: arched photos, soft colours.', 'Семейный дом: фото в арках, мягкие цвета.']],
     ['kalaki', 'dzveli', ['ქალაქი', 'City', 'Город'], ['ბინებისთვის: სუფთა სია, ფასები თვალწინ.', 'Apartments: a clean list with prices in view.', 'Квартиры: чистый список, цены на виду.']],
-    ['zghva', 'mta', ['ზღვა', 'Sea', 'Море'], ['ზღვისპირა სახლისთვის: ტალღის ხაზი, ცისფერი, ნათელი.', 'Seaside house: a wave line, blue and bright.', 'Дом у моря: линия волны, голубой и светлый.']],
-    ['ghvino', 'nino', ['ღვინო', 'Wine', 'Вино'], ['კახური მარანი-სასტუმროსთვის: ღვინისფერი ჩარჩო, ეტიკეტის ხაზები.', 'Kakhetian wine guesthouse: a wine-red frame and label-like rules.', 'Кахетинский гостевой дом с марани: винная рамка, линии как на этикетке.']],
-    ['minimali', 'dzveli', ['მინიმალი', 'Minimal', 'Минимал'], ['დიზაინერული სახლისთვის: ბევრი თეთრი, მშვიდი ტიპოგრაფია.', 'Design house: lots of white, calm type.', 'Дизайнерский дом: много белого, спокойный шрифт.']],
+    ['zghva', 'zghva', ['ზღვა', 'Sea', 'Море'], ['ზღვისპირა სახლისთვის: ტალღის ხაზი, ცისფერი, ნათელი.', 'Seaside house: a wave line, blue and bright.', 'Дом у моря: линия волны, голубой и светлый.']],
+    ['ghvino', 'alazani', ['ღვინო', 'Wine', 'Вино'], ['კახური მარანი-სასტუმროსთვის: ღვინისფერი ჩარჩო, ეტიკეტის ხაზები.', 'Kakhetian wine guesthouse: a wine-red frame and label-like rules.', 'Кахетинский гостевой дом с марани: винная рамка, линии как на этикетке.']],
+    ['minimali', 'gudauri', ['მინიმალი', 'Minimal', 'Минимал'], ['დიზაინერული სახლისთვის: ბევრი თეთრი, მშვიდი ტიპოგრაფია.', 'Design house: lots of white, calm type.', 'Дизайнерский дом: много белого, спокойный шрифт.']],
     ['tye', 'kotejebi', ['ტყე', 'Forest', 'Лес'], ['კოტეჯებისთვის: მუქი მწვანე ფონი, რბილი ფორმები.', 'Cottages: a dark forest-green page, soft shapes.', 'Коттеджи: тёмно-зелёный фон, мягкие формы.']],
-    ['butiki', 'mta', ['ბუტიკი', 'Boutique', 'Бутик'], ['ბუტიკ სასტუმროსთვის: მუქი ლურჯი და სპილენძი, სიმეტრია.', 'Boutique hotel: navy and brass, symmetry.', 'Бутик-отель: тёмно-синий и латунь, симметрия.']],
-    ['peradi', 'nino', ['ფერადი', 'Colourful', 'Яркий'], ['ჰოსტელისთვის და ოჯახებისთვის: დიდი ფერები, მხიარული ფოტოები.', 'Hostels and families: big colour, playful photos.', 'Хостелы и семьи: яркие цвета, весёлые фото.']],
-    ['klasika', 'dzveli', ['კლასიკა', 'Classic', 'Классика'], ['ძველი უბნის სახლისთვის: ფოტო გვერდზე რჩება, ტექსტი მოძრაობს.', 'Old-town house: the photo stays put while the page scrolls.', 'Дом в старом городе: фото остаётся на месте, текст прокручивается.']],
+    ['butiki', 'alpine', ['ბუტიკი', 'Boutique', 'Бутик'], ['ბუტიკ სასტუმროსთვის: მუქი ლურჯი და სპილენძი, სიმეტრია.', 'Boutique hotel: navy and brass, symmetry.', 'Бутик-отель: тёмно-синий и латунь, симметрия.']],
+    ['peradi', 'qvevri', ['ფერადი', 'Colourful', 'Яркий'], ['ჰოსტელისთვის და ოჯახებისთვის: დიდი ფერები, მხიარული ფოტოები.', 'Hostels and families: big colour, playful photos.', 'Хостелы и семьи: яркие цвета, весёлые фото.']],
+    ['klasika', 'terasa', ['კლასიკა', 'Classic', 'Классика'], ['ძველი უბნის სახლისთვის: ფოტო გვერდზე რჩება, ტექსტი მოძრაობს.', 'Old-town house: the photo stays put while the page scrolls.', 'Дом в старом городе: фото остаётся на месте, текст прокручивается.']],
   ];
   const COLORS = ['#0E857D', '#3F7A4E', '#1F7FB0', '#2F5A8A', '#B4472F', '#E2563B', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
   const showDone = h => {

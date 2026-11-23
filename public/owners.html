@@ -10,22 +10,25 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="site/platform.css?v=20261123c">
 </head>
-<body data-chat="owners">
-<header class="p-top">
+<body data-chat="owners" class="owners">
+<header class="p-top on-photo">
   <a class="p-logo" href="index.html"><img src="img/brand/visit2.svg" alt="Visit2.ge" width="62" height="34"></a>
   <nav class="p-nav"><a href="index.html" data-t="navHotels">სასტუმროები</a><a href="owners.html" aria-current="page" data-t="navOwners">მფლობელებს</a></nav>
   <div class="p-langs" role="group" aria-label="Language"><button type="button" data-plang="ka">KA</button><button type="button" data-plang="en">EN</button><button type="button" data-plang="ru">RU</button></div>
 </header>
 <main>
-  <section class="wrap o-hero">
-    <div>
-      <p class="slogan" data-t="oSlogan">შენი ვიზიტ2 უკვე გეძებს</p>
-      <h1 data-t="oH1">შენი სასტუმროს საიტი, ჯავშნები და ჩატბოტი ერთ ადგილას</h1>
-      <p class="lead" data-t="oLead">აირჩიე შაბლონი, ჩაწერე სახელი, და საიტი მზადაა. ჯავშნებს, ფასებს და კალენდარს ადმინში მართავ, სტუმრებს ჩატბოტი პასუხობს.</p>
-      <p class="price-line" data-t="oPrice">50₾ თვეში, საკომისიოს გარეშე. პირველი 30 დღე უფასოა, ბარათი არ გჭირდება.</p>
-      <div class="acts"><a class="btn btn-teal" href="#signup" data-t="create">საიტის შექმნა</a><a class="btn btn-out" href="#templates" data-t="seeTpl">შაბლონების ნახვა</a></div>
+  <section class="o-hero">
+    <img class="hero-bg" src="img/h/ski-spa.jpg" alt="">
+    <div class="wrap o-hero-in">
+      <div class="o-hero-text">
+        <p class="slogan" data-t="oSlogan">შენი ვიზიტ2 უკვე გეძებს</p>
+        <h1 data-t="oH1">შენი სასტუმროს საიტი, ჯავშნები და ჩატბოტი ერთ ადგილას</h1>
+        <p class="lead" data-t="oLead">აირჩიე შაბლონი, ჩაწერე სახელი, და საიტი მზადაა.</p>
+        <p class="price-line" data-t="oPrice">50₾ თვეში, საკომისიოს გარეშე. პირველი 30 დღე უფასოა, ბარათი არ გჭირდება.</p>
+        <div class="acts"><a class="btn btn-teal" href="#signup" data-t="create">საიტის შექმნა</a><a class="btn btn-glass" href="#templates" data-t="seeTpl">შაბლონების ნახვა</a></div>
+      </div>
+      <div class="phone-stack" aria-hidden="true"><img src="img/templates/ezo.jpg" alt=""><img src="img/templates/kva.jpg" alt=""></div>
     </div>
-    <div class="phone-stack" aria-hidden="true"><img src="img/templates/ezo.jpg" alt=""><img src="img/templates/kva.jpg" alt=""></div>
   </section>
   <section class="gets">
     <div class="wrap">
@@ -66,7 +69,8 @@
     </div>
   </section>
   <section class="prices">
-    <div class="wrap">
+    <div class="wrap price-wrap">
+      <div>
       <h2 data-t="pricesH">ფასები</h2>
       <table>
         <tr><td data-t="pr1">საიტი, ადმინი და ჩატბოტი<small>პირველი 30 დღე უფასოდ, ბარათის გარეშე</small></td><td data-t="pr1v">50₾ / თვე</td></tr>
@@ -75,20 +79,25 @@
         <tr><td data-t="pr3">სეზონური პაუზა<small>საიტი რჩება და წინასწარ ჯავშნებს იღებს; 1–6 თვე წელიწადში</small></td><td data-t="pr3v">10₾ / თვე</td></tr>
         <tr><td data-t="pr4">ჩვენ გავაკეთებთ<small>ფოტოები, ტექსტები, Google-ის პროფილი, Facebook-ის და Instagram-ის მიერთება</small></td><td data-t="pr4v">300₾ ერთხელ</td></tr>
       </table>
-    </div>
-  </section>
-  <section class="prices" id="restaurants">
-    <div class="wrap">
+      </div>
+      <div id="restaurants" class="rest-card">
       <h2 data-t="rH">რესტორნებისთვის</h2>
       <p class="small" data-t="rP"></p>
       <table>
         <tr><td data-t="r1"></td><td data-t="r1v"></td></tr>
         <tr><td data-t="r2"></td><td data-t="r2v"></td></tr>
       </table>
+      </div>
     </div>
   </section>
 </main>
-<footer class="p-foot"><span>Visit2.ge</span><a href="index.html" data-t="findHotels">სასტუმროების ძებნა</a></footer>
+<footer class="p-foot">
+  <div class="wrap foot-in">
+    <div><img src="img/brand/visit2.svg" alt="Visit2.ge" width="62" height="34"><p lang="en">Your Visit2 Georgia starts here</p></div>
+    <nav><a href="index.html" data-t="findHotels">სასტუმროების ძებნა</a><a href="#templates" data-t="seeTpl">შაბლონები</a><a href="#restaurants" data-t="rH">რესტორნებისთვის</a></nav>
+    <p class="small" data-t="demo">დემო: მონაცემები მხოლოდ ამ ბრაუზერში ინახება</p>
+  </div>
+</footer>
 <script src="site/places.js?v=20261123c"></script>
 <script src="site/hotels.js?v=20261123c"></script>
 <script src="site/platform.js?v=20261123c"></script>
