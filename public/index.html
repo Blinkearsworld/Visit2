@@ -3,22 +3,57 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>სასტუმრო · Visit2.ge</title>
-<meta name="description" content="ნომრები, ფასები და დაჯავშნა პირდაპირ სასტუმროსთან, საკომისიოს გარეშე.">
+<title>Visit2.ge · სასტუმროები საქართველოში, პირდაპირ და საკომისიოს გარეშე</title>
+<meta name="description" content="იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ სასტუმროსთან. ნამდვილი თავისუფალი ნომრები, საკომისიოს გარეშე.">
 <link rel="icon" href="favicon.ico">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;700;800&family=Noto+Serif+Georgian:wght@500;700&display=swap">
-<link rel="stylesheet" href="site/base.css">
-<link rel="stylesheet" id="themeCss" href="site/themes/kva.css">
-<link rel="stylesheet" href="css/chat.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="site/platform.css">
 </head>
 <body>
-<div id="app"><p class="loading">…</p></div>
-<script src="js/i18n.js"></script>
-<script src="js/store.js"></script>
-<script src="js/content.js"></script>
-<script src="js/chat.js"></script>
-<script src="site/site.js"></script>
+<header class="p-top">
+  <a class="p-logo" href="index.html"><img src="img/brand/visit2.svg" alt="Visit2.ge" width="62" height="34"></a>
+  <nav class="p-nav"><a href="index.html" aria-current="page">სასტუმროები</a><a href="owners.html">მფლობელებს</a></nav>
+</header>
+<main>
+  <section class="g-hero">
+    <div class="wrap">
+      <h1>იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ</h1>
+      <p class="lead">ფასს სასტუმრო თავად აწესებს, შუამავალი არ არის. თავისუფალი ნომრები ნამდვილია: სასტუმროები ჯავშნებს Visit2.ge-ზე მართავენ.</p>
+      <form class="search" id="search">
+        <label><span>ქალაქი ან კურორტი</span><select name="city" id="city"><option value="">ყველა</option></select></label>
+        <label><span>შესვლა</span><input type="date" name="from"></label>
+        <label><span>გასვლა</span><input type="date" name="to"></label>
+        <label><span>სტუმარი</span><select name="g"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+        <button class="btn btn-teal" type="submit">ძებნა</button>
+      </form>
+      <div class="cities" id="cities"></div>
+    </div>
+  </section>
+  <section class="results" id="results" aria-live="polite">
+    <div class="wrap">
+      <div class="res-head"><h2 id="resTitle">სასტუმროები</h2><p id="resNote"></p></div>
+      <div class="cards" id="cards"></div>
+    </div>
+  </section>
+  <section class="why">
+    <div class="wrap">
+      <ul>
+        <li><b>პირდაპირ სასტუმროსთან</b>მოთხოვნა სასტუმროს ეგზავნება და ისინი გირეკავენ დასადასტურებლად.</li>
+        <li><b>გადახდა სასტუმროში</b>წინასწარ ბარათს არ გთხოვთ. გადახდის პირობებს სასტუმრო გეტყვით.</li>
+        <li><b>ნამდვილი თავისუფალი ნომრები</b>სასტუმროები კალენდარს აქვე მართავენ, ამიტომ დაკავებული ნომერი არ გამოჩნდება.</li>
+      </ul>
+    </div>
+  </section>
+  <section class="band">
+    <div class="wrap">
+      <div><h2>გაქვს სასტუმრო ან ბინა?</h2><p>მიიღე საიტი, ჯავშნების ადმინი და ჩატბოტი. ფიქსირებული 50₾ თვეში, პროცენტის გარეშე. პირველი 30 დღე უფასოა.</p></div>
+      <a class="btn" href="owners.html">მფლობელებისთვის</a>
+    </div>
+  </section>
+</main>
+<footer class="p-foot"><span>Visit2.ge</span><span>დემო: მონაცემები მხოლოდ ამ ბრაუზერში ინახება</span></footer>
+<script src="site/hotels.js"></script>
+<script src="site/platform.js"></script>
 </body>
 </html>

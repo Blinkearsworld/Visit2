@@ -67,9 +67,16 @@
   let C = {}; // site content from the server (or DEMO)
   const params = new URLSearchParams(location.search);
   const isDemo = () => !!(J.hotel && J.hotel.demo);
-  const S = () => ({ ...DEMO, ...(C.site || {}), ...(isDemo() ? (loadLocal() || {}) : {}) });
-  const loadLocal = () => { try { return JSON.parse(localStorage.getItem('v2-demo-look') || 'null'); } catch (e) { return null; } };
-  const saveLocal = o => { try { localStorage.setItem('v2-demo-look', JSON.stringify({ ...(loadLocal() || {}), ...o })); } catch (e) {} };
+  const slug = () => (J.hotel && J.hotel.slug) || 'demo';
+  const demoHotel = () => (isDemo() && window.V2DEMO ? window.V2DEMO.get(slug()) : null);
+  const S = () => {
+    const d = demoHotel();
+    const base = d ? { ...d.site, theme: d.theme, accent: d.accent } : DEMO;
+    return { ...base, ...(C.site || {}), ...(isDemo() ? (loadLocal() || {}) : {}) };
+  };
+  const lookKey = () => 'v2-demo-look-' + slug();
+  const loadLocal = () => { try { return JSON.parse(localStorage.getItem(lookKey()) || 'null'); } catch (e) { return null; } };
+  const saveLocal = o => { try { localStorage.setItem(lookKey(), JSON.stringify({ ...(loadLocal() || {}), ...o })); } catch (e) {} };
   const theme = () => { const t = params.get('theme') || S().theme; return THEMES[t] ? t : 'kva'; };
   const accent = () => S().accent || THEMES[theme()].accent;
   const contact = () => (window.JC ? window.JC.contact() : {});
@@ -92,6 +99,7 @@
     $('#themeCss').href = `site/themes/${th}.css`;
     document.title = (h.name || '') + (h.city ? ' · ' + h.city : '');
     const tel = c.digits ? `tel:+${c.digits}` : '';
+    const wasOpen = !!document.querySelector('.demo[open]');
     $('#app').innerHTML = `
 <header class="top">
   <a class="brand" href="#top">${esc(caps(h.name || ''))}</a>
@@ -128,6 +136,7 @@
 </main>
 <footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span><a href="https://visit2.ge" rel="noopener">Visit2.ge · ${w('directly')}</a></footer>
 ${isDemo() ? demoPanel() : ''}`;
+    if (wasOpen) { const d = document.querySelector('.demo'); if (d) d.open = true; }
     wire();
   }
 
@@ -171,15 +180,22 @@ ${isDemo() ? demoPanel() : ''}`;
 </section>`;
   }
   function demoPanel() {
-    return `<aside class="demo" aria-label="${w('template')}">
-  <p class="demo-head">${w('demo')} · <a href="admin.html">${w('admin')} (PIN 1234)</a></p>
-  <div class="demo-row">${Object.entries(THEMES).map(([id, t]) => `<button type="button" data-theme="${id}" aria-pressed="${id === theme()}">${esc(pick(t.name))}</button>`).join('')}</div>
-  <div class="demo-row">${ACCENTS.map(a => `<button type="button" class="sw" data-accent="${a}" style="--c:${a}" aria-label="${w('colour')} ${a}" aria-pressed="${a.toLowerCase() === accent().toLowerCase()}"></button>`).join('')}</div>
-</aside>`;
+    const mine = J.hotel && J.hotel.mine;
+    return `<details class="demo"${mine ? '' : ''}>
+  <summary>Visit2.ge · ${mine ? (lang() === 'ka' ? 'შენი საიტი' : 'Your site') : (lang() === 'ka' ? 'დემო' : 'Demo')}</summary>
+  <p class="demo-head"><a href="index.html">${lang() === 'ka' ? 'ყველა სასტუმრო' : 'All hotels'}</a> · <a href="admin.html?h=${esc(slug())}">${w('admin')} (PIN 1234)</a></p>
+  <p class="demo-note">${w('demo')}</p>
+  ${mine ? `<div class="demo-row">${Object.entries(THEMES).map(([id, t]) => `<button type="button" data-theme="${id}" aria-pressed="${id === theme()}">${esc(pick(t.name))}</button>`).join('')}</div>
+  <div class="demo-row">${ACCENTS.map(a => `<button type="button" class="sw" data-accent="${a}" style="--c:${a}" aria-label="${w('colour')} ${a}" aria-pressed="${a.toLowerCase() === accent().toLowerCase()}"></button>`).join('')}</div>` : ''}
+</details>`;
   }
 
   // ---------- booking ----------
   const sel = { from: '', to: '', adults: 2, kids: 0, type: '' };
+  // dates and guests from the Visit2.ge search (hotel.html?h=…&from=…&to=…&g=…)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('from') || '') && /^\d{4}-\d{2}-\d{2}$/.test(params.get('to') || '') && params.get('to') > params.get('from')) {
+    sel.from = params.get('from'); sel.to = params.get('to'); sel.adults = Math.max(1, Math.min(8, +params.get('g') || 2));
+  }
   const fmtN = n => `${n} ₾`;
   function summary() {
     const el = $('#sum'); if (!el) return;

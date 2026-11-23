@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>სასტუმროს მფლობელებს · Visit2.ge</title>
+<meta name="description" content="საიტი, ჯავშნების ადმინი და ჩატბოტი შენი სასტუმროსთვის. 50₾ თვეში, საკომისიოს გარეშე, პირველი 30 დღე უფასოდ.">
+<link rel="icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="site/platform.css">
+</head>
+<body>
+<header class="p-top">
+  <a class="p-logo" href="index.html"><img src="img/brand/visit2.svg" alt="Visit2.ge" width="62" height="34"></a>
+  <nav class="p-nav"><a href="index.html">სასტუმროები</a><a href="owners.html" aria-current="page">მფლობელებს</a></nav>
+</header>
+<main>
+  <section class="wrap o-hero">
+    <div>
+      <h1>შენი სასტუმროს საიტი, ჯავშნები და ჩატბოტი ერთ ადგილას</h1>
+      <p class="lead">აირჩიე შაბლონი, ჩაწერე სახელი, და საიტი მზადაა. ჯავშნებს, ფასებს და კალენდარს ადმინში მართავ, სტუმრებს ჩატბოტი პასუხობს.</p>
+      <p class="price-line">50₾ თვეში, საკომისიოს გარეშე. პირველი 30 დღე უფასოა, ბარათი არ გჭირდება.</p>
+      <div class="acts"><a class="btn btn-teal" href="#signup">საიტის შექმნა</a><a class="btn btn-out" href="#templates">შაბლონების ნახვა</a></div>
+    </div>
+    <div class="phone-stack" aria-hidden="true"><img src="img/templates/ezo.jpg" alt=""><img src="img/templates/kva.jpg" alt=""></div>
+  </section>
+  <section class="gets">
+    <div class="wrap">
+      <h2>რას იღებ</h2>
+      <ul>
+        <li><b>საიტი</b>სამი შაბლონიდან ერთ-ერთი, შენი ფერით, ფოტოებით და ტექსტებით. ქართულად, ინგლისურად და რუსულად.</li>
+        <li><b>ადმინი</b>მოთხოვნები, კალენდარი, ფასები სეზონებით, გადახდები, სტუმრების ისტორია, გუნდი და ჟურნალი.</li>
+        <li><b>ჩატბოტი</b>საიტზე სტუმარს თავისუფალ ნომერს და ფასს წამებში ეუბნება. <span class="soon">Facebook და Instagram მალე</span></li>
+        <li><b>ადგილი კატალოგში</b>Visit2.ge-ზე სტუმრები ქალაქით და თარიღით გპოულობენ. პირველი 6 თვე უფასოდ.</li>
+      </ul>
+    </div>
+  </section>
+  <section class="tpl" id="templates">
+    <div class="wrap">
+      <h2>შაბლონები</h2>
+      <p class="small">ნებისმიერ დროს შეცვლი ადმინში. ჯავშნები და ფასები არ იკარგება.</p>
+      <div class="tpl-list" id="tplList"></div>
+    </div>
+  </section>
+  <section class="signup" id="signup">
+    <div class="wrap">
+      <h2>შექმენი შენი საიტი</h2>
+      <p class="small">დემო: საიტი ამ ბრაუზერში შეიქმნება, რომ ნახო როგორ გამოიყურება. ნამდვილი რეგისტრაცია Visit2.ge-ს გაშვებისას ჩაირთვება.</p>
+      <form class="owner-form" id="ownerForm" novalidate>
+        <label><span>სასტუმროს სახელი</span><input name="name" required maxlength="60" placeholder="მაგ.: ვილა მზიური"></label>
+        <label><span>ქალაქი ან სოფელი</span><input name="city" required maxlength="40" placeholder="მაგ.: ბაკურიანი"></label>
+        <label class="wide"><span>ელფოსტა</span><input name="email" type="email" autocomplete="email" placeholder="შენი ელფოსტა ადმინში შესასვლელად"></label>
+        <fieldset class="wide"><legend>შაბლონი</legend><div class="choice" id="tplChoice"></div></fieldset>
+        <fieldset class="wide"><legend>ფერი</legend><div class="choice" id="colChoice"></div></fieldset>
+        <button class="btn btn-teal wide" type="submit">საიტის შექმნა</button>
+        <p class="form-msg wide" id="formMsg" role="status"></p>
+      </form>
+      <div class="done" id="done">
+        <b id="doneTitle"></b>
+        <p class="small">ადმინში ნომრები, ფასები და ტექსტები შეცვალე. დემოში შესასვლელი PIN: 1234.</p>
+        <div class="acts"><a class="btn btn-teal" id="doneSite" href="#">ჩემი საიტი</a><a class="btn btn-out" id="doneAdmin" href="#">ადმინი</a></div>
+      </div>
+    </div>
+  </section>
+  <section class="prices">
+    <div class="wrap">
+      <h2>ფასები</h2>
+      <table>
+        <tr><td>საიტი, ადმინი და ჩატბოტი<small>პირველი 30 დღე უფასოდ, ბარათის გარეშე</small></td><td>50₾ / თვე</td></tr>
+        <tr><td>ადგილი Visit2.ge-ს კატალოგში<small>პირველი 6 თვე უფასოდ</small></td><td>+20₾ / თვე</td></tr>
+        <tr><td>სეზონური პაუზა<small>საიტი რჩება და წინასწარ ჯავშნებს იღებს; 1–6 თვე წელიწადში</small></td><td>10₾ / თვე</td></tr>
+        <tr><td>ჩვენ გავაკეთებთ<small>ფოტოები, ტექსტები, Google-ის პროფილი, Facebook-ის და Instagram-ის მიერთება</small></td><td>300₾ ერთხელ</td></tr>
+      </table>
+    </div>
+  </section>
+</main>
+<footer class="p-foot"><span>Visit2.ge</span><a href="index.html">სასტუმროების ძებნა</a></footer>
+<script src="site/hotels.js"></script>
+<script src="site/platform.js"></script>
+</body>
+</html>

@@ -110,9 +110,12 @@ main > section > * { max-width: var(--max); margin-left: auto; margin-right: aut
 .foot a { text-decoration: none; }
 
 /* template switcher, demo only */
-.demo { position: fixed; left: 12px; bottom: 12px; z-index: 40; max-width: min(420px, calc(100vw - 24px)); padding: 12px; border-radius: 12px;
+.demo { position: fixed; left: 12px; top: 76px; z-index: 40; max-width: min(420px, calc(100vw - 24px)); padding: 12px; border-radius: 12px;
   background: #fff; color: #1F1A17; box-shadow: 0 10px 30px rgba(0, 0, 0, .18); font: 500 14px/1.4 "Noto Sans Georgian", system-ui, sans-serif; }
-.demo-head { margin: 0 0 8px; }
+.demo summary { cursor: pointer; font-weight: 700; color: #0B7A73; }
+.demo:not([open]) { padding: 8px 14px; border-radius: 999px; }
+.demo-head { margin: 10px 0 4px; }
+.demo-note { margin: 0 0 6px; color: #5f5953; font-size: 13px; }
 .demo-head a { color: #0B7A73; font-weight: 700; }
 .demo-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .demo-row button { min-height: 36px; padding: 0 14px; border: 1px solid #d9d5cf; border-radius: 8px; background: #fff; font: 600 14px/1 inherit; cursor: pointer; }

@@ -29,8 +29,8 @@ export default {
 
     if (tenant) return hotelSite(request, env, tenant, { dev: !!dev });
     if (dev || !(platformHosts.includes(host) || isPreviewHost(env, host))) return notFound();
-    if (url.pathname !== '/') return env.ASSETS.fetch(request);
-    return platform(request, env);
+    // the platform: guests' search (index.html) and the owners' page (owners.html), static for now
+    return env.ASSETS.fetch(request);
   },
 };
 
@@ -41,7 +41,8 @@ async function hotelSite(request, env, t, opts) {
   if (p.startsWith('/api/') || p.startsWith('/media/')) return hotelApi(request, env, t, opts);
   if (t.status === 'paused' && (p === '/' || p === '/index.html'))
     return page(t.name, `<h1>${esc(t.name)}</h1><p>სეზონი მალე იხსნება. დაჯავშნეთ წინასწარ.</p>`, { lang: 'ka', tenant: t.slug });
-  const r = await env.ASSETS.fetch(request);
+  // the hotel's own site is the template page; the platform's home page is not served on a hotel's address
+  const r = await env.ASSETS.fetch(p === '/' || p === '/index.html' ? new Request(new URL('/hotel', request.url), request) : request);
   // under a preview prefix, keep asset redirects (index.html → /) inside /h/{slug}/
   const loc = r.headers.get('location');
   if (opts.base && opts.base !== '/' && loc && loc.startsWith('/')) {
@@ -49,11 +50,6 @@ async function hotelSite(request, env, t, opts) {
     return new Response(r.body, { status: r.status, headers: h });
   }
   return r;
-}
-
-// ---------- platform (catalog and owners' page come later) ----------
-async function platform(request, env) {
-  return page('Visit2.ge', '<h1>Visit2.ge</h1><p>სასტუმროს სისტემა საკომისიოს გარეშე.</p>', { lang: 'ka' });
 }
 
 function isPreviewHost(env, host) {

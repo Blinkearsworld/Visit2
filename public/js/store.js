@@ -4,7 +4,9 @@
    Anywhere else (GitHub Pages demo) it falls back to this browser's localStorage with sample data.
    The availability and price rules are duplicated in functions/_lib/core.js; keep them in step. */
 window.JIJI = (() => {
-  const KEY = 'v2-demo-v1';
+  // browser-only demo: which demo hotel (?h=slug, see site/hotels.js); each keeps its own data in this browser
+  const DEMO_H = (window.V2DEMO && window.V2DEMO.get(new URLSearchParams(location.search).get('h') || 'mta')) || null;
+  const KEY = 'v2-demo-' + (DEMO_H ? DEMO_H.slug : 'v1');
 
   // Room types. Each type has price "versions" by number of guests, set by the hotel
   // (not proportional): the smallest version that fits the group is used.
@@ -16,6 +18,7 @@ window.JIJI = (() => {
     family: { name: 'საოჯახო, 1 საძინებლით (4+1)', rates: [R(2, 150, 200, 240, 320), R(3, 165, 220, 265, 350), R(4, 180, 240, 290, 380), R(5, 195, 260, 310, 410)] },
     suite: { name: 'ლუქსი, 2 საძინებლით', rates: [R(2, 210, 290, 370, 480), R(4, 280, 380, 460, 600), R(6, 340, 460, 550, 710)] },
   };
+  if (DEMO_H && DEMO_H.types) Object.keys(DEFAULT_TYPES).forEach(k => { DEFAULT_TYPES[k] = DEMO_H.types[k] || DEFAULT_TYPES[k]; });
   const ROOMS = [{ id: '1', type: 'std' }, { id: '2', type: 'std' }, { id: '3', type: 'family' }, { id: '4', type: 'family' }, { id: '5', type: 'suite' }];
   const SEASONS = { peak: 'ახალი წელი', winter: 'ზამთარი', summer: 'ზაფხული', off: 'დანარჩენი' };
 
@@ -39,7 +42,7 @@ window.JIJI = (() => {
   const weekday = s => WD[toD(s).getUTCDay()];
 
   // the hotel's own seasons (from the server): [{id, name, from: 'MM-DD', to: 'MM-DD'}], first match wins
-  let seasonList = null, hotel = { name: 'სადემონსტრაციო სასტუმრო', city: 'ბაკურიანი', slug: 'demo', demo: true };
+  let seasonList = null, hotel = DEMO_H ? { name: DEMO_H.name, city: DEMO_H.city, slug: DEMO_H.slug, demo: true, mine: !!DEMO_H.mine } : { name: 'სადემონსტრაციო სასტუმრო', city: 'ბაკურიანი', slug: 'demo', demo: true };
   const inRange = (md, a, b) => (a <= b ? md >= a && md <= b : md >= a || md <= b);
   const seasonOf = s => {
     if (seasonList && seasonList.length) { const md = s.slice(5); const f = seasonList.find(x => inRange(md, x.from, x.to)); return (f || seasonList[seasonList.length - 1]).id; }
