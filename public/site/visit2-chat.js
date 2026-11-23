@@ -44,7 +44,7 @@
 
   // ---------- widget ----------
   const css = `.vc-fab{position:fixed;right:16px;bottom:16px;z-index:60;display:flex;align-items:center;gap:8px;min-height:52px;padding:0 20px;border:0;border-radius:999px;background:#0E857D;color:#fff;font:700 16px/1 "Noto Sans Georgian",system-ui,sans-serif;box-shadow:0 10px 28px rgba(14,133,125,.35);cursor:pointer}
-.vc-fab:hover{background:#0B7A73}.vc{position:fixed;right:16px;bottom:16px;z-index:61;display:flex;flex-direction:column;width:min(380px,calc(100vw - 24px));height:min(600px,calc(100vh - 32px));background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(31,26,23,.28);font:400 15px/1.5 "Noto Sans Georgian",system-ui,sans-serif;color:#1F1A17;overflow:hidden}
+.vc-fab:hover{background:#0B7A73}@media(max-width:640px){.vc-fab{width:58px;height:58px;min-height:0;padding:0;justify-content:center;font-size:0}.vc-fab::before{content:'💬';font-size:26px}}.vc{position:fixed;right:16px;bottom:16px;z-index:61;display:flex;flex-direction:column;width:min(380px,calc(100vw - 24px));height:min(600px,calc(100vh - 32px));background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(31,26,23,.28);font:400 15px/1.5 "Noto Sans Georgian",system-ui,sans-serif;color:#1F1A17;overflow:hidden}
 .vc[hidden],.vc-fab[hidden]{display:none}.vc-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;background:#0E857D;color:#fff}.vc-head b{font-size:16px}
 .vc-x{background:none;border:0;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:4px 8px}.vc-log{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#FFF8EE}
 .vc-m{max-width:88%;padding:9px 12px;border-radius:14px;background:#fff;box-shadow:0 1px 0 #eadfce;white-space:pre-line}.vc-m.me{align-self:flex-end;background:#0E857D;color:#fff}
@@ -59,7 +59,7 @@
   const $ = id => document.getElementById(id), log = $('vcLog'), opts = $('vcOpts');
   let onText = null, started = false;
   const labels = () => {
-    $('vcFab').textContent = '💬 ' + m('open'); $('vcTitle').textContent = m('title'); $('vcX').setAttribute('aria-label', m('close'));
+    $('vcFab').textContent = '💬 ' + m('open'); $('vcFab').setAttribute('aria-label', m('open')); $('vcTitle').textContent = m('title'); $('vcX').setAttribute('aria-label', m('close'));
     $('vcText').placeholder = m('typeHere'); $('vcSend').textContent = m('send'); $('vc').setAttribute('aria-label', m('title'));
   };
   const say = (html, me) => { const d = document.createElement('div'); d.className = 'vc-m' + (me ? ' me' : ''); d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight; };
