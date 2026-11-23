@@ -5,6 +5,11 @@ export async function getSettings(db, t) {
   return Object.fromEntries((r.results || []).map(x => [x.k, x.v]));
 }
 
+export async function getSetting(db, t, k) {
+  const r = await db.prepare('SELECT v FROM settings WHERE tenant_id = ? AND k = ?').bind(t.id, String(k)).first();
+  return r ? r.v : null;
+}
+
 export async function setSetting(db, t, k, v) {
   await db.prepare('INSERT INTO settings (tenant_id, k, v) VALUES (?, ?, ?) ON CONFLICT (tenant_id, k) DO UPDATE SET v = excluded.v')
     .bind(t.id, String(k), v == null ? null : String(v)).run();

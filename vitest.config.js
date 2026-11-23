@@ -6,7 +6,7 @@ export default defineConfig(async () => {
   return {
     plugins: [cloudflareTest({
       wrangler: { configPath: './wrangler.jsonc' },
-      miniflare: { bindings: { TEST_MIGRATIONS: migrations } },
+      miniflare: { bindings: { TEST_MIGRATIONS: migrations, SESSION_SECRET: 'test-secret' } },
     })],
     test: { setupFiles: ['./test/apply-migrations.js'] },
   };

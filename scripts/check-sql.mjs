@@ -20,7 +20,7 @@ for (const f of walk(join(root, 'migrations')).filter(f => f.endsWith('.sql')).s
 // Platform tables that are looked up before a tenant is known. Each query on them is reviewed by hand.
 const PLATFORM = new Set(['domains', 'memberships', 'meta_pages']);
 
-const SQL_START = /^\s*(SELECT|INSERT|UPDATE|DELETE|REPLACE|WITH)\b/i;
+const SQL_START = /^\s*(SELECT|INSERT|UPDATE|DELETE|REPLACE|WITH)\s+\S/i;
 const strings = src => [...src.matchAll(/(['"`])((?:\\.|(?!\1)[\s\S])*?)\1/g)].map(m => m[2]);
 const tablesIn = s => [...s.matchAll(/\b(?:FROM|JOIN|INTO|UPDATE)\s+(\w+)/gi)].map(m => m[1]);
 

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100" preserveAspectRatio="xMidYMid slice">
+<rect width="900" height="1100" fill="#FFF8EE"/>
+<rect x="60" y="60" width="780" height="980" rx="28" fill="#0E857D" opacity=".12"/>
+<g fill="none" stroke="#0E857D" stroke-width="10" stroke-linejoin="round" stroke-linecap="round">
+<path d="M190 760 V470 L450 290 L710 470 V760Z"/><path d="M300 760 V600 H400 V760"/><rect x="500" y="560" width="120" height="100"/><path d="M450 290 V230"/>
+<path d="M140 800 H760"/>
+</g>
+<text x="450" y="900" text-anchor="middle" font-family="system-ui, sans-serif" font-size="44" fill="#0B7A73">ფოტო ადმინიდან</text>
+</svg>

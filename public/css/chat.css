@@ -1,0 +1,68 @@
+/* Scripted chatbot widget — same look as the site's night palette */
+.jc-fab{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:50;display:flex;align-items:center;gap:10px;min-height:54px;padding:0 20px 0 16px;border:0;border-radius:999px;background:#f3c27a;color:#0b1422;font:500 15px "Noto Sans Georgian","Noto Sans",sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer}
+.jc-fab:hover{background:#ffd79f}
+.jc-fab[hidden]{display:none}
+.jc{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:51;width:min(380px,calc(100vw - 24px));height:min(620px,calc(100svh - 36px));display:flex;flex-direction:column;background:#0f1a2c;color:#eef2f6;border:1px solid rgba(238,242,246,.14);border-radius:16px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.5);font:15px/1.5 "Noto Sans Georgian","Noto Sans",sans-serif}
+.jc[hidden]{display:none}
+.jc-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:#122038;border-bottom:1px solid rgba(238,242,246,.1)}
+.jc-head b{display:block;font:italic 600 21px/1 Cormorant,serif}
+.jc-head small{color:#a9b6c8;font-size:12px}
+.jc-x{width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:#eef2f6;cursor:pointer;display:grid;place-items:center}
+.jc-x:hover{background:rgba(238,242,246,.08)}
+.jc-log{position:relative;flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.jc-m{max-width:86%;padding:10px 14px;border-radius:14px;white-space:pre-line;overflow-wrap:anywhere}
+.jc-m.bot{align-self:flex-start;background:#1a2a45;border-bottom-left-radius:4px}
+.jc-m.me{align-self:flex-end;background:#f3c27a;color:#0b1422;border-bottom-right-radius:4px}
+.jc-m a{color:#f3c27a}
+.jc-m.offer{border:1px solid rgba(243,194,122,.5)}
+.jc-m.offer strong{display:block;font-size:22px;color:#f3c27a;margin-top:4px}
+.jc-opts{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 12px}
+.jc-opts button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid rgba(243,194,122,.6);background:transparent;color:#f3c27a;font:14px "Noto Sans Georgian","Noto Sans",sans-serif;cursor:pointer}
+.jc-opts button:hover{background:rgba(243,194,122,.12)}
+.jc-opts button.sub{border-color:rgba(238,242,246,.22);color:#c9d3e0}
+.jc-in{display:flex;gap:8px;padding:12px;border-top:1px solid rgba(238,242,246,.1);background:#0c1626}
+.jc-in input{flex:1;min-height:44px;padding:0 12px;border-radius:10px;border:1px solid rgba(238,242,246,.22);background:#0b1422;color:#eef2f6;font:16px "Noto Sans Georgian","Noto Sans",sans-serif;color-scheme:dark}
+.jc-in button{min-width:44px;min-height:44px;border:0;border-radius:10px;background:#f3c27a;color:#0b1422;cursor:pointer;display:grid;place-items:center}
+.jc-typing{align-self:flex-start;color:#a9b6c8;font-size:13px;padding:2px 4px}
+.jc-fab:focus-visible,.jc button:focus-visible,.jc input:focus-visible{outline:2px solid #f3c27a;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.jc-log{scroll-behavior:auto}}
+/* inline calendar */
+.jc-cal{max-width:100%;width:100%;padding:12px}
+.jc-cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.jc-cal-h b{font-weight:500}
+.jc-cal-h button{width:44px;height:44px;touch-action:manipulation;border:0;border-radius:10px;background:transparent;color:#eef2f6;font-size:22px;cursor:pointer}
+.jc-cal-h button:disabled{opacity:.25;cursor:default}
+.jc-cal-w,.jc-cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;text-align:center}
+.jc-cal-w span{font-size:12px;color:#a9b6c8;padding:4px 0}
+.jc-cal-g button{height:38px;touch-action:manipulation;border:0;border-radius:10px;background:transparent;color:#eef2f6;font:14px "Noto Sans Georgian","Noto Sans",sans-serif;cursor:pointer}
+@media(hover:hover){.jc-cal-g button:hover:not(:disabled):not(.a):not(.b){background:rgba(243,194,122,.15)}}
+.jc-cal-g button:disabled{color:#4b5a70;cursor:default}
+.jc-cal-g button.td{box-shadow:inset 0 0 0 1px rgba(243,194,122,.5)}
+.jc-cal-g button.in{background:rgba(243,194,122,.18);border-radius:0}
+.jc-cal-g button.a,.jc-cal-g button.b{background:#f3c27a;color:#0b1422;font-weight:600}
+.jc-cal-s{margin:10px 2px 8px;color:#cdd6e2;font-size:14px}
+.jc-cal-ok{width:100%;min-height:44px;border:0;border-radius:10px;background:#f3c27a;color:#0b1422;font:500 15px "Noto Sans Georgian","Noto Sans",sans-serif;cursor:pointer}
+.jc-cal-ok:disabled{opacity:.35;cursor:default}
+.jc-cal.done{opacity:.6}
+.jc-cal-h{position:sticky;top:-16px;z-index:1;background:#1a2a45;margin:-12px -12px 6px;padding:8px 6px;border-radius:14px 14px 0 0}
+.jc-cal-h b{font-size:16px}
+.jc-cal-nav{display:flex;justify-content:space-between;gap:8px;margin:0 0 10px}
+.jc-cal-nav button{min-height:40px;padding:0 12px;border-radius:10px;border:1px solid rgba(243,194,122,.45);background:transparent;color:#f3c27a;font:14px "Noto Sans Georgian","Noto Sans",sans-serif;cursor:pointer;touch-action:manipulation}
+.jc-cal-nav button:disabled{opacity:.3;cursor:default}
+@media(max-width:600px){
+.jc{right:0;left:0;bottom:0;width:100%;height:100svh;border-radius:0;border:0}
+.jc-cal-g button{height:36px}
+.jc-cal-w span{padding:2px 0}
+}
+
+/* availability in the calendar: free days look normal, booked days are red and cannot be chosen */
+.jc-cal-g button.full{background:rgba(214,69,69,.22);color:#e9a0a0;opacity:1}
+.jc-cal-g button.full.a,.jc-cal-g button.full.b{background:#f3c27a;color:#0b1422}
+.jc-cal-l{display:flex;flex-wrap:wrap;gap:14px;margin:8px 2px 0;font-size:13px;color:#cdd6e2}
+.jc-cal-l i{display:inline-block;width:14px;height:14px;margin-right:6px;border-radius:4px;vertical-align:-2px}
+.jc-cal-l i.l-ok{background:transparent;box-shadow:inset 0 0 0 1px rgba(238,242,246,.6)}.jc-cal-l i.l-full{background:rgba(214,69,69,.45)}
+/* the same calendar in a window over the booking form */
+.dpk{border:0;padding:0;border-radius:16px;background:#1a2a45;color:#eef2f6;width:min(400px,calc(100vw - 20px));max-height:calc(100vh - 20px)}
+.dpk::backdrop{background:rgba(5,10,18,.6)}
+.dpk .jc-cal{padding:12px}.dpk .jc-cal-h{position:static;margin:0 0 6px;border-radius:0}
+.dpk-x{position:absolute;right:8px;top:8px;width:40px;height:40px;border:0;border-radius:10px;background:transparent;color:#eef2f6;font-size:22px;cursor:pointer;z-index:2}

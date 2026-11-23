@@ -4,6 +4,7 @@
 //   {slug}.localhost:8787                  → local development
 import { tenantByHost, tenantBySlug, normHost } from './db/tenants.js';
 import { page, esc } from './lib/html.js';
+import { hotelApi } from './api.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -11,29 +12,53 @@ export default {
     const host = normHost(url.hostname);
     const platformHosts = String(env.PLATFORM_HOSTS || '').split(',').map(normHost).filter(Boolean);
 
+    // preview address before the real domain exists: https://visit2.<account>.workers.dev/h/{slug}/...
+    const pm = url.pathname.match(/^\/h\/([a-z0-9-]+)(\/.*)?$/);
+    if (pm && isPreviewHost(env, host)) {
+      const t = await tenantBySlug(env.DB, pm[1]);
+      if (!t) return notFound();
+      if (!pm[2]) return Response.redirect(`${url.origin}/h/${pm[1]}/${url.search}`, 302); // relative links need the slash
+      const inner = new URL(url); inner.pathname = pm[2];
+      return hotelSite(new Request(inner, request), env, t, { dev: host === 'localhost' || host === '127.0.0.1', base: `/h/${pm[1]}/` });
+    }
+
     let tenant = null;
     const dev = env.DEV_SUFFIX && host.endsWith(env.DEV_SUFFIX) ? host.slice(0, -env.DEV_SUFFIX.length) : null;
     if (dev) tenant = await tenantBySlug(env.DB, dev);
     else if (!platformHosts.includes(host)) tenant = await tenantByHost(env.DB, host);
 
-    if (tenant) return hotelSite(request, env, tenant);
-    if (dev || !platformHosts.includes(host)) return notFound();
+    if (tenant) return hotelSite(request, env, tenant, { dev: !!dev });
+    if (dev || !(platformHosts.includes(host) || isPreviewHost(env, host))) return notFound();
+    if (url.pathname !== '/') return env.ASSETS.fetch(request);
     return platform(request, env);
   },
 };
 
-// ---------- hotel site (stage 3 replaces this placeholder) ----------
-async function hotelSite(request, env, t) {
+// ---------- hotel site: the shared template (public/) filled in the browser from this hotel's API ----------
+async function hotelSite(request, env, t, opts) {
   if (t.status === 'closed') return notFound();
-  const body = t.status === 'paused'
-    ? `<h1>${esc(t.name)}</h1><p>სეზონი მალე იხსნება. დაჯავშნეთ წინასწარ.</p>`
-    : `<h1>${esc(t.name)}</h1>${t.city ? `<p>${esc(t.city)}</p>` : ''}`;
-  return page(t.name, body, { lang: 'ka', tenant: t.slug });
+  const p = new URL(request.url).pathname;
+  if (p.startsWith('/api/') || p.startsWith('/media/')) return hotelApi(request, env, t, opts);
+  if (t.status === 'paused' && (p === '/' || p === '/index.html'))
+    return page(t.name, `<h1>${esc(t.name)}</h1><p>სეზონი მალე იხსნება. დაჯავშნეთ წინასწარ.</p>`, { lang: 'ka', tenant: t.slug });
+  const r = await env.ASSETS.fetch(request);
+  // under a preview prefix, keep asset redirects (index.html → /) inside /h/{slug}/
+  const loc = r.headers.get('location');
+  if (opts.base && opts.base !== '/' && loc && loc.startsWith('/')) {
+    const h = new Headers(r.headers); h.set('location', opts.base + loc.slice(1));
+    return new Response(r.body, { status: r.status, headers: h });
+  }
+  return r;
 }
 
 // ---------- platform (catalog and owners' page come later) ----------
 async function platform(request, env) {
   return page('Visit2.ge', '<h1>Visit2.ge</h1><p>სასტუმროს სისტემა საკომისიოს გარეშე.</p>', { lang: 'ka' });
+}
+
+function isPreviewHost(env, host) {
+  return String(env.PREVIEW_HOSTS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+    .some(p => (p.startsWith('*.') ? host.endsWith(p.slice(1)) : host === p));
 }
 
 function notFound() {

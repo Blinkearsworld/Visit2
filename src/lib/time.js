@@ -10,3 +10,7 @@ export const nowIso = () => new Date().toISOString();
 export const addDays = (s, n) => { const d = toD(s); d.setUTCDate(d.getUTCDate() + n); return toS(d); };
 export const nights = (a, b) => Math.round((toD(b) - toD(a)) / 864e5);
 export const isDate = s => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && toS(toD(s)) === s;
+
+const MONTHS = ['იან', 'თებ', 'მარ', 'აპრ', 'მაი', 'ივნ', 'ივლ', 'აგვ', 'სექ', 'ოქტ', 'ნოე', 'დეკ'];
+export const fmt = s => { const d = toD(s); return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()]; };
+export const fmtRange = (a, b) => fmt(a) + ' – ' + fmt(b);

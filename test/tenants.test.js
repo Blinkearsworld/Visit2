@@ -29,9 +29,11 @@ describe('two hotels', () => {
   });
 
   it('serves each hotel its own site, and 404 for an unknown host', async () => {
-    const a = await (await get('hotel-a.visit2.ge')).text();
-    expect(a).toContain('სასტუმრო A');
-    expect(a).not.toContain('სასტუმრო B');
+    expect((await get('hotel-a.visit2.ge')).status).toBe(200);
+    const a = await (await get('hotel-a.visit2.ge', '/api/state')).json();
+    const b = await (await get('hotel-b.visit2.ge', '/api/state')).json();
+    expect(a.hotel.name).toBe('სასტუმრო A');
+    expect(b.hotel.name).toBe('სასტუმრო B');
     expect((await get('nobody.visit2.ge')).status).toBe(404);
     expect((await get('hotel-b.localhost')).status).toBe(200);
   });

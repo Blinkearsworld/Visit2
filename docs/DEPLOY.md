@@ -1,0 +1,45 @@
+# პირველი ვერსიის გაშვება Cloudflare-ზე (უფასოდ)
+
+ბარათი, ფასიანი გეგმა და visit2.ge არ არის საჭირო. ვერსია გაიხსნება მისამართზე
+`https://visit2.<შენი-ანგარიში>.workers.dev/h/<სასტუმრო>/`.
+
+## 1. ანგარიში
+
+dash.cloudflare.com → **Sign up**. უფასო ანგარიში, ელფოსტით.
+
+## 2. ბაზა (D1)
+
+1. მარცხენა მენიუ: **Storage & databases** → **D1 SQL database** → **Create database**.
+2. სახელი: `visit2`. **Create**.
+3. გვერდზე ჩანს **Database ID** (გრძელი კოდი, მაგ. `1a2b3c4d-…`). ეს საიდუმლო არ არის: გამომიგზავნე და `wrangler.jsonc`-ში ჩავწერ.
+
+## 3. კოდის მიერთება GitHub-დან
+
+1. **Workers & Pages** → **Create** → **Import a repository** → GitHub-ის მიერთება → `Blinkearsworld/visit2`.
+2. Project name: `visit2`.
+3. **Deploy command:** `npx wrangler d1 migrations apply DB --remote && npx wrangler deploy`
+4. **Deploy**.
+
+ამის შემდეგ GitHub-ზე ყოველი ცვლილება 1–2 წუთში თავისით გამოჩნდება.
+
+## 4. სესიის გასაღები
+
+Worker `visit2` → **Settings** → **Variables and Secrets** → **Add**:
+Type **Secret**, Name `SESSION_SECRET`, Value: ნებისმიერი გრძელი შემთხვევითი ტექსტი (40+ სიმბოლო). **Deploy**.
+
+ეს გასაღები ადმინში შესვლას იცავს. მას ჩატში ნუ გაგზავნი.
+
+## 5. პირველი სასტუმრო
+
+სასტუმროს შექმნის SQL-ს მე გავაკეთებ (`scripts/new-hotel.mjs`). შენ მას ჩასვამ:
+D1 → `visit2` → **Console** → ჩასვი → **Execute**.
+
+მერე გახსენი:
+- საიტი: `https://visit2.<ანგარიში>.workers.dev/h/<სასტუმრო>/`
+- ადმინი: `https://visit2.<ანგარიში>.workers.dev/h/<სასტუმრო>/admin`
+
+## შეზღუდვები ამ ვერსიაში
+
+- ფოტოები D1-ში ინახება. R2-ზე გადავალთ, როცა ანგარიშზე ბარათი დაემატება.
+- Facebook/Instagram ბოტი, Stripe, საკუთარი დომენები და კატალოგი ჯერ არ არის.
+- ინგლისური და რუსული თარგმანი ახალ ტექსტებზე ნაწილობრივია.
