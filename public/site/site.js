@@ -30,6 +30,10 @@
   const W = {
     about: ['ჩვენ შესახებ', 'About', 'О нас'], rooms: ['ნომრები', 'Rooms', 'Номера'], amen: ['რა გვაქვს', 'Amenities', 'Удобства'],
     gallery: ['ფოტოები', 'Photos', 'Фото'], where: ['სად ვართ', 'Location', 'Где мы'], faq: ['ხშირი კითხვები', 'FAQ', 'Вопросы'],
+    food: ['ახლოს სად ვჭამოთ', 'Where to eat nearby', 'Где поесть рядом'], recommended: ['რეკომენდებული', 'Recommended', 'Рекомендуем'],
+    foodAll: ['ყველა ახლომდებარე რესტორანი', 'All places to eat nearby', 'Все заведения рядом'], foodAllH: ['ახლომდებარე რესტორნები, მანძილის მიხედვით', 'Places to eat, nearest first', 'Где поесть: сначала ближайшие'],
+    foodKind: ['სამზარეულო', 'Cuisine', 'Кухня'], foodAny: ['ყველა', 'All', 'Все'], close: ['დახურვა', 'Close', 'Закрыть'],
+    foodNote: ['სია Visit2.ge-დანაა. „რეკომენდებული“ რესტორნის ფასიანი ადგილია.', 'List from Visit2.ge. “Recommended” is a paid spot.', 'Список от Visit2.ge. «Рекомендуем» — платное размещение.'],
     book: ['დაჯავშნა', 'Book', 'Забронировать'], bookShort: ['ჯავშანი', 'Book', 'Бронь'], checkin: ['შესვლა', 'Check-in', 'Заезд'], checkout: ['გასვლა', 'Check-out', 'Выезд'],
     adults: ['სტუმარი 10 წლიდან', 'Guests 10+', 'Гости от 10 лет'], kids: ['ბავშვი 10 წლამდე', 'Children under 10', 'Дети до 10 лет'],
     name: ['სახელი', 'Name', 'Имя'], phone: ['ტელეფონი', 'Phone', 'Телефон'], wish: ['სპეციალური მოთხოვნა', 'Special request', 'Особые пожелания'],
@@ -148,11 +152,49 @@
       ${s.location?.map || c.map ? `<a class="btn btn-ghost" href="${esc(s.location?.map || c.map)}" target="_blank" rel="noopener">${w('map')}</a>` : ''}
     </div>
   </section>
+  ${foodSection(h)}
 </main>
 <footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span><a href="https://visit2.ge" rel="noopener">Visit2.ge · ${w('directly')}</a></footer>
 ${isDemo() ? demoPanel() : ''}`;
     if (wasOpen) { const d = document.querySelector('.demo'); if (d) d.open = true; }
     wire();
+  }
+
+  // places to eat nearby, from Visit2.ge (restaurants list themselves free; "recommended" is a paid, labelled spot)
+  function foodSection(h) {
+    const F = window.V2FOOD; if (!F) return '';
+    const all = F.all(h.city); if (!all.length) return '';
+    return `<section class="food" id="food">
+  <h2>${caps(w('food'))}</h2>
+  <ul class="food-list">${F.near(h.city).map(foodItem).join('')}</ul>
+  ${all.length > 4 ? `<button type="button" class="btn btn-line food-more" id="foodMore" aria-haspopup="dialog">${w('foodAll')} (${all.length})</button>` : ''}
+  <p class="food-note">${w('foodNote')}</p>
+</section>
+<dialog class="food-dlg" id="foodDlg" aria-labelledby="foodDlgH">
+  <div class="food-dlg-head"><h2 id="foodDlgH">${w('foodAllH')}</h2><button type="button" class="food-x" id="foodX" aria-label="${w('close')}">×</button></div>
+  <div class="food-filter" role="group" aria-label="${w('foodKind')}"></div>
+  <ul class="food-list food-full"></ul>
+</dialog>`;
+  }
+  const dist = m => (m < 1000 ? `${m} ${lang() === 'ka' ? 'მ' : lang() === 'ru' ? 'м' : 'm'}` : `${(m / 1000).toFixed(1)} ${lang() === 'ka' ? 'კმ' : lang() === 'ru' ? 'км' : 'km'}`);
+  const kindName = k => { const F = window.V2FOOD; return F.KIND[k][['ka', 'en', 'ru'].indexOf(lang())] || F.KIND[k][0]; };
+  const foodItem = r => `<li class="food-item${r.sponsored ? ' rec' : ''}">
+    ${r.sponsored ? `<span class="food-badge">${w('recommended')}</span>` : ''}
+    <b>${esc(r.name)}</b>
+    <span class="food-meta">${esc(kindName(r.kind))} · ${dist(r.m)} · ${'₾'.repeat(r.price)}</span>
+  </li>`;
+  // the full list: every place nearby, nearest first, with a filter by kind
+  function openFood() {
+    const F = window.V2FOOD, all = F.all((J.hotel || {}).city), dlg = $('#foodDlg');
+    const kinds = [...new Set(all.map(r => r.kind))];
+    let cur = '';
+    const draw = () => {
+      dlg.querySelector('.food-filter').innerHTML = ['', ...kinds].map(k => `<button type="button" data-kind="${k}" aria-pressed="${k === cur}">${k ? esc(kindName(k)) : w('foodAny')}</button>`).join('');
+      dlg.querySelector('.food-full').innerHTML = all.filter(r => !cur || r.kind === cur).map(foodItem).join('');
+    };
+    dlg.querySelector('.food-filter').onclick = e => { const b = e.target.closest('[data-kind]'); if (!b) return; cur = b.dataset.kind; draw(); };
+    draw();
+    dlg.showModal();
   }
 
   function roomCard(k) {
@@ -256,9 +298,14 @@ ${isDemo() ? demoPanel() : ''}`;
     document.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => { sel.type = b.dataset.pick; summary(); $('#book').scrollIntoView({ behavior: 'smooth' }); if (!sel.from) bar.from.focus(); }));
     $('#sum').addEventListener('click', e => { const b = e.target.closest('[data-next]'); if (!b) return; [sel.from, sel.to] = b.dataset.next.split('|'); bar.from.value = sel.from; bar.to.value = sel.to; summary(); });
     $('#req').addEventListener('submit', send);
-    document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => { I.set(b.dataset.lang); }));
-    document.querySelectorAll('[data-theme]').forEach(b => b.addEventListener('click', () => { params.delete('theme'); saveLocal({ theme: b.dataset.theme, accent: '' }); render(); }));
-    document.querySelectorAll('[data-accent]').forEach(b => b.addEventListener('click', () => { saveLocal({ accent: b.dataset.accent }); render(); }));
+    if ($('#foodMore')) {
+      $('#foodMore').addEventListener('click', openFood);
+      $('#foodX').addEventListener('click', () => $('#foodDlg').close());
+      $('#foodDlg').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+    }
+    document.querySelectorAll('button[data-lang]').forEach(b => b.addEventListener('click', () => { I.set(b.dataset.lang); }));
+    document.querySelectorAll('button[data-theme]').forEach(b => b.addEventListener('click', () => { params.delete('theme'); saveLocal({ theme: b.dataset.theme, accent: '' }); render(); }));
+    document.querySelectorAll('button[data-accent]').forEach(b => b.addEventListener('click', () => { saveLocal({ accent: b.dataset.accent }); render(); }));
     summary();
   }
 

@@ -107,6 +107,25 @@ main > section > * { max-width: var(--max); margin-left: auto; margin-right: aut
 .msg[data-state="bad"] { color: #a33a26; }
 @media (max-width: 640px) { .book form { grid-template-columns: 1fr; } }
 
+/* places to eat nearby */
+.food-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; }
+.food-item { position: relative; display: grid; gap: 2px; min-width: 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.food-item b { font-size: 17px; overflow-wrap: anywhere; }
+.food-meta { color: var(--muted); font-size: 15px; }
+.food-item.rec { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
+.food-badge { justify-self: start; margin-bottom: 4px; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--ink); font-size: 13px; font-weight: 700; }
+.food-note { margin: 12px 0 0; font-size: 14px; color: var(--muted); }
+.food-more { margin-top: 16px; }
+.food-dlg { width: min(720px, calc(100vw - 24px)); max-height: min(86vh, 900px); padding: 0; border: 0; border-radius: 16px; background: var(--bg); color: var(--ink); }
+.food-dlg::backdrop { background: rgba(20, 20, 20, .55); }
+.food-dlg-head { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px 8px; background: var(--bg); }
+.food-dlg-head h2 { font-size: 21px; margin: 0; }
+.food-x { flex: none; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--surface); color: var(--ink); font-size: 26px; line-height: 1; cursor: pointer; }
+.food-filter { position: sticky; top: 68px; z-index: 1; display: flex; gap: 6px; overflow-x: auto; padding: 4px 18px 12px; background: var(--bg); scrollbar-width: none; }
+.food-filter button { flex: none; min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font: 600 14px/1 var(--font); cursor: pointer; }
+.food-filter button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.food-full { padding: 0 18px 18px !important; grid-template-columns: 1fr !important; }
+
 /* location and footer */
 .where p { font-size: 19px; max-width: 60ch; }
 .where-actions { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -140,3 +159,7 @@ main > section > * { max-width: var(--max); margin-left: auto; margin-right: aut
 /* iPhone home bar: fixed buttons sit above it */
 .jc-fab { bottom: calc(16px + env(safe-area-inset-bottom)) !important; }
 .foot { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+/* phones: the restaurant list opens as a sheet from the bottom */
+@media (max-width: 640px) {
+  .food-dlg { width: 100%; max-width: 100%; max-height: 88vh; margin: auto 0 0; border-radius: 18px 18px 0 0; padding-bottom: env(safe-area-inset-bottom); }
+}

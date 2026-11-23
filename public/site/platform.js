@@ -33,6 +33,7 @@
     free: ['თავისუფალი', 'available', 'свободно'], nightsW: ['ღამე', 'nights', 'ноч.'], guestsW: ['სტუმარი', 'guests', 'гост.'], perNight: ['ღამე', 'night', 'ночь'],
     fromP: ['{p} ₾-დან', 'from {p} ₾', 'от {p} ₾'], tagFree: ['✓ თავისუფალია ამ თარიღებზე', '✓ Available on these dates', '✓ Свободно на эти даты'],
     tagNo: ['ამ თარიღებზე თავისუფალი არ არის', 'Not available on these dates', 'На эти даты мест нет'], tagReal: ['✓ ნამდვილი თავისუფალი ნომრები', '✓ Real availability', '✓ Реальная доступность'],
+    promo: ['რეკომენდებული · რეკლამა', 'Featured · ad', 'Рекомендуем · реклама'],
     yours: ['შენი სასტუმრო', 'your hotel', 'ваш отель'], none: ['აქ Visit2.ge-ზე სასტუმრო ან ბინა ჯერ არ არის. სცადე ახლომდებარე ადგილი.', 'No hotels or flats here on Visit2.ge yet. Try a place nearby.', 'Здесь на Visit2.ge пока нет отелей и квартир. Попробуйте место рядом.'],
     oSlogan: ['შენი ვიზიტ2 უკვე გეძებს', 'Your guests are already looking for you', 'Ваши гости уже ищут вас'],
     oH1: ['შენი სასტუმროს საიტი, ჯავშნები და ჩატბოტი ერთ ადგილას', 'Your hotel website, bookings and chatbot in one place', 'Сайт отеля, брони и чат-бот в одном месте'],
@@ -42,7 +43,7 @@
     get1: ['<b>საიტი</b>ათი შაბლონიდან ერთ-ერთი, შენი ფერით, ფოტოებით და ტექსტებით. ქართულად, ინგლისურად და რუსულად.', '<b>Website</b>One of ten templates with your colour, photos and texts. In Georgian, English and Russian.', '<b>Сайт</b>Один из десяти шаблонов с вашим цветом, фото и текстами. На грузинском, английском и русском.'],
     get2: ['<b>ადმინი</b>მოთხოვნები, კალენდარი, ფასები სეზონებით, გადახდები, სტუმრების ისტორია, გუნდი და ჟურნალი.', '<b>Admin</b>Requests, calendar, seasonal prices, payments, guest history, team and activity log.', '<b>Админка</b>Запросы, календарь, сезонные цены, оплаты, история гостей, команда и журнал.'],
     get3: ['<b>ჩატბოტი</b>საიტზე სტუმარს თავისუფალ ნომერს და ფასს წამებში ეუბნება. <span class="soon">Facebook და Instagram მალე</span>', '<b>Chatbot</b>Tells guests on your site what is free and what it costs, in seconds. <span class="soon">Facebook and Instagram soon</span>', '<b>Чат-бот</b>За секунды сообщает гостям, что свободно и сколько стоит. <span class="soon">Facebook и Instagram скоро</span>'],
-    get4: ['<b>ადგილი კატალოგში</b>Visit2.ge-ზე სტუმრები ქალაქით და თარიღით გპოულობენ. პირველი 6 თვე უფასოდ.', '<b>A place in the catalogue</b>Guests find you on Visit2.ge by city and dates. Free for the first 6 months.', '<b>Место в каталоге</b>Гости находят вас на Visit2.ge по городу и датам. Первые 6 месяцев бесплатно.'],
+    get4: ['<b>ადგილი კატალოგში</b>Visit2.ge-ზე სტუმრები ქალაქით და თარიღით გპოულობენ. პირველი 6 თვე უფასოდ, მერე 29₾ თვეში.', '<b>A place in the catalogue</b>Guests find you on Visit2.ge by city and dates. Free for 6 months, then 29₾ a month.', '<b>Место в каталоге</b>Гости находят вас на Visit2.ge по городу и датам. 6 месяцев бесплатно, потом 29₾ в месяц.'],
     tplH: ['ათი შაბლონი', 'Ten templates', 'Десять шаблонов'], tplP: ['ნებისმიერ დროს შეცვლი ადმინში. ჯავშნები და ფასები არ იკარგება.', 'Switch any time in the admin. Bookings and prices stay.', 'Меняйте в любой момент в админке. Брони и цены сохраняются.'],
     sample: ['ნიმუშის ნახვა', 'View sample', 'Посмотреть'], suH: ['შექმენი შენი საიტი', 'Create your site', 'Создайте свой сайт'],
     suP: ['დემო: საიტი ამ ბრაუზერში შეიქმნება, რომ ნახო როგორ გამოიყურება. ნამდვილი რეგისტრაცია Visit2.ge-ს გაშვებისას ჩაირთვება.', 'Demo: the site is created in this browser so you can see it. Real sign-up opens when Visit2.ge launches.', 'Демо: сайт создаётся в этом браузере, чтобы вы его увидели. Настоящая регистрация откроется при запуске Visit2.ge.'],
@@ -53,9 +54,17 @@
     mySite: ['ჩემი საიტი', 'My site', 'Мой сайт'], admin: ['ადმინი', 'Admin', 'Админка'], pricesH: ['ფასები', 'Prices', 'Цены'],
     pr1: ['საიტი, ადმინი და ჩატბოტი<small>პირველი 30 დღე უფასოდ, ბარათის გარეშე</small>', 'Website, admin and chatbot<small>First 30 days free, no card</small>', 'Сайт, админка и чат-бот<small>Первые 30 дней бесплатно, без карты</small>'],
     pr2: ['ადგილი Visit2.ge-ს კატალოგში<small>პირველი 6 თვე უფასოდ</small>', 'Listing in the Visit2.ge catalogue<small>First 6 months free</small>', 'Место в каталоге Visit2.ge<small>Первые 6 месяцев бесплатно</small>'],
+    pr5: ['რეკლამა: წინ წამოწევა<small>ძებნაში სიის თავში, ნიშნით „რეკომენდებული“</small>', 'Promotion: move to the top<small>First in search, marked “Featured”</small>', 'Реклама: поднять наверх<small>Первым в поиске, с пометкой «Рекомендуем»</small>'],
+    pr5v: ['მალე', 'soon', 'скоро'],
     pr3: ['სეზონური პაუზა<small>საიტი რჩება და წინასწარ ჯავშნებს იღებს; 1–6 თვე წელიწადში</small>', 'Seasonal pause<small>The site stays up and takes early bookings; 1–6 months a year</small>', 'Сезонная пауза<small>Сайт работает и принимает ранние брони; 1–6 месяцев в год</small>'],
     pr4: ['ჩვენ გავაკეთებთ<small>ფოტოები, ტექსტები, Google-ის პროფილი, Facebook-ის და Instagram-ის მიერთება</small>', 'We set it up for you<small>Photos, texts, Google profile, Facebook and Instagram connection</small>', 'Сделаем за вас<small>Фото, тексты, профиль Google, подключение Facebook и Instagram</small>'],
-    pr1v: ['50₾ / თვე', '50₾ / month', '50₾ / мес.'], pr2v: ['+20₾ / თვე', '+20₾ / month', '+20₾ / мес.'], pr3v: ['10₾ / თვე', '10₾ / month', '10₾ / мес.'], pr4v: ['300₾ ერთხელ', '300₾ once', '300₾ разово'],
+    pr1v: ['50₾ / თვე', '50₾ / month', '50₾ / мес.'], pr2v: ['+29₾ / თვე', '+29₾ / month', '+29₾ / мес.'], pr3v: ['10₾ / თვე', '10₾ / month', '10₾ / мес.'], pr4v: ['300₾ ერთხელ', '300₾ once', '300₾ разово'],
+    rH: ['რესტორნებისთვის', 'For restaurants', 'Для ресторанов'],
+    rP: ['რესტორანი Visit2.ge-ზე უფასოდ ჩანს ყველა ახლომდებარე სასტუმროს გვერდზე: სახელი, სამზარეულო და მანძილი. ფასიანია მხოლოდ „რეკომენდებული“: სიის თავში, გამორჩეული ჩარჩოთი.', 'Restaurants appear free on the page of every hotel nearby: name, cuisine and distance. Only “Recommended” is paid: top of the list, highlighted.', 'Ресторан бесплатно показывается на странице каждого отеля рядом: название, кухня и расстояние. Платно только «Рекомендуем»: первым в списке и с выделением.'],
+    r1: ['ადგილი ახლომდებარე სასტუმროებში<small>სახელი, სამზარეულო, მანძილი</small>', 'Listed near hotels<small>Name, cuisine, distance</small>', 'Показ рядом с отелями<small>Название, кухня, расстояние</small>'],
+    r1v: ['უფასოდ', 'free', 'бесплатно'],
+    r2: ['„რეკომენდებული“<small>სიის თავში, ყველა ახლომდებარე სასტუმროს გვერდზე</small>', '“Recommended”<small>Top of the list on every hotel page nearby</small>', '«Рекомендуем»<small>Первым в списке на страницах отелей рядом</small>'],
+    r2v: ['მალე', 'soon', 'скоро'],
     findHotels: ['სასტუმროების ძებნა', 'Find hotels', 'Поиск отелей'],
   };
   const t = (k, v = {}) => String((T[k] || [k])[L()] ?? T[k][0]).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');
@@ -116,8 +125,8 @@
   }
   const find = ({ city = '', from = '', to = '', g = 2 }) => {
     const dated = from && to && to > from;
-    return D.list().filter(h => !city || h.city === city).map(h => ({ h, o: offer(h, from, to, g) }))
-      .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) || ((a.o.best?.total || 0) - (b.o.best?.total || 0)) : 0));
+    return D.list().filter(h => !h.hidden && (!city || h.city === city)).map(h => ({ h, o: offer(h, from, to, g) }))
+      .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) : 0) || (!!b.h.promo - !!a.h.promo) || (dated ? (a.o.best?.total || 0) - (b.o.best?.total || 0) : 0));
   };
   const link = (h, q) => `hotel.html?h=${encodeURIComponent(h.slug)}${q.from && q.to ? `&from=${q.from}&to=${q.to}&g=${q.g}` : ''}`;
   window.V2FIND = { find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t };
@@ -139,7 +148,8 @@
       const img = h.site?.hero?.img || '';
       const price = dated ? (o.best ? `${o.best.total} ₾ <small>${o.n} ${t('nightsW')} · ${esc(tname(o.best.type))}</small>` : '') : `${t('fromP', { p: o.minFrom })} <small>/ ${t('perNight')}</small>`;
       const tag = dated ? (o.best ? t('tagFree') : t('tagNo')) : t('tagReal');
-      return `<a class="card" href="${link(h, q)}" data-free="${dated && !o.best ? 'no' : 'yes'}">
+      return `<a class="card${h.promo ? ' promo' : ''}" href="${link(h, q)}" data-free="${dated && !o.best ? 'no' : 'yes'}">
+  ${h.promo ? `<span class="card-promo">${t('promo')}</span>` : ''}
   ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : ''}
   <div class="card-body"><p class="card-city">${esc(town(h.city))}${h.mine ? ' · ' + t('yours') : ''}</p><h3>${esc(hname(h))}</h3>
   ${price ? `<p class="card-price">${price}</p>` : ''}<p class="card-tag">${tag}</p></div></a>`;

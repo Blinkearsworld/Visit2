@@ -56,6 +56,9 @@ p { margin: 0 0 1em; }
 .card[data-free="no"] { opacity: .6; }
 .card[data-free="no"] .card-tag { color: #a33a26; }
 .card:hover h3 { text-decoration: underline; }
+.card { position: relative; }
+.card.promo { box-shadow: 0 0 0 2px var(--teal); }
+.card-promo { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: 999px; background: #fff; color: var(--teal-dark); font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
 
 .why { background: #fff; padding: clamp(40px, 6vw, 72px) 0; }
 .why ul { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
@@ -117,6 +120,7 @@ p { margin: 0 0 1em; }
 .small { font-size: 14px; color: var(--muted); }
 
 .prices { padding: clamp(36px, 6vw, 64px) 0; }
+.prices .small { max-width: 64ch; }
 .prices table { width: 100%; max-width: 760px; border-collapse: collapse; margin-top: 12px; }
 .prices td { padding: 14px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .prices td:last-child { text-align: right; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
