@@ -1,55 +1,138 @@
-/* Visit2.ge platform pages: the guests' search across hotels and the owners' sign-up (demo, browser-only). */
+/* Visit2.ge platform pages: the guests' search across hotels and the owners' page with sign-up (demo, browser-only).
+   Three languages; the choice is shared with the hotel sites (same storage key as js/i18n.js). */
 (() => {
   const D = window.V2DEMO, $ = s => document.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // ---------- language ----------
+  const LANGS = ['ka', 'en', 'ru'], KEY = 'jiji-lang';
+  let lang = (() => {
+    const q = new URLSearchParams(location.search).get('lang'); if (LANGS.includes(q)) return q;
+    try { const s = localStorage.getItem(KEY); if (LANGS.includes(s)) return s; } catch (e) {}
+    const n = (navigator.language || '').slice(0, 2).toLowerCase();
+    return n === 'ka' ? 'ka' : ['ru', 'uk', 'be', 'kk', 'hy', 'az'].includes(n) ? 'ru' : n ? 'en' : 'ka';
+  })();
+  const L = () => LANGS.indexOf(lang);
+  const listeners = [];
+  window.V2LANG = { get lang() { return lang; }, onChange: f => listeners.push(f) };
+
+  const T = {
+    navHotels: ['სასტუმროები', 'Hotels', 'Отели'], navOwners: ['მფლობელებს', 'For owners', 'Владельцам'],
+    gH1: ['იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ', 'Find a place to stay in Georgia and book it direct', 'Найдите жильё в Грузии и бронируйте напрямую'],
+    gLead: ['ფასს სასტუმრო თავად აწესებს, შუამავალი არ არის. თავისუფალი ნომრები ნამდვილია: სასტუმროები ჯავშნებს Visit2.ge-ზე მართავენ.', 'Hotels set their own prices, with no middleman. Availability is real: hotels manage their bookings on Visit2.ge.', 'Цены устанавливает сам отель, без посредников. Свободные номера настоящие: отели ведут брони на Visit2.ge.'],
+    city: ['ქალაქი ან კურორტი', 'City or resort', 'Город или курорт'], all: ['ყველა', 'All', 'Все'], in: ['შესვლა', 'Check-in', 'Заезд'], out: ['გასვლა', 'Check-out', 'Выезд'],
+    guests: ['სტუმარი', 'Guests', 'Гости'], search: ['ძებნა', 'Search', 'Найти'],
+    why1: ['<b>პირდაპირ სასტუმროსთან</b>მოთხოვნა სასტუმროს ეგზავნება და ისინი გირეკავენ დასადასტურებლად.', '<b>Straight to the hotel</b>Your request goes to the hotel, and they call you to confirm.', '<b>Напрямую в отель</b>Запрос уходит в отель, и вам перезвонят для подтверждения.'],
+    why2: ['<b>გადახდა სასტუმროში</b>წინასწარ ბარათს არ გთხოვთ. გადახდის პირობებს სასტუმრო გეტყვით.', '<b>Pay at the hotel</b>No card needed upfront. The hotel tells you how to pay.', '<b>Оплата в отеле</b>Карта заранее не нужна. Условия оплаты сообщит отель.'],
+    why3: ['<b>ნამდვილი თავისუფალი ნომრები</b>სასტუმროები კალენდარს აქვე მართავენ, ამიტომ დაკავებული ნომერი არ გამოჩნდება.', '<b>Real availability</b>Hotels run their calendar here, so booked rooms are never shown.', '<b>Реальная доступность</b>Отели ведут календарь здесь, поэтому занятые номера не показываются.'],
+    bandH: ['გაქვს სასტუმრო ან ბინა?', 'Own a hotel or a flat?', 'У вас отель или квартира?'],
+    bandP: ['მიიღე საიტი, ჯავშნების ადმინი და ჩატბოტი. ფიქსირებული 50₾ თვეში, პროცენტის გარეშე. პირველი 30 დღე უფასოა.', 'Get a website, a booking admin and a chatbot. A flat 50₾ a month, no commission. The first 30 days are free.', 'Сайт, админка для броней и чат-бот. 50₾ в месяц, без процентов. Первые 30 дней бесплатно.'],
+    bandBtn: ['მფლობელებისთვის', 'For owners', 'Владельцам'], demo: ['დემო: მონაცემები მხოლოდ ამ ბრაუზერში ინახება', 'Demo: data stays in this browser', 'Демо: данные только в этом браузере'],
+    hotels: ['სასტუმროები', 'Hotels', 'Отели'], pickDates: ['აირჩიე თარიღები, რომ ნახო თავისუფალი ნომრები და ფასი', 'Choose dates to see free rooms and the price', 'Выберите даты, чтобы увидеть свободные номера и цену'],
+    free: ['თავისუფალი', 'available', 'свободно'], nightsW: ['ღამე', 'nights', 'ноч.'], guestsW: ['სტუმარი', 'guests', 'гост.'], perNight: ['ღამე', 'night', 'ночь'],
+    fromP: ['{p} ₾-დან', 'from {p} ₾', 'от {p} ₾'], tagFree: ['✓ თავისუფალია ამ თარიღებზე', '✓ Available on these dates', '✓ Свободно на эти даты'],
+    tagNo: ['ამ თარიღებზე თავისუფალი არ არის', 'Not available on these dates', 'На эти даты мест нет'], tagReal: ['✓ ნამდვილი თავისუფალი ნომრები', '✓ Real availability', '✓ Реальная доступность'],
+    yours: ['შენი სასტუმრო', 'your hotel', 'ваш отель'], none: ['ამ ქალაქში სასტუმრო ჯერ არ არის.', 'No hotels in this city yet.', 'В этом городе пока нет отелей.'],
+    oH1: ['შენი სასტუმროს საიტი, ჯავშნები და ჩატბოტი ერთ ადგილას', 'Your hotel website, bookings and chatbot in one place', 'Сайт отеля, брони и чат-бот в одном месте'],
+    oLead: ['აირჩიე შაბლონი, ჩაწერე სახელი, და საიტი მზადაა. ჯავშნებს, ფასებს და კალენდარს ადმინში მართავ, სტუმრებს ჩატბოტი პასუხობს.', 'Pick a template, type your name, and the site is ready. Manage bookings, prices and the calendar in the admin; the chatbot answers guests.', 'Выберите шаблон, впишите название, и сайт готов. Брони, цены и календарь в админке, гостям отвечает чат-бот.'],
+    oPrice: ['50₾ თვეში, საკომისიოს გარეშე. პირველი 30 დღე უფასოა, ბარათი არ გჭირდება.', '50₾ a month, no commission. The first 30 days are free, no card needed.', '50₾ в месяц, без комиссии. Первые 30 дней бесплатно, карта не нужна.'],
+    create: ['საიტის შექმნა', 'Create my site', 'Создать сайт'], seeTpl: ['შაბლონების ნახვა', 'See templates', 'Шаблоны'], getsH: ['რას იღებ', 'What you get', 'Что вы получаете'],
+    get1: ['<b>საიტი</b>ათი შაბლონიდან ერთ-ერთი, შენი ფერით, ფოტოებით და ტექსტებით. ქართულად, ინგლისურად და რუსულად.', '<b>Website</b>One of ten templates with your colour, photos and texts. In Georgian, English and Russian.', '<b>Сайт</b>Один из десяти шаблонов с вашим цветом, фото и текстами. На грузинском, английском и русском.'],
+    get2: ['<b>ადმინი</b>მოთხოვნები, კალენდარი, ფასები სეზონებით, გადახდები, სტუმრების ისტორია, გუნდი და ჟურნალი.', '<b>Admin</b>Requests, calendar, seasonal prices, payments, guest history, team and activity log.', '<b>Админка</b>Запросы, календарь, сезонные цены, оплаты, история гостей, команда и журнал.'],
+    get3: ['<b>ჩატბოტი</b>საიტზე სტუმარს თავისუფალ ნომერს და ფასს წამებში ეუბნება. <span class="soon">Facebook და Instagram მალე</span>', '<b>Chatbot</b>Tells guests on your site what is free and what it costs, in seconds. <span class="soon">Facebook and Instagram soon</span>', '<b>Чат-бот</b>За секунды сообщает гостям, что свободно и сколько стоит. <span class="soon">Facebook и Instagram скоро</span>'],
+    get4: ['<b>ადგილი კატალოგში</b>Visit2.ge-ზე სტუმრები ქალაქით და თარიღით გპოულობენ. პირველი 6 თვე უფასოდ.', '<b>A place in the catalogue</b>Guests find you on Visit2.ge by city and dates. Free for the first 6 months.', '<b>Место в каталоге</b>Гости находят вас на Visit2.ge по городу и датам. Первые 6 месяцев бесплатно.'],
+    tplH: ['ათი შაბლონი', 'Ten templates', 'Десять шаблонов'], tplP: ['ნებისმიერ დროს შეცვლი ადმინში. ჯავშნები და ფასები არ იკარგება.', 'Switch any time in the admin. Bookings and prices stay.', 'Меняйте в любой момент в админке. Брони и цены сохраняются.'],
+    sample: ['ნიმუშის ნახვა', 'View sample', 'Посмотреть'], suH: ['შექმენი შენი საიტი', 'Create your site', 'Создайте свой сайт'],
+    suP: ['დემო: საიტი ამ ბრაუზერში შეიქმნება, რომ ნახო როგორ გამოიყურება. ნამდვილი რეგისტრაცია Visit2.ge-ს გაშვებისას ჩაირთვება.', 'Demo: the site is created in this browser so you can see it. Real sign-up opens when Visit2.ge launches.', 'Демо: сайт создаётся в этом браузере, чтобы вы его увидели. Настоящая регистрация откроется при запуске Visit2.ge.'],
+    fName: ['სასტუმროს სახელი', 'Hotel name', 'Название отеля'], fCity: ['ქალაქი ან სოფელი', 'Town or village', 'Город или село'], fEmail: ['ელფოსტა', 'Email', 'Эл. почта'],
+    fTpl: ['შაბლონი', 'Template', 'Шаблон'], fCol: ['ფერი', 'Colour', 'Цвет'], needNC: ['ჩაწერე სასტუმროს სახელი და ქალაქი', 'Enter the hotel name and town', 'Укажите название и город'],
+    ready: ['✓ „{n}“-ის საიტი მზადაა', '✓ {n}: your site is ready', '✓ Сайт «{n}» готов'],
+    doneP: ['ადმინში ნომრები, ფასები და ტექსტები შეცვალე. დემოში შესასვლელი PIN: 1234.', 'Change rooms, prices and texts in the admin. Demo PIN: 1234.', 'Измените номера, цены и тексты в админке. PIN в демо: 1234.'],
+    mySite: ['ჩემი საიტი', 'My site', 'Мой сайт'], admin: ['ადმინი', 'Admin', 'Админка'], pricesH: ['ფასები', 'Prices', 'Цены'],
+    pr1: ['საიტი, ადმინი და ჩატბოტი<small>პირველი 30 დღე უფასოდ, ბარათის გარეშე</small>', 'Website, admin and chatbot<small>First 30 days free, no card</small>', 'Сайт, админка и чат-бот<small>Первые 30 дней бесплатно, без карты</small>'],
+    pr2: ['ადგილი Visit2.ge-ს კატალოგში<small>პირველი 6 თვე უფასოდ</small>', 'Listing in the Visit2.ge catalogue<small>First 6 months free</small>', 'Место в каталоге Visit2.ge<small>Первые 6 месяцев бесплатно</small>'],
+    pr3: ['სეზონური პაუზა<small>საიტი რჩება და წინასწარ ჯავშნებს იღებს; 1–6 თვე წელიწადში</small>', 'Seasonal pause<small>The site stays up and takes early bookings; 1–6 months a year</small>', 'Сезонная пауза<small>Сайт работает и принимает ранние брони; 1–6 месяцев в год</small>'],
+    pr4: ['ჩვენ გავაკეთებთ<small>ფოტოები, ტექსტები, Google-ის პროფილი, Facebook-ის და Instagram-ის მიერთება</small>', 'We set it up for you<small>Photos, texts, Google profile, Facebook and Instagram connection</small>', 'Сделаем за вас<small>Фото, тексты, профиль Google, подключение Facebook и Instagram</small>'],
+    pr1v: ['50₾ / თვე', '50₾ / month', '50₾ / мес.'], pr2v: ['+20₾ / თვე', '+20₾ / month', '+20₾ / мес.'], pr3v: ['10₾ / თვე', '10₾ / month', '10₾ / мес.'], pr4v: ['300₾ ერთხელ', '300₾ once', '300₾ разово'],
+    findHotels: ['სასტუმროების ძებნა', 'Find hotels', 'Поиск отелей'],
+  };
+  const t = (k, v = {}) => String((T[k] || [k])[L()] ?? T[k][0]).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');
+  const MONTHS = { ka: ['იან', 'თებ', 'მარ', 'აპრ', 'მაი', 'ივნ', 'ივლ', 'აგვ', 'სექ', 'ოქტ', 'ნოე', 'დეკ'], en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], ru: ['янв', 'фев', 'мар', 'апр', 'мая', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'] };
+  // town names shown to visitors in their language (the demo towns; owners type their own)
+  const TOWN = { 'ბაკურიანი': ['Bakuriani', 'Бакуриани'], 'ბორჯომი': ['Borjomi', 'Боржоми'], 'თბილისი': ['Tbilisi', 'Тбилиси'], 'აბასთუმანი': ['Abastumani', 'Абастумани'] };
+  const town = c => (lang === 'ka' || !TOWN[c] ? c : TOWN[c][lang === 'en' ? 0 : 1]);
+  const NAME = { 'მთის სახლი': ['Mountain House', 'Горный дом'], 'ნინოს ეზო': ["Nino's Courtyard", 'Двор Нино'], 'ძველი უბნის ბინები': ['Old Town Apartments', 'Апартаменты в Старом городе'], 'ტყის კოტეჯები': ['Forest Cottages', 'Лесные коттеджи'] };
+  const hname = h => (lang === 'ka' || !NAME[h.name] ? h.name : NAME[h.name][lang === 'en' ? 0 : 1]);
+  const TYPE = { 'სტანდარტული ორადგილიანი': ['Standard double', 'Стандартный двухместный'], 'საოჯახო, 1 საძინებლით (4+1)': ['Family, 1 bedroom', 'Семейный, 1 спальня'], 'ლუქსი, 2 საძინებლით': ['Suite, 2 bedrooms', 'Люкс, 2 спальни'] };
+  const tname = n => (lang === 'ka' || !TYPE[n] ? n : TYPE[n][lang === 'en' ? 0 : 1]);
+
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-t]').forEach(el => { const k = el.dataset.t; if (T[k]) el.innerHTML = t(k); });
+    document.querySelectorAll('[data-plang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.plang === lang)));
+  }
+  function setLang(l) {
+    if (!LANGS.includes(l)) return; lang = l;
+    try { localStorage.setItem(KEY, l); } catch (e) {}
+    applyLang(); render(); listeners.forEach(f => f(l));
+  }
+  document.querySelectorAll('[data-plang]').forEach(b => b.addEventListener('click', () => setLang(b.dataset.plang)));
+
+  // ---------- dates ----------
   const toD = s => { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
   const toS = d => d.toISOString().slice(0, 10);
   const addDays = (s, n) => { const d = toD(s); d.setUTCDate(d.getUTCDate() + n); return toS(d); };
   const today = () => toS(new Date(Date.now() + 4 * 3600e3)); // Georgian time
   const nights = (a, b) => Math.round((toD(b) - toD(a)) / 864e5);
   const season = s => { const m = +s.slice(5, 7), d = +s.slice(8); if ((m === 12 && d >= 25) || (m === 1 && d <= 7)) return 'peak'; if (m === 12 || m <= 3) return 'winter'; if (m >= 6 && m <= 8) return 'summer'; return 'off'; };
-  const MONTHS = ['იან', 'თებ', 'მარ', 'აპრ', 'მაი', 'ივნ', 'ივლ', 'აგვ', 'სექ', 'ოქტ', 'ნოე', 'დეკ'];
-  const fmt = s => { const d = toD(s); return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()]; };
+  const fmt = s => { const d = toD(s); return d.getUTCDate() + ' ' + MONTHS[lang][d.getUTCMonth()]; };
 
-  // ---------- guests: search ----------
+  // ---------- guests: search (also used by the chatbot) ----------
   const booked = h => { try { const st = JSON.parse(localStorage.getItem('v2-demo-' + h.slug) || 'null'); return st ? st.bookings.filter(b => b.status === 'confirmed') : []; } catch (e) { return []; } };
   function offer(h, from, to, g) {
-    const rate = t => (h.types[t]?.rates || []).find(r => r.guests >= g);
-    const minFrom = Math.min(...Object.values(h.types).flatMap(t => t.rates.map(r => Math.min(...Object.values(r.price)))));
+    const rate = ty => (h.types[ty]?.rates || []).find(r => r.guests >= g);
+    const minFrom = Math.min(...Object.values(h.types).flatMap(ty => ty.rates.map(r => Math.min(...Object.values(r.price)))));
     if (!from || !to || to <= from) return { minFrom };
     const bs = booked(h);
     let best = null;
-    for (const t of Object.keys(h.types)) {
-      const r = rate(t); if (!r) continue;
-      const free = D.ROOMS.filter(x => x.type === t && !bs.some(b => b.room === x.id && b.from < to && from < b.to));
+    for (const ty of Object.keys(h.types)) {
+      const r = rate(ty); if (!r) continue;
+      const free = D.ROOMS.filter(x => x.type === ty && !bs.some(b => b.room === x.id && b.from < to && from < b.to));
       if (!free.length) continue;
       let sum = 0; for (let d = from; d < to; d = addDays(d, 1)) sum += r.price[season(d)] || 0;
-      if (!best || sum < best.total) best = { total: sum, type: h.types[t].name };
+      if (!best || sum < best.total) best = { total: sum, type: h.types[ty].name };
     }
     return { minFrom, best, n: nights(from, to) };
   }
-  function search() {
-    const f = $('#search'), city = f.city.value, from = f.from.value, to = f.to.value, g = +f.g.value;
-    const list = D.list().filter(h => !city || h.city === city);
+  const find = ({ city = '', from = '', to = '', g = 2 }) => {
     const dated = from && to && to > from;
-    const rows = list.map(h => ({ h, o: offer(h, from, to, g) })).sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) || ((a.o.best?.total || 0) - (b.o.best?.total || 0)) : 0));
-    $('#resTitle').textContent = city ? `სასტუმროები: ${city}` : 'სასტუმროები';
-    $('#resNote').textContent = dated ? `${fmt(from)} – ${fmt(to)} · ${g} სტუმარი · ${rows.filter(r => r.o.best).length} თავისუფალი` : 'აირჩიე თარიღები, რომ ნახო თავისუფალი ნომრები და ფასი';
-    const q = dated ? `&from=${from}&to=${to}&g=${g}` : '';
+    return D.list().filter(h => !city || h.city === city).map(h => ({ h, o: offer(h, from, to, g) }))
+      .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) || ((a.o.best?.total || 0) - (b.o.best?.total || 0)) : 0));
+  };
+  const link = (h, q) => `hotel.html?h=${encodeURIComponent(h.slug)}${q.from && q.to ? `&from=${q.from}&to=${q.to}&g=${q.g}` : ''}`;
+  window.V2FIND = { find, link, cities: () => [...new Set(D.list().map(h => h.city))], town, hname, fmt, today, addDays, t };
+
+  function search() {
+    const f = $('#search'); if (!f) return;
+    const q = { city: f.city.value, from: f.from.value, to: f.to.value, g: +f.g.value }, dated = q.from && q.to && q.to > q.from;
+    const rows = find(q);
+    $('#resTitle').textContent = q.city ? `${t('hotels')}: ${town(q.city)}` : t('hotels');
+    $('#resNote').textContent = dated ? `${fmt(q.from)} – ${fmt(q.to)} · ${q.g} ${t('guestsW')} · ${rows.filter(r => r.o.best).length} ${t('free')}` : t('pickDates');
     $('#cards').innerHTML = rows.map(({ h, o }) => {
       const img = h.site?.hero?.img || '';
-      const price = dated ? (o.best ? `${o.best.total} ₾ <small>${o.n} ღამე · ${esc(o.best.type)}</small>` : '') : `${o.minFrom} ₾-დან <small>/ ღამე</small>`;
-      const tag = dated ? (o.best ? '✓ თავისუფალია ამ თარიღებზე' : 'ამ თარიღებზე თავისუფალი არ არის') : '✓ ნამდვილი თავისუფალი ნომრები';
-      return `<a class="card" href="hotel.html?h=${encodeURIComponent(h.slug)}${q}" data-free="${dated && !o.best ? 'no' : 'yes'}">
+      const price = dated ? (o.best ? `${o.best.total} ₾ <small>${o.n} ${t('nightsW')} · ${esc(tname(o.best.type))}</small>` : '') : `${t('fromP', { p: o.minFrom })} <small>/ ${t('perNight')}</small>`;
+      const tag = dated ? (o.best ? t('tagFree') : t('tagNo')) : t('tagReal');
+      return `<a class="card" href="${link(h, q)}" data-free="${dated && !o.best ? 'no' : 'yes'}">
   ${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : ''}
-  <div class="card-body"><p class="card-city">${esc(h.city)}${h.mine ? ' · შენი სასტუმრო' : ''}</p><h3>${esc(h.name)}</h3>
+  <div class="card-body"><p class="card-city">${esc(town(h.city))}${h.mine ? ' · ' + t('yours') : ''}</p><h3>${esc(hname(h))}</h3>
   ${price ? `<p class="card-price">${price}</p>` : ''}<p class="card-tag">${tag}</p></div></a>`;
-    }).join('') || '<p>ამ ქალაქში სასტუმრო ჯერ არ არის.</p>';
-    document.querySelectorAll('#cities button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.city === city)));
+    }).join('') || `<p>${t('none')}</p>`;
+    document.querySelectorAll('#cities button').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.city === q.city)); b.textContent = town(b.dataset.city); });
+    [...f.city.options].forEach(o => { if (o.value) o.textContent = town(o.value); });
   }
   if ($('#search')) {
-    const f = $('#search'), cities = [...new Set(D.list().map(h => h.city))];
-    f.city.insertAdjacentHTML('beforeend', cities.map(c => `<option>${esc(c)}</option>`).join(''));
+    const f = $('#search'), cities = window.V2FIND.cities();
+    f.city.insertAdjacentHTML('beforeend', cities.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join(''));
     $('#cities').innerHTML = cities.map(c => `<button type="button" data-city="${esc(c)}" aria-pressed="false">${esc(c)}</button>`).join('');
     f.from.min = today(); f.to.min = addDays(today(), 1);
     f.addEventListener('change', e => {
@@ -59,32 +142,45 @@
     });
     f.addEventListener('submit', e => { e.preventDefault(); search(); $('#results').scrollIntoView({ behavior: 'smooth' }); });
     $('#cities').addEventListener('click', e => { const b = e.target.closest('[data-city]'); if (!b) return; f.city.value = f.city.value === b.dataset.city ? '' : b.dataset.city; search(); });
-    search();
   }
 
   // ---------- owners: templates and sign-up ----------
   const TPL = [
-    { id: 'kva', name: 'ქვა', note: 'მთის სახლისთვის: ფოტო მთელ ეკრანზე და სახელი დიდი მთავრულით.', demo: 'mta' },
-    { id: 'ezo', name: 'ეზო', note: 'საოჯახო სასტუმროსთვის: თაღოვანი ფოტოები, რბილი ფერები.', demo: 'nino' },
-    { id: 'kalaki', name: 'ქალაქი', note: 'ბინებისთვის: სუფთა სია, ფასები თვალწინ.', demo: 'dzveli' },
+    ['kva', 'mta', ['ქვა', 'Stone', 'Камень'], ['მთის სახლისთვის: ფოტო მთელ ეკრანზე და სახელი დიდი მთავრულით.', 'Mountain house: a full-screen photo and the name in large Georgian capitals.', 'Горный дом: фото на весь экран и название крупными грузинскими заглавными.']],
+    ['ezo', 'nino', ['ეზო', 'Courtyard', 'Двор'], ['საოჯახო სასტუმროსთვის: თაღოვანი ფოტოები, რბილი ფერები.', 'Family guesthouse: arched photos, soft colours.', 'Семейный дом: фото в арках, мягкие цвета.']],
+    ['kalaki', 'dzveli', ['ქალაქი', 'City', 'Город'], ['ბინებისთვის: სუფთა სია, ფასები თვალწინ.', 'Apartments: a clean list with prices in view.', 'Квартиры: чистый список, цены на виду.']],
+    ['zghva', 'mta', ['ზღვა', 'Sea', 'Море'], ['ზღვისპირა სახლისთვის: ტალღის ხაზი, ცისფერი, ნათელი.', 'Seaside house: a wave line, blue and bright.', 'Дом у моря: линия волны, голубой и светлый.']],
+    ['ghvino', 'nino', ['ღვინო', 'Wine', 'Вино'], ['კახური მარანი-სასტუმროსთვის: ღვინისფერი ჩარჩო, ეტიკეტის ხაზები.', 'Kakhetian wine guesthouse: a wine-red frame and label-like rules.', 'Кахетинский гостевой дом с марани: винная рамка, линии как на этикетке.']],
+    ['minimali', 'dzveli', ['მინიმალი', 'Minimal', 'Минимал'], ['დიზაინერული სახლისთვის: ბევრი თეთრი, მშვიდი ტიპოგრაფია.', 'Design house: lots of white, calm type.', 'Дизайнерский дом: много белого, спокойный шрифт.']],
+    ['tye', 'kotejebi', ['ტყე', 'Forest', 'Лес'], ['კოტეჯებისთვის: მუქი მწვანე ფონი, რბილი ფორმები.', 'Cottages: a dark forest-green page, soft shapes.', 'Коттеджи: тёмно-зелёный фон, мягкие формы.']],
+    ['butiki', 'mta', ['ბუტიკი', 'Boutique', 'Бутик'], ['ბუტიკ სასტუმროსთვის: მუქი ლურჯი და სპილენძი, სიმეტრია.', 'Boutique hotel: navy and brass, symmetry.', 'Бутик-отель: тёмно-синий и латунь, симметрия.']],
+    ['peradi', 'nino', ['ფერადი', 'Colourful', 'Яркий'], ['ჰოსტელისთვის და ოჯახებისთვის: დიდი ფერები, მხიარული ფოტოები.', 'Hostels and families: big colour, playful photos.', 'Хостелы и семьи: яркие цвета, весёлые фото.']],
+    ['klasika', 'dzveli', ['კლასიკა', 'Classic', 'Классика'], ['ძველი უბნის სახლისთვის: ფოტო გვერდზე რჩება, ტექსტი მოძრაობს.', 'Old-town house: the photo stays put while the page scrolls.', 'Дом в старом городе: фото остаётся на месте, текст прокручивается.']],
   ];
-  const COLORS = ['#0E857D', '#3F7A4E', '#2F5A8A', '#B4472F', '#8A5A2B', '#6B4A8A', '#1F1A17'];
-  if ($('#ownerForm')) {
-    $('#tplList').innerHTML = TPL.map(t => `<figure class="tpl-item"><img src="img/templates/${t.id}.jpg" alt="შაბლონი ${t.name}" loading="lazy"><figcaption><b>${t.name}</b><p>${t.note}</p><a href="hotel.html?h=${t.demo}">ნიმუშის ნახვა</a></figcaption></figure>`).join('');
-    $('#tplChoice').innerHTML = TPL.map((t, i) => `<label><input type="radio" name="theme" value="${t.id}"${i ? '' : ' checked'}><span class="opt">${t.name}</span></label>`).join('');
-    $('#colChoice').innerHTML = COLORS.map((c, i) => `<label><input type="radio" name="accent" value="${c}"${i ? '' : ' checked'} aria-label="ფერი ${c}"><span class="opt dot" style="--c:${c}"></span></label>`).join('');
-    const showDone = h => {
-      $('#doneTitle').textContent = `✓ „${h.name}“-ის საიტი მზადაა`;
-      $('#doneSite').href = 'hotel.html?h=my'; $('#doneAdmin').href = 'admin.html?h=my';
-      $('#done').classList.add('show');
-    };
+  const COLORS = ['#0E857D', '#3F7A4E', '#1F7FB0', '#2F5A8A', '#B4472F', '#E2563B', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
+  const showDone = h => {
+    $('#doneTitle').textContent = t('ready', { n: h.name });
+    $('#doneSite').href = 'hotel.html?h=my'; $('#doneAdmin').href = 'admin.html?h=my';
+    $('#done').classList.add('show');
+  };
+  function renderOwners() {
+    if (!$('#ownerForm')) return;
+    const cur = $('#ownerForm').theme?.value || 'kva', curC = $('#ownerForm').accent?.value || COLORS[0];
+    $('#tplList').innerHTML = TPL.map(([id, demo, nm, note]) => `<figure class="tpl-item"><img src="img/templates/${id}.jpg" alt="${esc(nm[L()])}" loading="lazy"><figcaption><b>${esc(nm[L()])}</b><p>${esc(note[L()])}</p><a href="hotel.html?h=${demo}&theme=${id}">${t('sample')}</a></figcaption></figure>`).join('');
+    $('#tplChoice').innerHTML = TPL.map(([id, , nm]) => `<label><input type="radio" name="theme" value="${id}"${id === cur ? ' checked' : ''}><span class="opt">${esc(nm[L()])}</span></label>`).join('');
+    $('#colChoice').innerHTML = COLORS.map(c => `<label><input type="radio" name="accent" value="${c}"${c === curC ? ' checked' : ''} aria-label="${t('fCol')} ${c}"><span class="opt dot" style="--c:${c}"></span></label>`).join('');
     const mine = D.mine(); if (mine) showDone(mine);
+  }
+  if ($('#ownerForm')) {
     $('#ownerForm').addEventListener('submit', e => {
       e.preventDefault();
       const f = e.target, name = f.name.value.trim(), city = f.city.value.trim(), msg = $('#formMsg');
-      if (name.length < 2 || city.length < 2) { msg.textContent = 'ჩაწერე სასტუმროს სახელი და ქალაქი'; (name.length < 2 ? f.name : f.city).focus(); return; }
+      if (name.length < 2 || city.length < 2) { msg.textContent = t('needNC'); (name.length < 2 ? f.name : f.city).focus(); return; }
       const h = D.saveMine({ name, city, theme: f.theme.value, accent: f.accent.value, email: f.email.value.trim() });
       msg.textContent = ''; showDone(h); $('#done').scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   }
+
+  function render() { search(); renderOwners(); }
+  applyLang(); render();
 })();

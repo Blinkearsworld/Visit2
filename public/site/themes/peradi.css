@@ -1,0 +1,27 @@
+/* ფერადი (Colourful): a hostel or a playful family place. Big blocks of the hotel colour, heavy type,
+   photos tilted like pinned prints, amenities as round stickers. */
+:root { --bg: #FFFDF8; --surface: #FFFFFF; --ink: #1F1A17; --muted: #5F5650; --line: #1F1A17; --band: var(--accent); --on-band: #fff;
+  --display: "Noto Sans Georgian", system-ui, sans-serif; --radius: 20px; }
+h1, h2 { font-weight: 800; }
+.btn { border-radius: 14px; border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+.btn-accent { color: #fff; }
+.hero { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; background: var(--accent); color: #fff; padding: clamp(28px, 5vw, 64px) var(--pad) !important; }
+.hero-media img, .hero-media .ph { aspect-ratio: 1; border-radius: var(--radius); border: 3px solid var(--ink); transform: rotate(2.5deg); box-shadow: 8px 8px 0 var(--ink); }
+.hero-city { font-weight: 800; margin: 0 0 6px; }
+.hero-name { font-size: clamp(44px, 8vw, 96px); line-height: .95; overflow-wrap: anywhere; }
+.bar { background: var(--ink); }
+.bar input, .bar select { border-radius: 12px; border: 2px solid var(--ink); }
+.about-media img { border: 3px solid var(--ink); transform: rotate(-2deg); box-shadow: -8px 8px 0 var(--accent); }
+.amen li { border: 2px solid var(--ink); background: #FFF3C4; font-weight: 700; }
+.amen li:nth-child(3n+2) { background: #D7F0E6; }
+.amen li:nth-child(3n) { background: #FFD9CF; }
+.room-list { grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 30px; }
+.room { border: 3px solid var(--ink); border-radius: var(--radius); overflow: hidden; box-shadow: 6px 6px 0 var(--ink); }
+.room-media { display: block; border-bottom: 3px solid var(--ink); }
+.room-media .second { display: none; }
+.room-body { padding: 16px 18px 20px; }
+.gallery img { border: 3px solid var(--ink); border-radius: 14px; }
+.gallery img:nth-child(odd) { transform: rotate(-1.5deg); }
+.gallery img:nth-child(even) { transform: rotate(1.5deg); }
+.book-sum { border: 2px solid var(--ink); border-left-width: 8px; border-left-color: var(--accent); border-radius: 14px; }
+@media (max-width: 760px) { .hero { grid-template-columns: 1fr; } }

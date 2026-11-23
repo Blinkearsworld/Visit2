@@ -1,0 +1,29 @@
+/* მინიმალი (Minimal): a design guesthouse or studio. Almost no decoration: generous white space,
+   one weight of type, photos edge to edge in a tight grid, everything left-aligned to one column edge. */
+:root { --bg: #FFFFFF; --surface: #FFFFFF; --ink: #1F1A17; --muted: #77706A; --line: #ECE9E5; --band: #FFFFFF; --on-band: #1F1A17;
+  --display: "Noto Sans Georgian", system-ui, sans-serif; --radius: 0px; --max: 980px; }
+body { font-size: 16px; }
+h1, h2, h3 { font-weight: 500; letter-spacing: -.01em; }
+h2 { font-size: clamp(22px, 3vw, 30px); color: var(--muted); }
+.top { border-bottom: 0; }
+.hero { padding: clamp(40px, 9vw, 120px) var(--pad) 0 !important; }
+.hero-text { max-width: var(--max); margin: 0 auto 32px; }
+.hero-city { color: var(--muted); margin: 0 0 4px; }
+.hero-name { font-size: clamp(40px, 8vw, 96px); font-weight: 500; line-height: 1; overflow-wrap: anywhere; }
+.hero-tag { color: var(--muted); }
+.hero { display: flex; flex-direction: column-reverse; }
+.hero-media { max-width: none !important; margin: 0 calc(var(--pad) * -1); }
+.hero-media img, .hero-media .ph { height: min(70vh, 640px); }
+.bar { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+.bar input, .bar select { border-radius: 0; border-color: var(--line); }
+.btn { border-radius: 0; font-weight: 500; }
+.btn-accent { background: var(--ink); }
+.amen ul { gap: 4px 28px; }
+.amen li { border: 0; padding: 4px 0; }
+.amen li span { display: none; }
+.room-list { gap: 56px; }
+.room-media { grid-template-columns: 1fr 1fr; gap: 0; }
+.room-body { max-width: 560px; }
+.gallery .grid { gap: 0; }
+.book { background: var(--bg); border-top: 1px solid var(--line); }
+.book-sum { border-left: 0; padding: 0; background: none; }

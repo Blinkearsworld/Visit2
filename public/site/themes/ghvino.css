@@ -1,0 +1,24 @@
+/* ღვინო (Wine): a Kakhetian guesthouse with a cellar. Paper-white pages framed by a deep wine colour,
+   serif type, double rules like a wine label, the gallery given room. */
+:root { --bg: #FBF9F7; --surface: #FFFFFF; --ink: #2B1A1E; --muted: #6E5A5E; --line: #E2D6D6; --band: #4A1F2A; --on-band: #F6EDEA;
+  --display: "Noto Serif Georgian", Georgia, serif; --radius: 2px; }
+body { border: 10px solid var(--band); border-top: 0; border-bottom: 0; }
+h2 { font-weight: 700; padding-bottom: 12px; border-bottom: 3px double var(--line); }
+.hero { display: grid; grid-template-rows: auto auto; padding: 0 0 clamp(28px, 5vw, 56px) !important; text-align: center; }
+.hero-media { max-width: none !important; width: 100%; }
+.hero-media img, .hero-media .ph { height: min(62vh, 560px); }
+.hero-text { padding: clamp(24px, 4vw, 44px) var(--pad) 0; }
+.hero-text::before { content: ""; display: block; width: 64px; margin: 0 auto 18px; border-top: 3px double var(--accent); }
+.hero-city { margin: 0 0 6px; color: var(--muted); font-style: italic; }
+.hero-name { font-size: clamp(40px, 7vw, 88px); font-weight: 700; overflow-wrap: anywhere; }
+.hero-tag { margin: 0 auto; color: var(--muted); }
+.about { grid-template-columns: .9fr 1.1fr; }
+.about-text p { font-family: var(--display); font-size: 21px; line-height: 1.75; }
+.amen li { border-radius: 0; border-style: double; border-width: 3px; }
+.room { grid-template-columns: 1fr 1fr; gap: 32px; padding: 32px 0; border-bottom: 3px double var(--line); background: none; }
+.room-body { align-self: center; }
+.gallery .grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.gallery img { aspect-ratio: 3 / 2; }
+.where { background: var(--band); color: var(--on-band); }
+.where .btn-ghost { color: var(--on-band); }
+@media (max-width: 760px) { body { border-width: 0; } .about, .room { grid-template-columns: 1fr; } }

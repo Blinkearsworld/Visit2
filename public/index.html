@@ -10,22 +10,23 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="site/platform.css">
 </head>
-<body>
+<body data-chat="guests">
 <header class="p-top">
   <a class="p-logo" href="index.html"><img src="img/brand/visit2.svg" alt="Visit2.ge" width="62" height="34"></a>
-  <nav class="p-nav"><a href="index.html" aria-current="page">სასტუმროები</a><a href="owners.html">მფლობელებს</a></nav>
+  <nav class="p-nav"><a href="index.html" aria-current="page" data-t="navHotels">სასტუმროები</a><a href="owners.html" data-t="navOwners">მფლობელებს</a></nav>
+  <div class="p-langs" role="group" aria-label="Language"><button type="button" data-plang="ka">KA</button><button type="button" data-plang="en">EN</button><button type="button" data-plang="ru">RU</button></div>
 </header>
 <main>
   <section class="g-hero">
     <div class="wrap">
-      <h1>იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ</h1>
-      <p class="lead">ფასს სასტუმრო თავად აწესებს, შუამავალი არ არის. თავისუფალი ნომრები ნამდვილია: სასტუმროები ჯავშნებს Visit2.ge-ზე მართავენ.</p>
+      <h1 data-t="gH1">იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ</h1>
+      <p class="lead" data-t="gLead">ფასს სასტუმრო თავად აწესებს, შუამავალი არ არის. თავისუფალი ნომრები ნამდვილია: სასტუმროები ჯავშნებს Visit2.ge-ზე მართავენ.</p>
       <form class="search" id="search">
-        <label><span>ქალაქი ან კურორტი</span><select name="city" id="city"><option value="">ყველა</option></select></label>
-        <label><span>შესვლა</span><input type="date" name="from"></label>
-        <label><span>გასვლა</span><input type="date" name="to"></label>
-        <label><span>სტუმარი</span><select name="g"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
-        <button class="btn btn-teal" type="submit">ძებნა</button>
+        <label><span data-t="city">ქალაქი ან კურორტი</span><select name="city" id="city"><option value="" data-t="all">ყველა</option></select></label>
+        <label><span data-t="in">შესვლა</span><input type="date" name="from"></label>
+        <label><span data-t="out">გასვლა</span><input type="date" name="to"></label>
+        <label><span data-t="guests">სტუმარი</span><select name="g"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+        <button class="btn btn-teal" type="submit" data-t="search">ძებნა</button>
       </form>
       <div class="cities" id="cities"></div>
     </div>
@@ -39,21 +40,22 @@
   <section class="why">
     <div class="wrap">
       <ul>
-        <li><b>პირდაპირ სასტუმროსთან</b>მოთხოვნა სასტუმროს ეგზავნება და ისინი გირეკავენ დასადასტურებლად.</li>
-        <li><b>გადახდა სასტუმროში</b>წინასწარ ბარათს არ გთხოვთ. გადახდის პირობებს სასტუმრო გეტყვით.</li>
-        <li><b>ნამდვილი თავისუფალი ნომრები</b>სასტუმროები კალენდარს აქვე მართავენ, ამიტომ დაკავებული ნომერი არ გამოჩნდება.</li>
+        <li data-t="why1"><b>პირდაპირ სასტუმროსთან</b>მოთხოვნა სასტუმროს ეგზავნება და ისინი გირეკავენ დასადასტურებლად.</li>
+        <li data-t="why2"><b>გადახდა სასტუმროში</b>წინასწარ ბარათს არ გთხოვთ. გადახდის პირობებს სასტუმრო გეტყვით.</li>
+        <li data-t="why3"><b>ნამდვილი თავისუფალი ნომრები</b>სასტუმროები კალენდარს აქვე მართავენ, ამიტომ დაკავებული ნომერი არ გამოჩნდება.</li>
       </ul>
     </div>
   </section>
   <section class="band">
     <div class="wrap">
-      <div><h2>გაქვს სასტუმრო ან ბინა?</h2><p>მიიღე საიტი, ჯავშნების ადმინი და ჩატბოტი. ფიქსირებული 50₾ თვეში, პროცენტის გარეშე. პირველი 30 დღე უფასოა.</p></div>
-      <a class="btn" href="owners.html">მფლობელებისთვის</a>
+      <div><h2 data-t="bandH">გაქვს სასტუმრო ან ბინა?</h2><p data-t="bandP">მიიღე საიტი, ჯავშნების ადმინი და ჩატბოტი. ფიქსირებული 50₾ თვეში, პროცენტის გარეშე. პირველი 30 დღე უფასოა.</p></div>
+      <a class="btn" href="owners.html" data-t="bandBtn">მფლობელებისთვის</a>
     </div>
   </section>
 </main>
-<footer class="p-foot"><span>Visit2.ge</span><span>დემო: მონაცემები მხოლოდ ამ ბრაუზერში ინახება</span></footer>
+<footer class="p-foot"><span>Visit2.ge</span><span data-t="demo">დემო: მონაცემები მხოლოდ ამ ბრაუზერში ინახება</span></footer>
 <script src="site/hotels.js"></script>
 <script src="site/platform.js"></script>
+<script src="site/visit2-chat.js"></script>
 </body>
 </html>

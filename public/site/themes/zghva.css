@@ -1,0 +1,26 @@
+/* ზღვა (Sea): seaside guesthouse. Bright white, a deep sea-blue band, a wave line between sections,
+   name centred over the photo, rooms as tall cards in a row. */
+:root { --bg: #FFFFFF; --surface: #FFFFFF; --ink: #10324A; --muted: #4E6878; --line: #D6E4EC; --band: #0F4C6E; --on-band: #EAF4F8;
+  --display: "Noto Sans Georgian", system-ui, sans-serif; --radius: 18px; }
+.btn { border-radius: 999px; }
+.hero { height: min(86vh, 800px); min-height: 500px; color: #fff; text-align: center; }
+.hero-media { position: absolute; inset: 0; max-width: none !important; }
+.hero-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,40,60,.55), rgba(8,40,60,.1) 45%, rgba(8,40,60,.5)); }
+.hero-text { position: absolute; inset: 14% var(--pad) auto; }
+.hero-city { font-weight: 700; margin: 0 0 8px; }
+.hero-name { font-size: clamp(42px, 8vw, 104px); font-weight: 800; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.hero-tag { margin: 0 auto; }
+.hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 34px; background: var(--band);
+  -webkit-mask: radial-gradient(22px 18px at 50% 0, transparent 98%, #000) 0 0 / 44px 34px repeat-x; mask: radial-gradient(22px 18px at 50% 0, transparent 98%, #000) 0 0 / 44px 34px repeat-x; }
+.bar input, .bar select { border-radius: 12px; border-color: transparent; }
+.about-media img { border-radius: 50% 50% var(--radius) var(--radius) / 30% 30% var(--radius) var(--radius); }
+.amen li { background: #EAF4F8; border-color: transparent; }
+.room-list { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.room { border-radius: var(--radius); overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
+.room-media { display: block; }
+.room-media img:first-child, .room-media .ph { aspect-ratio: 3 / 4; }
+.room-media .second { display: none; }
+.room-body { padding: 18px 20px 22px; }
+.gallery img { border-radius: var(--radius); }
+.where { background: var(--band); color: var(--on-band); }
+.where .btn-ghost { color: var(--on-band); }

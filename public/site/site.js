@@ -15,8 +15,15 @@
     kva: { name: { ka: 'ქვა', en: 'Stone', ru: 'Камень' }, accent: '#0E857D', note: { ka: 'მთის სახლი: დიდი ფოტო, მკაცრი ხაზები', en: 'Mountain house', ru: 'Горный дом' } },
     ezo: { name: { ka: 'ეზო', en: 'Courtyard', ru: 'Двор' }, accent: '#3F7A4E', note: { ka: 'საოჯახო: თაღოვანი ფოტოები, რბილი ფერები', en: 'Family house', ru: 'Семейный дом' } },
     kalaki: { name: { ka: 'ქალაქი', en: 'City', ru: 'Город' }, accent: '#B4472F', note: { ka: 'ბინები და ქალაქი: სუფთა სია, ფასები თვალწინ', en: 'City apartments', ru: 'Городские квартиры' } },
+    zghva: { name: { ka: 'ზღვა', en: 'Sea', ru: 'Море' }, accent: '#1F7FB0' },
+    ghvino: { name: { ka: 'ღვინო', en: 'Wine', ru: 'Вино' }, accent: '#7A2638' },
+    minimali: { name: { ka: 'მინიმალი', en: 'Minimal', ru: 'Минимал' }, accent: '#1F1A17' },
+    tye: { name: { ka: 'ტყე', en: 'Forest', ru: 'Лес' }, accent: '#3E9B5F' },
+    butiki: { name: { ka: 'ბუტიკი', en: 'Boutique', ru: 'Бутик' }, accent: '#B08D57' },
+    peradi: { name: { ka: 'ფერადი', en: 'Colourful', ru: 'Яркий' }, accent: '#E2563B' },
+    klasika: { name: { ka: 'კლასიკა', en: 'Classic', ru: 'Классика' }, accent: '#2F5A8A' },
   };
-  const ACCENTS = ['#0E857D', '#3F7A4E', '#2F5A8A', '#B4472F', '#8A5A2B', '#6B4A8A', '#1F1A17'];
+  const ACCENTS = ['#0E857D', '#3F7A4E', '#1F7FB0', '#2F5A8A', '#B4472F', '#E2563B', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
 
   // ---------- interface words ----------
   const W = {
@@ -46,6 +53,12 @@
     ski: ['⛷️', 'საბაგიროსთან ახლოს', 'Near ski lifts', 'Рядом с подъёмником'], balcony: ['🌄', 'აივანი', 'Balcony', 'Балкон'], kids: ['🧸', 'საბავშვო კუთხე', 'Kids corner', 'Детский уголок'],
     transfer: ['🚐', 'ტრანსფერი', 'Transfer', 'Трансфер'], sea: ['🌊', 'ზღვასთან ახლოს', 'Near the sea', 'Рядом с морем'], center: ['🏙️', 'ცენტრში', 'City centre', 'В центре'],
   };
+  const TYPE_TR = {
+    'სტანდარტული ორადგილიანი': ['Standard double', 'Стандартный двухместный'],
+    'საოჯახო, 1 საძინებლით (4+1)': ['Family, 1 bedroom (4+1)', 'Семейный, 1 спальня (4+1)'],
+    'ლუქსი, 2 საძინებლით': ['Suite, 2 bedrooms', 'Люкс, 2 спальни'],
+  };
+  const typeName = n => (lang() === 'ka' || !TYPE_TR[n] ? n : TYPE_TR[n][lang() === 'en' ? 0 : 1]);
   const amenText = k => (AMEN[k] ? AMEN[k][1 + ['ka', 'en', 'ru'].indexOf(lang())] || AMEN[k][1] : k);
 
   // ---------- the demo hotel (GitHub Pages, no server) ----------
@@ -78,7 +91,8 @@
   const loadLocal = () => { try { return JSON.parse(localStorage.getItem(lookKey()) || 'null'); } catch (e) { return null; } };
   const saveLocal = o => { try { localStorage.setItem(lookKey(), JSON.stringify({ ...(loadLocal() || {}), ...o })); } catch (e) {} };
   const theme = () => { const t = params.get('theme') || S().theme; return THEMES[t] ? t : 'kva'; };
-  const accent = () => S().accent || THEMES[theme()].accent;
+  // a template preview (?theme=…) shows the template's own colour; otherwise the hotel's
+  const accent = () => (params.get('theme') && THEMES[params.get('theme')] ? THEMES[theme()].accent : S().accent || THEMES[theme()].accent);
   const contact = () => (window.JC ? window.JC.contact() : {});
 
   async function loadContent() {
@@ -145,7 +159,7 @@ ${isDemo() ? demoPanel() : ''}`;
     return `<article class="room" data-type="${esc(k)}">
   <div class="room-media">${ph.length ? ph.map((p, i) => img(p, t.name, i ? 'second' : '')).join('') : img('')}</div>
   <div class="room-body">
-    <h3>${esc(caps(t.name))}</h3>
+    <h3>${esc(caps(typeName(t.name)))}</h3>
     ${pick(s.text) ? `<p class="room-text">${esc(pick(s.text))}</p>` : ''}
     <p class="room-meta">${t.cap} ${w('upTo')} · ${roomsOf(k).length} ${lang() === 'ka' ? 'ნომერი' : lang() === 'ru' ? 'ном.' : 'rooms'}</p>
     <p class="room-price"><span class="amount">${lang() === 'ka' ? `${minPrice(k)} ₾${w('from')}` : `${w('from')} ${minPrice(k)} ₾`}</span><span class="per"> / ${w('perNight')}</span></p>
@@ -212,7 +226,7 @@ ${isDemo() ? demoPanel() : ''}`;
       return;
     }
     sel.offer = type;
-    el.innerHTML = `<b>${esc(J.types[type].name)}</b><br>${J.fmtRange(from, to)} · ${n} ${w('nights')} · ${g} ${lang() === 'ka' ? 'სტუმარი' : lang() === 'ru' ? 'гост.' : 'guests'}<br><span class="sum-total">${w('estimate')}: ${fmtN(J.quote(type, from, to, g))}</span>`;
+    el.innerHTML = `<b>${esc(typeName(J.types[type].name))}</b><br>${J.fmtRange(from, to)} · ${n} ${w('nights')} · ${g} ${lang() === 'ka' ? 'სტუმარი' : lang() === 'ru' ? 'гост.' : 'guests'}<br><span class="sum-total">${w('estimate')}: ${fmtN(J.quote(type, from, to, g))}</span>`;
   }
   function availability() {
     const { from, to } = sel, g = sel.adults + sel.kids, ok = from && to && to > from;

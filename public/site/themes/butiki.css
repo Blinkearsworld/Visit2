@@ -1,0 +1,31 @@
+/* ბუტიკი (Boutique): a small upscale hotel. Deep navy and brass, everything centred and symmetrical,
+   serif display with wide letter-spacing on the name, photos in thin brass frames. */
+:root { --bg: #F7F6F2; --surface: #FFFFFF; --ink: #14213D; --muted: #5A6275; --line: #DCD6C8; --band: #14213D; --on-band: #F1EDE3;
+  --display: "Noto Serif Georgian", Georgia, serif; --radius: 0px; --brass: #B08D57; }
+h2 { text-align: center; font-weight: 500; letter-spacing: .04em; }
+h2::after { content: ""; display: block; width: 40px; height: 1px; background: var(--brass); margin: 16px auto 0; }
+.hero { background: var(--band); color: var(--on-band); text-align: center; padding: clamp(32px, 6vw, 72px) var(--pad) !important; }
+.hero-text { max-width: 760px; margin: 0 auto 32px; }
+.hero { display: flex; flex-direction: column-reverse; }
+.hero-city { color: var(--brass); letter-spacing: .12em; margin: 0 0 10px; }
+.hero-name { font-size: clamp(38px, 6.5vw, 78px); font-weight: 500; letter-spacing: .06em; overflow-wrap: anywhere; }
+.hero-tag { margin: 0 auto; opacity: .85; }
+.hero-media { max-width: 1000px !important; outline: 1px solid var(--brass); outline-offset: 10px; }
+.hero-media img, .hero-media .ph { height: min(60vh, 560px); }
+.bar { background: #0E1830; }
+.bar input, .bar select { background: #1B2A4A; color: #fff; border-color: #2B3B5E; color-scheme: dark; }
+.about { text-align: center; grid-template-columns: 1fr; }
+.about-media img { max-width: 520px; margin: 0 auto; aspect-ratio: 4 / 3; outline: 1px solid var(--brass); outline-offset: 8px; }
+.about-text p { margin: 0 auto; }
+.amen ul { justify-content: center; }
+.amen li { border-radius: 0; border-color: var(--brass); }
+.room-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 36px; }
+.room { text-align: center; background: none; }
+.room-media { display: block; }
+.room-media img:first-child, .room-media .ph { aspect-ratio: 4 / 5; }
+.room-media .second { display: none; }
+.room-text { margin: 0 auto 1em; }
+.btn { border-radius: 0; letter-spacing: .04em; }
+.where { text-align: center; }
+.where p { margin: 0 auto 1em; }
+.where-actions { justify-content: center; }

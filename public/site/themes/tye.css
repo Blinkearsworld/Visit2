@@ -1,0 +1,28 @@
+/* ტყე (Forest): eco cottages and glamping. A dark forest-green page throughout, light text,
+   soft rounded photos, the accent used only for actions. */
+:root { --bg: #17271D; --surface: #1F3326; --ink: #ECF1EA; --muted: #A9B8AB; --line: #2F4635; --band: #101D15; --on-band: #ECF1EA;
+  --display: "Noto Sans Georgian", system-ui, sans-serif; --radius: 22px; --on-accent: #fff; }
+.top { background: color-mix(in srgb, var(--bg) 88%, transparent); }
+.btn { border-radius: 999px; }
+.btn-ghost, .btn-line { color: var(--ink); }
+.hero { display: grid; padding: clamp(16px, 3vw, 28px) var(--pad) 0 !important; }
+.hero-media { max-width: none !important; }
+.hero-media img, .hero-media .ph { height: min(74vh, 700px); border-radius: var(--radius); }
+.hero-text { position: relative; margin: -120px auto 0 !important; width: calc(100% - 2 * var(--pad)); padding: 26px 28px; background: var(--surface); border-radius: var(--radius); max-width: 760px; }
+.hero-city { margin: 0 0 4px; color: var(--accent); font-weight: 700; filter: brightness(1.6); }
+.hero-name { font-size: clamp(36px, 6vw, 72px); font-weight: 800; overflow-wrap: anywhere; }
+.hero-tag { color: var(--muted); margin: 0; }
+.bar { margin-top: 24px; background: var(--band); }
+.bar input, .bar select { background: var(--surface); color: var(--ink); border-color: var(--line); color-scheme: dark; border-radius: 12px; }
+.about-media img, .gallery img, .room-media img, .room-media .ph { border-radius: var(--radius); }
+.amen li { border-color: var(--line); background: var(--surface); }
+.room-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.room { background: var(--surface); border-radius: var(--radius); padding: 10px; }
+.room-media { gap: 6px; }
+.room-body { padding: 16px 10px 8px; }
+.room-avail[data-state="no"], .msg[data-state="bad"] { color: #F0A28F; }
+.gallery .grid { gap: 10px; }
+.book { background: var(--band); }
+.book-sum { background: var(--surface); }
+.book input, .book textarea { background: var(--surface); color: var(--ink); border-color: var(--line); border-radius: 12px; }
+.foot { border-top-color: var(--line); }

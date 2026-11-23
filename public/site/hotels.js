@@ -30,7 +30,7 @@ window.V2DEMO = (() => {
         about: { img: P + 'room-suite.jpg', text: { ka: 'ხუთი ბინა ერთ შენობაში: თითოეულს აქვს სამზარეულო, სწრაფი ინტერნეტი და თვითჩეკინი. ქალაქის ცენტრი კარს გარეთაა.', en: 'Five apartments in one building, each with a kitchen, fast internet and self check-in. The centre is right outside.', ru: 'Пять квартир в одном доме: кухня, быстрый интернет и самостоятельное заселение. Центр прямо за дверью.' } },
         amenities: ['wifi', 'kitchen', 'center', 'transfer', 'balcony'], gallery: [P + 'room-std.jpg', P + 'room-family.jpg', P + 'lounge.jpg', P + 'room-suite2.jpg'], rooms: roomsPh,
         location: { text: { ka: 'ლესელიძის ქუჩა 8, ძველი თბილისი.', en: '8 Leselidze St, Old Tbilisi.', ru: 'ул. Леселидзе 8, Старый Тбилиси.' }, map: 'https://www.google.com/maps/search/?api=1&query=Old+Tbilisi' } } },
-    { slug: 'kotejebi', name: 'ტყის კოტეჯები', city: 'აბასთუმანი', theme: 'kva', accent: '#8A5A2B', types: types(.75),
+    { slug: 'kotejebi', name: 'ტყის კოტეჯები', city: 'აბასთუმანი', theme: 'tye', accent: '#3E9B5F', types: types(.75),
       site: { hero: { img: P + 'pool.jpg', tagline: { ka: 'ხის კოტეჯები ფიჭვნარში, აუზით და სიჩუმით', en: 'Wooden cottages in a pine forest, with a pool and silence', ru: 'Деревянные коттеджи в сосновом лесу, бассейн и тишина' } },
         about: { img: P + 'fire.jpg', text: { ka: 'აბასთუმნის ჰაერი, ხის სახლები და ბუხარი. მოდით დასასვენებლად, ქალაქის ხმაურისგან შორს.', en: 'Abastumani air, wooden houses and a fireplace. Come to rest far from city noise.', ru: 'Воздух Абастумани, деревянные дома и камин. Отдых вдали от городского шума.' } },
         amenities: ['wifi', 'parking', 'pool', 'fireplace', 'bbq', 'pets'], gallery: [P + 'pool.jpg', P + 'fire.jpg', P + 'garden.jpg'], rooms: roomsPh,
@@ -49,5 +49,5 @@ window.V2DEMO = (() => {
   }
   const list = () => [...(mine() ? [mine()] : []), ...HOTELS];
   const get = slug => list().find(h => h.slug === slug) || null;
-  return { list, get, mine, saveMine, ROOMS, THEMES: ['kva', 'ezo', 'kalaki'] };
+  return { list, get, mine, saveMine, ROOMS, THEMES: ['kva', 'ezo', 'kalaki', 'zghva', 'ghvino', 'minimali', 'tye', 'butiki', 'peradi', 'klasika'] };
 })();

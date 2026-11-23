@@ -4,7 +4,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-body { margin: 0; background: var(--warm); color: var(--ink); font: 400 17px/1.6 var(--font); }
+body { margin: 0; overflow-x: clip; background: var(--warm); color: var(--ink); font: 400 17px/1.6 var(--font); }
 img { display: block; max-width: 100%; }
 a { color: var(--teal-dark); }
 :focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
@@ -101,8 +101,8 @@ p { margin: 0 0 1em; }
 .owner-form label > span, .owner-form legend { display: block; font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--muted); }
 .owner-form fieldset { border: 0; padding: 0; margin: 0; }
 .choice { display: flex; flex-wrap: wrap; gap: 8px; }
-.choice label { cursor: pointer; }
-.choice input { position: absolute; opacity: 0; }
+.choice label { cursor: pointer; position: relative; }
+.choice input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; }
 .choice span.opt { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 10px; font-weight: 600; }
 .choice input:checked + span.opt { border: 2px solid var(--ink); }
 .choice input:focus-visible + span.opt { outline: 3px solid var(--teal); outline-offset: 2px; }
@@ -119,3 +119,7 @@ p { margin: 0 0 1em; }
 .prices td { padding: 14px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .prices td:last-child { text-align: right; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .prices td small { display: block; color: var(--muted); font-weight: 400; }
+.p-langs { display: flex; }
+.p-langs button { background: none; border: 0; padding: 8px 6px; font: 700 13px/1 var(--font); color: var(--muted); cursor: pointer; }
+.p-langs button[aria-pressed="true"] { color: var(--ink); text-decoration: underline 2px var(--teal); text-underline-offset: 5px; }
+@media (max-width: 560px) { .p-nav a { padding: 8px 10px; font-size: 15px; } .p-top { gap: 8px; } }
