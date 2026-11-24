@@ -262,10 +262,10 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   // the owner's saved list comes with the content; sample hotels ask OpenStreetMap from the browser (kept a week here)
   async function loadPlaces() {
     const p = pin(); if (!p || sample || Array.isArray(S().food?.places) || !window.V2OSM) return;
-    const key = 'v2-places-' + p.lat.toFixed(4) + ',' + p.lng.toFixed(4); if (plFor === key) return; plFor = key;
+    const key = 'v2-places2-' + p.lat.toFixed(4) + ',' + p.lng.toFixed(4); if (plFor === key) return; plFor = key;
     try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c && Date.now() - c.t < 7 * 864e5) { PL = c.places; render(); return; } } catch (e) { /* ask again */ }
     try { PL = await window.V2OSM.places(p.lat, p.lng); } catch (e) { return; }
-    try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), places: PL })); } catch (e) { /* full */ }
+    if (PL.length) try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), places: PL })); } catch (e) { /* full */ }
     render();
   }
   // the list shown: host's tips, then real places (minus hidden), nearest first
