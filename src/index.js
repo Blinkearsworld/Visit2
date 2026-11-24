@@ -2,7 +2,8 @@
 //   {slug}.visit2.ge, a hotel's own domain → that hotel's site
 //   visit2.ge, www., app.                  → the platform (catalog, owners' page, admin)
 //   {slug}.localhost:8787                  → local development
-import { tenantByHost, tenantBySlug, normHost } from './db/tenants.js';
+import { tenantByHost, tenantBySlug, normHost, allTenants } from './db/tenants.js';
+import { purgeHotel } from './db/retention.js';
 import { page, esc } from './lib/html.js';
 import { hotelApi } from './api.js';
 
@@ -31,6 +32,12 @@ export default {
     if (dev || !(platformHosts.includes(host) || isPreviewHost(env, host))) return notFound();
     // the platform: guests' search (index.html) and the owners' page (owners.html), static for now
     return env.ASSETS.fetch(request);
+  },
+  // daily: remove guests' personal data past its retention time (public/privacy.html)
+  async scheduled(event, env, ctx) {
+    for (const t of await allTenants(env.DB)) {
+      try { await purgeHotel(env.DB, t); } catch (e) { console.log('purge failed', t.slug, e.message); }
+    }
   },
 };
 

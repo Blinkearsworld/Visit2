@@ -35,6 +35,9 @@
     kmAway: ['{k} კმ', '{k} km away', '{k} км'], mapTitle: ['{r} კმ-ის რადიუსში', 'Within {r} km', 'В радиусе {r} км'],
     mapNone: ['ამ რადიუსში სასტუმრო ჯერ არ არის. გაზარდე რადიუსი ან აირჩიე სხვა ადგილი.', 'Nothing within this radius yet. Make it larger or pick another point.', 'В этом радиусе пока ничего нет. Увеличьте радиус или выберите другую точку.'],
     locating: ['ვეძებ შენს ადგილს…', 'Finding you…', 'Определяем место…'], noLoc: ['ადგილი ვერ განისაზღვრა. დააჭირე რუკაზე.', 'Could not get your location. Tap the map instead.', 'Не удалось определить место. Нажмите на карте.'],
+    privacy: ['კონფიდენციალურობა', 'Privacy', 'Конфиденциальность'], terms: ['პირობები', 'Terms', 'Условия'],
+    fAgree: ['ვეთანხმები <a href="terms.html" target="_blank">მომსახურების პირობებს</a>, მათ შორის სტუმრების მონაცემების დამუშავების შეთანხმებას, და <a href="privacy.html" target="_blank">კონფიდენციალურობის პოლიტიკას</a>', 'I agree to the <a href="terms.html" target="_blank">terms of service</a>, including the guest data processing agreement, and the <a href="privacy.html" target="_blank">privacy policy</a>', 'Я принимаю <a href="terms.html" target="_blank">условия обслуживания</a>, включая соглашение об обработке данных гостей, и <a href="privacy.html" target="_blank">политику конфиденциальности</a>'],
+    needAgree: ['გასაგრძელებლად დაეთანხმე პირობებს', 'Please accept the terms to continue', 'Чтобы продолжить, примите условия'],
     destH: ['სად წავიდეთ', 'Where to go', 'Куда поехать'], howH: ['როგორ მუშაობს', 'How it works', 'Как это работает'],
     nHotels: ['{n} სასტუმრო', '{n} places to stay', 'Мест: {n}'], nHotel1: ['1 სასტუმრო', '1 place to stay', '1 место'],
     hotels: ['სასტუმროები', 'Hotels', 'Отели'], pickDates: ['აირჩიე თარიღები, რომ ნახო თავისუფალი ნომრები და ფასი', 'Choose dates to see free rooms and the price', 'Выберите даты, чтобы увидеть свободные номера и цену'],
@@ -96,6 +99,7 @@
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-t]').forEach(el => { const k = el.dataset.t; if (T[k]) el.innerHTML = t(k); });
     document.querySelectorAll('[data-plang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.plang === lang)));
+    document.querySelectorAll('article[data-l]').forEach(a => { a.hidden = a.dataset.l !== lang; });
   }
   function setLang(l) {
     if (!LANGS.includes(l)) return; lang = l;
@@ -288,6 +292,7 @@
       e.preventDefault();
       const f = e.target, name = f.name.value.trim(), city = f.city.value.trim(), msg = $('#formMsg');
       if (name.length < 2 || city.length < 2) { msg.textContent = t('needNC'); (name.length < 2 ? f.name : f.city).focus(); return; }
+      if (!f.agree.checked) { msg.textContent = t('needAgree'); f.agree.focus(); return; }
       const h = D.saveMine({ name, city, theme: f.theme.value, accent: f.accent.value, email: f.email.value.trim() });
       msg.textContent = ''; showDone(h); $('#done').scrollIntoView({ behavior: 'smooth', block: 'center' });
     });

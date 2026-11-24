@@ -69,3 +69,9 @@ export async function createTenant(db, { slug, name, city = null, seasons = MOUN
   clearTenantCache();
   return tenantById(db, id);
 }
+
+// every hotel, for daily maintenance jobs
+export async function allTenants(db) {
+  const r = await db.prepare('SELECT * FROM tenants').all();
+  return (r.results || []).map(rowToTenant);
+}

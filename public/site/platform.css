@@ -256,3 +256,14 @@ p { margin: 0 0 1em; }
   .tpl-list { grid-auto-flow: row; grid-template-columns: repeat(5, minmax(0, 1fr)); overflow: visible; margin: 18px 0 0; padding: 0; gap: 28px 22px; }
   .price-wrap { grid-template-columns: 1.1fr .9fr; align-items: start; }
 }
+
+/* consent and legal pages */
+.agree { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; color: var(--muted); cursor: pointer; }
+.agree input { flex: none; width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--teal); }
+.legal-page .p-top { flex-wrap: wrap; }
+.legal { max-width: 820px; padding-top: 24px; padding-bottom: 56px; }
+.legal h1 { font-size: clamp(30px, 6vw, 44px); }
+.legal h2 { font-size: 21px; margin: 32px 0 8px; }
+.legal p, .legal li { max-width: 68ch; }
+.legal ul { padding-left: 20px; }
+.legal li { margin-bottom: 6px; }

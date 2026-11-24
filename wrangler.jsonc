@@ -7,6 +7,8 @@
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "public", "binding": "ASSETS", "run_worker_first": true },
+  // daily at 03:17 UTC: data retention (src/db/retention.js)
+  "triggers": { "crons": ["17 3 * * *"] },
   "d1_databases": [
     { "binding": "DB", "database_name": "visit2", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
   ],
