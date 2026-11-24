@@ -294,7 +294,7 @@
   const EAT = { 'ბაკურიანი': [41.7495, 43.5320], 'თბილისი': [41.6925, 44.8015], 'ბათუმი': [41.6475, 41.6370], 'თელავი': [41.9198, 45.4733],
     'სიღნაღი': [41.6200, 45.9220], 'გუდაური': [42.4770, 44.4780], 'ბორჯომი': [41.8390, 43.3890], 'ქუთაისი': [42.2705, 42.7040],
     'მესტია': [43.0450, 42.7300], 'სტეფანწმინდა (ყაზბეგი)': [42.6570, 44.6430] };
-  let eatTown = '', eatData = {}, eatSeen = false, eatDown = false; // eatDown: OpenStreetMap did not answer, hide the section
+  let eatTown = '', eatData = {}, eatSeen = false, eatDown = false, eatFile = null; // eatDown: OpenStreetMap did not answer, hide the section
   const eatTowns = () => Object.keys(EAT).filter(c => pub().some(h => h.city === c));
   const eatKind = k => { const K = window.V2FOOD?.KIND || {}; return (K[k] || K.restaurant || [''])[L()] || ''; };
   const eatName = n => n[lang] || n.def;
@@ -311,6 +311,12 @@
   }
   async function loadEat(c) {
     if (eatData[c] || !window.V2OSM) return;
+    // first the list saved with the site every week (data/places.json); OpenStreetMap only if it has nothing
+    try {
+      eatFile = eatFile || fetch('data/places.json').then(r => r.json()).catch(() => ({}));
+      const list = (await eatFile).towns?.[c];
+      if (list?.length) { eatData[c] = list; eatDown = false; $('#eat').hidden = false; renderEat(); return; }
+    } catch (e) { /* ask below */ }
     const key = 'v2-eat-' + c;
     try { const x = JSON.parse(localStorage.getItem(key) || 'null'); if (x && Date.now() - x.t < 7 * 864e5) { eatData[c] = x.places; renderEat(); return; } } catch (e) { /* ask */ }
     renderEat();

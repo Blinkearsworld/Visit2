@@ -1,0 +1,31 @@
+# Real restaurants and cafés for the sample hotels and the home page, from OpenStreetMap, saved to public/data/places.json.
+# Runs when the sample hotels or this script change, every Monday, or by hand (Actions → Places → Run workflow).
+# The owner (IMEGIO) agreed on 24 November 2026 that this job commits the list under his name.
+name: Places
+on:
+  push:
+    branches: [main]
+    paths: ['public/site/hotels.js', 'scripts/fetch-places.mjs', '.github/workflows/places.yml']
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: places
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/fetch-places.mjs
+      - name: Save the list
+        run: |
+          git config user.name "IMEGIO"
+          git config user.email "336279878+Blinkearsworld@users.noreply.github.com"
+          git add public/data/places.json
+          git diff --cached --quiet && exit 0
+          git commit -q -m "Update places from OpenStreetMap"
+          git pull -q --rebase && git push -q
