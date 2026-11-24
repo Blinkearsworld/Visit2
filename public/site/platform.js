@@ -17,7 +17,7 @@
   window.V2LANG = { get lang() { return lang; }, onChange: f => listeners.push(f) };
 
   const T = {
-    navHotels: ['სასტუმროები', 'Hotels', 'Отели'], navOwners: ['მფლობელებს', 'For owners', 'Владельцам'],
+    navHotels: ['სასტუმროები', 'Hotels', 'Отели'], partners: ['პარტნიორებისთვის', 'For partners', 'Партнёрам'], partnersTop: ['პარტნიორებს', 'Partners', 'Партнёрам'], navOwners: ['მფლობელებს', 'For owners', 'Владельцам'],
     gH1: ['იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ', 'Find a place to stay in Georgia and book it direct', 'Найдите жильё в Грузии и бронируйте напрямую'],
     gLead: ['ფასს სასტუმრო თავად აწესებს, შუამავალი არ არის. თავისუფალი ნომრები ნამდვილია: სასტუმროები ჯავშნებს Visit2.ge-ზე მართავენ.', 'Hotels set their own prices, with no middleman. Availability is real: hotels manage their bookings on Visit2.ge.', 'Цены устанавливает сам отель, без посредников. Свободные номера настоящие: отели ведут брони на Visit2.ge.'],
     popular: ['პოპულარული', 'Popular', 'Популярные'], allPlaces: ['ყველა ადგილი ანბანით', 'All places A–Z', 'Все места по алфавиту'],
