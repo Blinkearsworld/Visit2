@@ -239,7 +239,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   }
 
   // ---------- places to eat nearby ----------
-  // Real places come from OpenStreetMap through our server (api/places), around the hotel's pin.
+  // Real places come from OpenStreetMap (js/osm.js), around the hotel's pin.
   // The owner may hide a place and add their own tips, which come first ("the host recommends").
   // Only where there is no server (the static preview) the invented demo list in food.js is shown.
   let PL = null, plFor = '';               // places from the server for the current pin
@@ -259,20 +259,21 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     return h.replace(/\bMo-Su\b/g, L[7]).replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su)\b/g, d => L[['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].indexOf(d)]).replace(/;\s*/g, '; ').replace(/\boff\b/g, '—');
   };
   const nameOf = n => (typeof n === 'string' ? n : (n[lang()] || n.def || n.ka || ''));
+  // the owner's saved list comes with the content; sample hotels ask OpenStreetMap from the browser (kept a week here)
   async function loadPlaces() {
-    const p = pin(); if (!p || sample) return;
-    const key = p.lat.toFixed(3) + ',' + p.lng.toFixed(3); if (plFor === key) return; plFor = key;
-    for (let i = 0; i < 2 && !PL; i++) {
-      if (i) await new Promise(r => setTimeout(r, 4000));
-      try { const r = await fetch(`api/places?lat=${p.lat}&lng=${p.lng}`); if (r.ok) PL = (await r.json()).places || []; } catch (e) { /* try again */ }
-    }
-    if (PL) render();
+    const p = pin(); if (!p || sample || Array.isArray(S().food?.places) || !window.V2OSM) return;
+    const key = 'v2-places-' + p.lat.toFixed(4) + ',' + p.lng.toFixed(4); if (plFor === key) return; plFor = key;
+    try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c && Date.now() - c.t < 7 * 864e5) { PL = c.places; render(); return; } } catch (e) { /* ask again */ }
+    try { PL = await window.V2OSM.places(p.lat, p.lng); } catch (e) { return; }
+    try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), places: PL })); } catch (e) { /* full */ }
+    render();
   }
   // the list shown: host's tips, then real places (minus hidden), nearest first
   function foodList() {
     const f = S().food || {}, hide = new Set(f.hide || []), p = pin();
     const own = (f.own || []).filter(x => pick(x.name)).map((x, i) => ({ id: 'own' + i, name: pick(x.name), kind: x.kind || 'restaurant', note: pick(x.note), own: true, m: null }));
-    if (PL) return [...own, ...PL.filter(x => !hide.has(x.id)).map(x => ({ ...x, name: nameOf(x.name), m: p ? metres(p, x) : x.m }))];
+    const real = Array.isArray(f.places) ? f.places : PL;
+    if (real) return [...own, ...real.filter(x => !hide.has(x.id)).map(x => ({ ...x, name: nameOf(x.name), m: p ? metres(p, x) : x.m }))];
     // invented names only in the offline preview (GitHub Pages, local testing); on visit2.ge only real places
     const F = window.V2FOOD, offline = /github\.io$/.test(location.hostname) || location.protocol === 'file:' || ['8765', '8799'].includes(location.port);
     if (!offline || !isDemo() || !F) return own;
@@ -286,7 +287,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   <h2>${caps(w('food'))}</h2>
   <ul class="food-list">${shortList(all).map(foodItem).join('')}</ul>
   ${all.length > 4 ? `<button type="button" class="btn btn-line food-more" id="foodMore" aria-haspopup="dialog">${w('foodAll')} (${all.length})</button>` : ''}
-  <p class="food-note">${PL ? w('foodOsm') : w('foodNote')}</p>
+  <p class="food-note">${Array.isArray(S().food?.places) || PL ? w('foodOsm') : w('foodNote')}</p>
 </section>
 <dialog class="food-dlg place-dlg" id="placeDlg" aria-labelledby="placeH">
   <div class="food-dlg-head"><span></span><button type="button" class="food-x" data-close aria-label="${w('close')}">×</button></div>

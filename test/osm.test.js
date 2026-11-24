@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { toPlaces, kindOf } from '../src/places.js';
-import { exports } from 'cloudflare:workers';
+import '../public/js/osm.js';
+const { toPlaces, kindOf } = globalThis.V2OSM;
 
 describe('places nearby (OpenStreetMap)', () => {
-  it('sorts by distance, drops far and nameless places and duplicates', () => {
+  it('sorts by distance, drops far and nameless places, duplicates and unsafe links', () => {
     const el = [
       { type: 'node', id: 1, lat: 41.752, lon: 43.527, tags: { name: 'Far Cafe', amenity: 'cafe' } },
       { type: 'node', id: 2, lat: 41.7513, lon: 43.5269, tags: { name: 'Near', 'name:en': 'Near EN', amenity: 'restaurant', cuisine: 'georgian;pizza', website: 'javascript:alert(1)' } },
@@ -23,11 +23,5 @@ describe('places nearby (OpenStreetMap)', () => {
     expect(kindOf({ amenity: 'bar', name: 'Wine Bar' })).toBe('wine');
     expect(kindOf({ amenity: 'restaurant', cuisine: 'seafood' })).toBe('fish');
     expect(kindOf({ amenity: 'restaurant' })).toBe('restaurant');
-  });
-  it('answers only for places in Georgia', async () => {
-    const r = await exports.default.fetch('https://visit2.ge/api/places?lat=48.85&lng=2.35');
-    expect(r.status).toBe(400);
-    const r2 = await exports.default.fetch('https://visit2.ge/api/places');
-    expect(r2.status).toBe(400);
   });
 });

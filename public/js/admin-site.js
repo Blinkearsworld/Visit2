@@ -394,6 +394,7 @@
     const f = D.site?.food; if (!f) return;
     if (f.hide && !f.hide.length) delete f.hide;
     if (f.own && !f.own.length) delete f.own;
+    if (!f.places) delete f.at;
     if (!Object.keys(f).length) delete D.site.food;
     if (D.site && !Object.keys(D.site).length) delete D.site;
   };
@@ -401,12 +402,18 @@
     const c = document.createElement('link'); c.rel = 'stylesheet'; c.href = 'vendor/leaflet/leaflet.css'; document.head.append(c);
     const s = document.createElement('script'); s.src = 'vendor/leaflet/leaflet.js'; s.onload = () => ok(window.L); s.onerror = bad; document.head.append(s);
   });
-  async function fetchNear() {
+  // the places list is asked from OpenStreetMap by this browser and saved with the content, so guests read it from us
+  async function fetchNear(force) {
     const p = D.site?.pin; if (!p) { nearPlaces = null; return; }
-    const key = (+p.lat).toFixed(3) + ',' + (+p.lng).toFixed(3); if (key === nearFor && nearPlaces) return;
-    nearFor = key; nearPlaces = null; nearMsg = 'ადგილებს ვეძებთ…'; drawNearList();
-    try { const r = await fetch(`api/places?lat=${p.lat}&lng=${p.lng}`); if (!r.ok) throw 0; nearPlaces = (await r.json()).places || []; nearMsg = ''; }
-    catch (e) { nearMsg = 'ადგილების სია ახლა ვერ ჩაიტვირთა. სცადეთ ცოტა ხანში.'; nearFor = ''; }
+    const key = (+p.lat).toFixed(4) + ',' + (+p.lng).toFixed(4);
+    const saved = D.site?.food?.places;
+    if (!force && Array.isArray(saved) && D.site.food.at === key) { nearPlaces = saved; nearFor = key; drawNearList(); return; }
+    if (!force && key === nearFor && nearPlaces) return;
+    nearFor = key; nearPlaces = null; nearMsg = 'ადგილებს ვეძებთ OpenStreetMap-ზე…'; drawNearList();
+    try {
+      nearPlaces = await window.V2OSM.places(+p.lat, +p.lng); nearMsg = '';
+      const f = food(); f.places = nearPlaces; f.at = key; dirty();
+    } catch (e) { nearMsg = 'ადგილების სია ახლა ვერ ჩაიტვირთა. ცოტა ხანში დააჭირეთ „სიის განახლებას“.'; nearFor = ''; }
     drawNearList();
   }
   function setPin(lat, lng) {
@@ -426,16 +433,18 @@
         <div class="near-map" id="nearMap"></div>
         <p class="hint" id="nearPinState">${pin ? '✓ ადგილი მონიშნულია. საჭიროების შემთხვევაში რუკაზე დააჭირეთ სწორ ადგილს.' : 'მოძებნეთ ქალაქი, მერე რუკაზე დააჭირეთ ზუსტად თქვენს სახლს.'}</p>
       </div>
-      <div class="card2"><div class="fh"><b>2. რომელი ადგილები ჩანდეს საიტზე</b></div><div id="nearList"></div></div>
+      <div class="card2"><div class="fh"><b>2. რომელი ადგილები ჩანდეს საიტზე</b></div><div id="nearList"></div>
+        <div class="gacts"><button type="button" class="btn sm" id="nearRefresh">სიის განახლება</button></div></div>
       <div class="card2"><div class="fh"><b>3. თქვენი რჩევები</b></div><p class="hint">საყვარელი ადგილი, რომელიც სიაში არ არის? დაამატეთ. საიტზე პირველი გამოჩნდება, წარწერით „მასპინძელი გირჩევთ“.</p><div id="nearOwn"></div>
         <div class="gacts"><button type="button" class="btn" id="nearAdd">+ რჩევის დამატება</button></div></div>`;
     drawNearList(); drawOwn();
+    $('nearRefresh').addEventListener('click', () => fetchNear(true));
     $('nearAdd').addEventListener('click', () => { const f = food(); f.own = f.own || []; f.own.push({ name: { ka: '', en: '', ru: '' }, kind: 'restaurant', note: { ka: '', en: '', ru: '' } }); dirty(); drawOwn(); const l = $('nearOwn').querySelectorAll('.card2'); l[l.length - 1]?.querySelector('input')?.focus(); });
     $('nearFind').addEventListener('submit', async e => {
       e.preventDefault(); const q = $('nearQ').value.trim(); if (!q) return;
       const out = $('nearFound'); out.textContent = 'ვეძებთ…';
       try {
-        const r = await fetch('api/geocode?q=' + encodeURIComponent(q)); const d = await r.json();
+        const d = { found: await window.V2OSM.geocode(q) };
         if (!d.found?.length) { out.textContent = 'ვერ ვიპოვეთ. სცადეთ მხოლოდ ქალაქის სახელი.'; return; }
         out.innerHTML = d.found.map((x, i) => `<button type="button" class="btn sm" data-g="${i}">${esc(x.name)}</button>`).join('');
         out.onclick = ev => { const b = ev.target.closest('[data-g]'); if (!b) return; const x = d.found[+b.dataset.g]; nearMap?.setView([x.lat, x.lng], 16); out.textContent = 'ახლა რუკაზე დააჭირეთ ზუსტად თქვენს სახლს.'; };
