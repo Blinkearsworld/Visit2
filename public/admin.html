@@ -296,7 +296,7 @@ button.rt:hover{border-color:#9aa8bb}
 
 <div class="gate" id="gate">
 <h1 id="gateTitle">ადმინისტრაცია</h1>
-<p class="sub" style="margin:0" id="gateSub">შეიყვანეთ PIN. სადემონსტრაციო PIN: 1234</p>
+<p class="sub" style="margin:0" id="gateSub">შეიყვანეთ ელფოსტა და პაროლი.</p>
 <form id="gateForm"><label for="uname" class="sub" style="margin:0 0 8px;display:block" id="unameLbl" hidden>ელფოსტა</label><input id="uname" type="email" autocomplete="username" hidden style="margin-bottom:14px"><label for="pin" class="sub" style="margin:0 0 8px;display:block" id="gateLbl">PIN</label><input id="pin" inputmode="numeric" autocomplete="off" maxlength="6"><p class="msg" id="pinMsg" hidden>არასწორი PIN</p><button class="btn pri" style="width:100%;margin-top:12px" id="gateBtn">შესვლა</button></form>
 </div>
 
@@ -530,7 +530,7 @@ J.ready.then(()=>{
   $('uname').hidden=false;$('unameLbl').hidden=false;try{$('uname').value=localStorage.getItem('jiji-admin-name')||''}catch(e){}
   const i=$('pin');i.type='password';i.removeAttribute('inputmode');i.removeAttribute('maxlength');i.autocomplete='current-password';
   $('gate').hidden=false;($('uname').value?i:$('uname')).focus();return}
- if(demoOk)unlock();else $('gate').hidden=false;
+ unlock();$('demoNote').hidden=true;
 });
 J.onError(m=>{flash(m,false);toast(m,true);renderAll()});
 function toast(m,bad){const t=$('toast');t.textContent=m;t.classList.toggle('bad',!!bad);t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,7000)}
@@ -822,7 +822,7 @@ $('prices').addEventListener('click',e=>{
  if(ad){J.addRate(ad.dataset.add);renderPrices()}
  if(dl){J.removeRate(dl.dataset.del,+dl.dataset.i);renderPrices();renderReqs()}
 });
-$('resetBtn').onclick=()=>{J.reset();start=J.today();renderAll();flash('დემო თავიდან დაიწყო.',true)};
+$('resetBtn').onclick=()=>{J.reset();start=J.today();renderAll();flash('მონაცემები თავიდან დაიწყო.',true)};
 
 /* --- site season --- */
 const MON=['იანვარი','თებერვალი','მარტი','აპრილი','მაისი','ივნისი','ივლისი','აგვისტო','სექტემბერი','ოქტომბერი','ნოემბერი','დეკემბერი'];

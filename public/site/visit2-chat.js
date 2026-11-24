@@ -37,7 +37,7 @@
     oMoneyA: ['სტუმრის ფული ჩვენთან არ გაივლის: სტუმარი პირდაპირ შენ გიხდის. თუ წინასწარ გადახდა გინდა, ადმინში შენს საბანკო ანგარიშს ან BOG/TBC-ის გადახდის ბმულს ჩაწერ.', 'Guest money never passes through us: guests pay you directly. If you want a deposit, put your bank account or a BOG/TBC payment link in the admin.', 'Деньги гостей не проходят через нас: гости платят вам напрямую. Для предоплаты укажите в админке счёт или ссылку оплаты BOG/TBC.'],
     oCallName: ['როგორ მოგმართო?', 'What is your name?', 'Как к вам обращаться?'], oCallPhone: ['ტელეფონის ნომერი?', 'Your phone number?', 'Ваш номер телефона?'],
     oCallBad: ['ნომერი სრულად ჩაწერე, მაგ.: 599 12 34 56', 'Please type the full number, e.g. 599 12 34 56', 'Укажите номер полностью, например 599 12 34 56'],
-    oCallDone: ['მადლობა, {n}! დაგირეკავთ სამუშაო საათებში. (დემო: ნომერი ამ ბრაუზერში შეინახა.)', 'Thank you, {n}! We will call you in working hours. (Demo: the number is kept in this browser.)', 'Спасибо, {n}! Позвоним в рабочее время. (Демо: номер сохранён в этом браузере.)'],
+    oCallDone: ['მადლობა, {n}! დაგირეკავთ სამუშაო საათებში.', 'Thank you, {n}! We will call you in working hours.', 'Спасибо, {n}! Позвоним в рабочее время.'],
     oCreate: ['საიტის შექმნა', 'Create my site', 'Создать сайт'],
   };
   const m = (k, v = {}) => String(M[k][L()] ?? M[k][0]).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');

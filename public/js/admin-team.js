@@ -52,7 +52,7 @@
 
   function draw() {
     const p = $('team');
-    if (J.mode !== 'api') { p.innerHTML = '<h1>გუნდი</h1><p class="sub">თანამშრომლების დამატება და ჟურნალი მუშაობს მხოლოდ რეალურ საიტზე (villajiji.pages.dev), სადემონსტრაციო ვერსიაში — არა.</p>'; return; }
+    if (J.mode !== 'api') { p.innerHTML = '<h1>გუნდი</h1><p class="sub">თანამშრომლების დამატება და ჟურნალი მალე.</p>'; return; }
     if (!data) { p.innerHTML = '<p class="sub">იტვირთება…</p>'; return; }
     const users = data.users || [];
     p.innerHTML = `<h1>გუნდი</h1><p class="sub">დაამატეთ თანამშრომლები და აირჩიეთ, რომელი განყოფილება ჰქონდეს თითოეულს. ყველა ცვლილება ჟურნალში ჩაიწერება მისი სახელით.</p>

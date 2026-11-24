@@ -170,7 +170,7 @@
   ${foodSection(J.hotel || {})}
 </main>
 <footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span><a href="https://visit2.ge" rel="noopener">Visit2.ge · ${w('directly')}</a></footer>
-${isDemo() && !sample ? demoPanel() : ''}${isDemo() ? backLink() : ''}`;
+${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ? backLink() : ''}`;
     if (wasOpen) { const d = document.querySelector('.demo'); if (d) d.open = true; }
     wire();
   }
@@ -211,7 +211,7 @@ ${isDemo() && !sample ? demoPanel() : ''}${isDemo() ? backLink() : ''}`;
       <p class="food-meta">${esc(kindName(r.kind))} · ${'₾'.repeat(r.price)}</p>
       <ul class="place-facts"><li>📍 ${dist(r.m)} · ${w('foodWalk').replace('{n}', Math.max(1, Math.round(r.m / 80)))}</li><li>🕙 ${w('foodHours')}</li></ul>
       <a class="btn btn-accent" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name + ' ' + city)}" target="_blank" rel="noopener">${w('foodMap')}</a>
-      <p class="food-note">${w('foodDemo')}</p>`;
+      `;
     if ($('#foodDlg').open) $('#foodDlg').close();
     d.showModal();
   }
@@ -278,9 +278,8 @@ ${isDemo() && !sample ? demoPanel() : ''}${isDemo() ? backLink() : ''}`;
   function demoPanel() {
     const mine = J.hotel && J.hotel.mine;
     return `<details class="demo"${mine ? '' : ''}>
-  <summary>Visit2.ge · ${mine ? (lang() === 'ka' ? 'შენი საიტი' : 'Your site') : (lang() === 'ka' ? 'დემო' : 'Demo')}</summary>
-  <p class="demo-head"><a href="index.html">${lang() === 'ka' ? 'ყველა სასტუმრო' : 'All hotels'}</a> · <a href="admin.html?h=${esc(slug())}">${w('admin')} (PIN 1234)</a></p>
-  <p class="demo-note">${w('demo')}</p>
+  <summary>Visit2.ge · ${lang() === 'ka' ? 'შენი საიტი' : lang() === 'ru' ? 'Ваш сайт' : 'Your site'}</summary>
+  <p class="demo-head"><a href="admin.html?h=${esc(slug())}">${w('admin')}</a></p>
   ${mine ? `<div class="demo-row">${Object.entries(THEMES).map(([id, t]) => `<button type="button" data-theme="${id}" aria-pressed="${id === theme()}">${esc(t.name)}</button>`).join('')}</div>
   <div class="demo-row">${ACCENTS.map(a => `<button type="button" class="sw" data-accent="${a}" style="--c:${a}" aria-label="${w('colour')} ${a}" aria-pressed="${a.toLowerCase() === accent().toLowerCase()}"></button>`).join('')}</div>` : ''}
 </details>`;

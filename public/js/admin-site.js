@@ -387,7 +387,7 @@
   const when = s => { const d = new Date(s); if (isNaN(d)) return ''; const p = n => String(n).padStart(2, '0'); return JIJI.fmt(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`) + (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : '') + ', ' + p(d.getHours()) + ':' + p(d.getMinutes()); };
   function drawHistory() {
     const p = $('s-hist');
-    if (!api()) { p.innerHTML = '<p class="sub">სადემონსტრაციო ვერსიაში ისტორია არ ინახება. რეალურ საიტზე აქ ჩანს ბოლო 20 შენახვა და ნებისმიერის აღდგენა შეიძლება.</p>'; return; }
+    if (!api()) { p.innerHTML = '<p class="sub">შენახვების ისტორია მალე.</p>'; return; }
     p.innerHTML = `<p class="sub">ბოლო 20 შენახვა. „გახსნა“ ჩატვირთავს იმ ვერსიას, საიტზე კი გამოჩნდება მხოლოდ „შენახვის“ შემდეგ.</p>${versions.length ? `<div class="scroll"><table class="hist"><thead><tr><th>როდის</th><th>შენიშვნა</th><th></th></tr></thead><tbody>${
       versions.map((v, i) => `<tr><td>${esc(when(v.created))}${i === 0 ? ' <span class="pill p-ok">ახლა საიტზე</span>' : ''}</td><td>${esc(v.note || '')}</td><td>${i ? `<button type="button" class="btn sm" data-ver="${v.id}">გახსნა</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">ჯერ არაფერი შეგინახავთ.</div>'}`;
     p.querySelectorAll('[data-ver]').forEach(b => b.addEventListener('click', async () => {
