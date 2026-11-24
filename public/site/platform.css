@@ -141,6 +141,18 @@ p { margin: 0 0 1em; }
 .dest-tile span { font-size: 14px; opacity: .9; }
 
 /* how it works */
+.eat { padding: 8px 0 56px; }
+.eat h2 { margin-bottom: 14px; }
+.eat-towns { margin-bottom: 16px; }
+.eat-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 640px) { .eat-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .eat-list { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.eat-item { display: grid; gap: 4px; min-height: 44px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); text-decoration: none; }
+.eat-item b { font-size: 16px; overflow-wrap: anywhere; }
+.eat-item span { font-size: 14px; color: var(--muted); }
+.eat-item:hover { border-color: var(--teal); }
+.eat-msg { color: var(--muted); padding: 8px 0; }
+.eat-note { margin: 14px 0 0; font-size: 13px; color: var(--muted); }
 .why { padding: 56px 0; background: #fff; }
 .steps { list-style: none; counter-reset: s; display: grid; gap: 22px; margin: 18px 0 0; padding: 0; }
 .steps li { counter-increment: s; position: relative; padding-left: 58px; color: var(--muted); max-width: 46ch; }

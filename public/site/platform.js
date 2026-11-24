@@ -40,7 +40,10 @@
     privacy: ['კონფიდენციალურობა', 'Privacy', 'Конфиденциальность'], terms: ['პირობები', 'Terms', 'Условия'],
     fAgree: ['ვეთანხმები <a href="terms.html" target="_blank">მომსახურების პირობებს</a>, მათ შორის სტუმრების მონაცემების დამუშავების შეთანხმებას, და <a href="privacy.html" target="_blank">კონფიდენციალურობის პოლიტიკას</a>', 'I agree to the <a href="terms.html" target="_blank">terms of service</a>, including the guest data processing agreement, and the <a href="privacy.html" target="_blank">privacy policy</a>', 'Я принимаю <a href="terms.html" target="_blank">условия обслуживания</a>, включая соглашение об обработке данных гостей, и <a href="privacy.html" target="_blank">политику конфиденциальности</a>'],
     needAgree: ['გასაგრძელებლად დაეთანხმე პირობებს', 'Please accept the terms to continue', 'Чтобы продолжить, примите условия'],
-    destH: ['სად წავიდეთ', 'Where to go', 'Куда поехать'], howH: ['როგორ მუშაობს', 'How it works', 'Как это работает'],
+    destH: ['სად წავიდეთ', 'Where to go', 'Куда поехать'],
+    eatH: ['სად ვჭამოთ', 'Where to eat', 'Где поесть'], eatNote: ['ადგილები და რუკა: © OpenStreetMap-ის მონაწილეები.', 'Places and map: © OpenStreetMap contributors.', 'Места и карта: © участники OpenStreetMap.'],
+    eatWait: ['ადგილებს ვეძებთ…', 'Finding places…', 'Ищем места…'], eatNone: ['ამ ადგილისთვის სია ახლა ვერ ჩაიტვირთა.', 'The list could not load right now.', 'Список сейчас не загрузился.'],
+    eatCenter: ['ცენტრიდან {m}', '{m} from the centre', '{m} от центра'], howH: ['როგორ მუშაობს', 'How it works', 'Как это работает'],
     addDate: ['აირჩიე', 'Add date', 'Выбрать'], nHotels: ['{n} სასტუმრო', '{n} places to stay', 'Мест: {n}'], nHotel1: ['1 სასტუმრო', '1 place to stay', '1 место'],
     hotels: ['სასტუმროები', 'Hotels', 'Отели'], pickDates: ['აირჩიე თარიღები, რომ ნახო თავისუფალი ნომრები და ფასი', 'Choose dates to see free rooms and the price', 'Выберите даты, чтобы увидеть свободные номера и цену'],
     free: ['თავისუფალი', 'available', 'свободно'], nightsW: ['ღამე', 'nights', 'ноч.'], guestsW: ['სტუმარი', 'guests', 'гост.'], perNight: ['ღამე', 'night', 'ночь'],
@@ -183,7 +186,7 @@
     }).join('') || `<p class="empty">${t(q.center ? 'mapNone' : 'none')}</p>`;
     drawMap(rows, q);
     document.querySelectorAll('#cities button').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.city === q.city)); b.textContent = town(b.dataset.city); });
-    renderKinds(); renderDest(); renderHero();
+    renderKinds(); renderDest(); renderHero(); if (typeof renderEat === 'function') renderEat();
   }
   // ---------- map search: tap a point, pick a radius ----------
   let map = null, mapCenter = null, radius = 5, layer = null;
@@ -285,6 +288,41 @@
     const el = $('#dest'); if (!el) return;
     el.innerHTML = DEST.map(c => { const hs = pub().filter(h => h.city === c && !h.hidden); if (!hs.length) return '';
       return `<button type="button" class="dest-tile" data-dest="${esc(c)}"><img src="img/h/${hs[0].cover}${c === DEST[0] ? '' : '-s'}.jpg" alt="" loading="lazy"><div><b>${esc(town(c))}</b><span>${t(hs.length === 1 ? 'nHotel1' : 'nHotels', { n: hs.length })}</span></div></button>`; }).join('');
+  }
+  // where to eat: real restaurants and cafés around a town's centre, from OpenStreetMap (asked by this browser,
+  // kept a week, loaded only when the section comes near the screen). Later, partner restaurants will be marked here.
+  const EAT = { 'ბაკურიანი': [41.7495, 43.5320], 'თბილისი': [41.6925, 44.8015], 'ბათუმი': [41.6475, 41.6370], 'თელავი': [41.9198, 45.4733],
+    'სიღნაღი': [41.6200, 45.9220], 'გუდაური': [42.4770, 44.4780], 'ბორჯომი': [41.8390, 43.3890], 'ქუთაისი': [42.2705, 42.7040],
+    'მესტია': [43.0450, 42.7300], 'სტეფანწმინდა (ყაზბეგი)': [42.6570, 44.6430] };
+  let eatTown = '', eatData = {}, eatSeen = false;
+  const eatTowns = () => Object.keys(EAT).filter(c => pub().some(h => h.city === c));
+  const eatKind = k => { const K = window.V2FOOD?.KIND || {}; return (K[k] || K.restaurant || [''])[L()] || ''; };
+  const eatName = n => n[lang] || n.def;
+  const eatDist = m => (m < 1000 ? m + (lang === 'ka' ? ' მ' : lang === 'ru' ? ' м' : ' m') : (m / 1000).toFixed(1) + (lang === 'ka' ? ' კმ' : lang === 'ru' ? ' км' : ' km'));
+  function renderEat() {
+    if (!$('#eat')) return;
+    const towns = eatTowns(); if (!towns.length) { $('#eat').hidden = true; return; }
+    const sel = $('#search')?.city.value;
+    if (!eatTown || !towns.includes(eatTown)) eatTown = towns.includes(sel) ? sel : towns[0];
+    $('#eatTowns').innerHTML = towns.map(c => `<button type="button" data-eat="${esc(c)}" aria-pressed="${c === eatTown}">${esc(town(c).replace(/\s*\(.*\)\s*$/, ''))}</button>`).join('');
+    const list = eatData[eatTown];
+    $('#eatList').innerHTML = !eatSeen ? '' : list === undefined ? `<li class="eat-msg">${t('eatWait')}</li>` : !list.length ? `<li class="eat-msg">${t('eatNone')}</li>`
+      : list.slice(0, 8).map(x => `<li><a class="eat-item" href="https://www.google.com/maps/search/?api=1&query=${x.lat},${x.lng}" target="_blank" rel="noopener"><b>${esc(eatName(x.name))}</b><span>${esc(eatKind(x.kind))} · ${esc(t('eatCenter', { m: eatDist(x.m) }))}</span></a></li>`).join('');
+  }
+  async function loadEat(c) {
+    if (eatData[c] || !window.V2OSM) return;
+    const key = 'v2-eat-' + c;
+    try { const x = JSON.parse(localStorage.getItem(key) || 'null'); if (x && Date.now() - x.t < 7 * 864e5) { eatData[c] = x.places; renderEat(); return; } } catch (e) { /* ask */ }
+    renderEat();
+    try { eatData[c] = await window.V2OSM.places(EAT[c][0], EAT[c][1]); } catch (e) { eatData[c] = []; renderEat(); delete eatData[c]; return; }
+    if (eatData[c].length) try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), places: eatData[c] })); } catch (e) { /* full */ }
+    renderEat();
+  }
+  if ($('#eat')) {
+    renderEat();
+    $('#eatTowns').addEventListener('click', e => { const b = e.target.closest('[data-eat]'); if (!b) return; eatTown = b.dataset.eat; renderEat(); if (eatSeen) loadEat(eatTown); });
+    const go = () => { if (eatSeen) return; eatSeen = true; renderEat(); loadEat(eatTown); };
+    if ('IntersectionObserver' in window) { const io = new IntersectionObserver(es => { if (es.some(x => x.isIntersecting)) { io.disconnect(); go(); } }, { rootMargin: '300px' }); io.observe($('#eat')); } else go();
   }
   if ($('#search')) {
     const f = $('#search');

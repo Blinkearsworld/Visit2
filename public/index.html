@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&display=swap">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<link rel="stylesheet" href="site/platform.css?v=20261124f">
+<link rel="stylesheet" href="site/platform.css?v=20261124g">
 </head>
 <body data-chat="guests" class="home">
 <header class="p-top on-photo">
@@ -71,6 +71,15 @@
     </div>
   </section>
 
+  <section class="eat" id="eat">
+    <div class="wrap">
+      <h2 data-t="eatH">სად ვჭამოთ</h2>
+      <div class="cities eat-towns" id="eatTowns" role="group" aria-label="Places"></div>
+      <ul class="eat-list" id="eatList" aria-live="polite"></ul>
+      <p class="eat-note" data-t="eatNote">ადგილები და რუკა: © OpenStreetMap-ის მონაწილეები.</p>
+    </div>
+  </section>
+
   <section class="why">
     <div class="wrap">
       <h2 data-t="howH">როგორ მუშაობს</h2>
@@ -90,9 +99,11 @@
   </div>
 </footer>
 <script src="vendor/leaflet/leaflet.js"></script>
-<script src="site/places.js?v=20261124f"></script>
-<script src="site/hotels.js?v=20261124f"></script>
-<script src="site/platform.js?v=20261124f"></script>
-<script src="site/visit2-chat.js?v=20261124f"></script>
+<script src="site/food.js?v=20261124g"></script>
+<script src="js/osm.js?v=20261124g"></script>
+<script src="site/places.js?v=20261124g"></script>
+<script src="site/hotels.js?v=20261124g"></script>
+<script src="site/platform.js?v=20261124g"></script>
+<script src="site/visit2-chat.js?v=20261124g"></script>
 </body>
 </html>
