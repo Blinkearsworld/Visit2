@@ -21,9 +21,7 @@ h2::after { content: ""; display: block; width: 40px; height: 1px; background: v
 .amen li { border-radius: 0; border-color: var(--brass); }
 .room-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 36px; }
 .room { text-align: center; background: none; }
-.room-media { display: block; }
-.room-media img:first-child, .room-media .ph { aspect-ratio: 4 / 5; }
-.room-media .second { display: none; }
+.room-media img, .room-media .ph { aspect-ratio: 4 / 5; }
 .room-text { margin: 0 auto 1em; }
 .btn { border-radius: 0; letter-spacing: .04em; }
 .where { text-align: center; }

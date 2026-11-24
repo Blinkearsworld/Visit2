@@ -20,9 +20,7 @@ body { line-height: 1.7; }
 .amen li { border-color: transparent; background: var(--band); }
 .room-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 28px; }
 .room { border-radius: var(--radius); }
-.room-media { display: block; }
-.room-media img:first-child, .room-media .ph { aspect-ratio: 4 / 4.4; border-radius: var(--arch); }
-.room-media .second { display: none; }
+.room-media img, .room-media .ph { aspect-ratio: 4 / 4.4; border-radius: var(--arch); }
 .room-body { padding: 18px 6px 4px; text-align: center; }
 .room-text { margin-left: auto; margin-right: auto; }
 .room.picked { outline-offset: 4px; border-radius: 24px; }

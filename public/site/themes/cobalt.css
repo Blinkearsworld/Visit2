@@ -18,9 +18,7 @@
 .amen li { background: #EAF4F8; border-color: transparent; }
 .room-list { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
 .room { border-radius: var(--radius); overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
-.room-media { display: block; }
-.room-media img:first-child, .room-media .ph { aspect-ratio: 3 / 4; }
-.room-media .second { display: none; }
+.room-media img, .room-media .ph { aspect-ratio: 3 / 4; }
 .room-body { padding: 18px 20px 22px; }
 .gallery img { border-radius: var(--radius); }
 .where { background: var(--band); color: var(--on-band); }

@@ -41,6 +41,7 @@
     foodAllPlaces: ['ყველა რესტორანი და კაფე', 'All restaurants and cafés', 'Все рестораны и кафе'],
     foodKind: ['სამზარეულო', 'Cuisine', 'Кухня'], foodAny: ['ყველა', 'All', 'Все'], close: ['დახურვა', 'Close', 'Закрыть'],
     foodOsm: ['რუკა და ადგილები: © OpenStreetMap-ის მონაწილეები.', 'Map and places: © OpenStreetMap contributors.', 'Карта и места: © участники OpenStreetMap.'],
+    prevPhoto: ['წინა ფოტო', 'Previous photo', 'Предыдущее фото'], nextPhoto: ['შემდეგი ფოტო', 'Next photo', 'Следующее фото'],
     hostTip: ['მასპინძელი გირჩევთ', 'Host’s tip', 'Совет хозяина'], mapLabel: ['რუკა: სასტუმრო და ახლომახლო ადგილები', 'Map: the hotel and places nearby', 'Карта: отель и места рядом'],
     foodNote: ['სია Visit2.ge-დანაა. „რეკომენდებული“ რესტორნის ფასიანი ადგილია.', 'List from Visit2.ge. “Recommended” is a paid spot.', 'Список от Visit2.ge. «Рекомендуем» — платное размещение.'],
     sampleName: ['შენი სასტუმრო', 'Your Hotel', 'Ваш отель'], sampleCity: ['ქალაქი', 'Town', 'Город'],
@@ -364,9 +365,12 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     io.observe(el);
   }
   function roomCard(k) {
-    const t = J.types[k], s = S().rooms?.[k] || {}, ph = (s.photos || []).slice(0, 2);
+    const t = J.types[k], s = S().rooms?.[k] || {}, ph = (s.photos || []).slice(0, 8);
+    // one whole photo at a time; more photos are swiped (or clicked through with the arrows)
     return `<article class="room" data-type="${esc(k)}">
-  <div class="room-media">${ph.length ? ph.map((p, i) => img(p, t.name, i ? 'second' : '')).join('') : img('')}</div>
+  <div class="room-media">${ph.length ? `<div class="slides">${ph.map(p => img(p, typeName(t.name))).join('')}</div>${ph.length > 1 ? `
+    <button type="button" class="sl-btn sl-prev" data-sl="-1" aria-label="${w('prevPhoto')}" hidden>‹</button><button type="button" class="sl-btn sl-next" data-sl="1" aria-label="${w('nextPhoto')}">›</button>
+    <span class="sl-count" aria-hidden="true">1 / ${ph.length}</span>` : ''}` : img('')}</div>
   <div class="room-body">
     <h3>${esc(caps(typeName(t.name)))}</h3>
     ${pick(s.text) ? `<p class="room-text">${esc(pick(s.text))}</p>` : ''}
@@ -484,6 +488,13 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     document.querySelectorAll('button[data-lang]').forEach(b => b.addEventListener('click', () => { I.set(b.dataset.lang); }));
     document.querySelectorAll('button[data-theme]').forEach(b => b.addEventListener('click', () => { params.delete('theme'); saveLocal({ theme: b.dataset.theme, accent: '' }); render(); }));
     document.querySelectorAll('button[data-accent]').forEach(b => b.addEventListener('click', () => { saveLocal({ accent: b.dataset.accent }); render(); }));
+    document.querySelectorAll('.room-media').forEach(m => {
+      const sl = m.querySelector('.slides'); if (!sl || sl.children.length < 2) return;
+      const n = sl.children.length, cnt = m.querySelector('.sl-count'), prev = m.querySelector('.sl-prev'), next = m.querySelector('.sl-next');
+      const at = () => Math.round(sl.scrollLeft / sl.clientWidth);
+      sl.addEventListener('scroll', () => { const i = at(); cnt.textContent = `${i + 1} / ${n}`; prev.hidden = i === 0; next.hidden = i === n - 1; }, { passive: true });
+      m.addEventListener('click', e => { const b = e.target.closest('[data-sl]'); if (b) sl.scrollTo({ left: (at() + +b.dataset.sl) * sl.clientWidth, behavior: 'smooth' }); });
+    });
     summary();
     drawMap();
   }

@@ -17,8 +17,7 @@ h1, h2 { font-weight: 800; }
 .amen li:nth-child(3n) { background: #FFD9CF; }
 .room-list { grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 30px; }
 .room { border: 3px solid var(--ink); border-radius: var(--radius); overflow: hidden; box-shadow: 6px 6px 0 var(--ink); }
-.room-media { display: block; border-bottom: 3px solid var(--ink); }
-.room-media .second { display: none; }
+.room-media { border-bottom: 3px solid var(--ink); }
 .room-body { padding: 16px 18px 20px; }
 .gallery img { border: 3px solid var(--ink); border-radius: 14px; }
 .gallery img:nth-child(odd) { transform: rotate(-1.5deg); }

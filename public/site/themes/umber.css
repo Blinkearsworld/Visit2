@@ -20,9 +20,7 @@ h2 { font-size: clamp(30px, 5vw, 52px); }
 .amen li { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 14px 4px; }
 .room-list { gap: 0; }
 .room { grid-template-columns: 132px 1fr; gap: 20px; padding: 22px 0; border-bottom: 1px solid var(--line); align-items: start; }
-.room-media { display: block; }
-.room-media img:first-child, .room-media .ph { aspect-ratio: 1; }
-.room-media .second { display: none; }
+.room-media img, .room-media .ph { aspect-ratio: 1; }
 .room-body { padding: 0; display: grid; grid-template-columns: 1fr auto; column-gap: 18px; }
 .room-body h3 { grid-column: 1; font-size: 22px; margin: 0 0 4px; }
 .room-body .room-price { grid-column: 2; grid-row: 1; margin: 0; text-align: right; white-space: nowrap; }
