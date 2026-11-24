@@ -294,14 +294,14 @@
   const EAT = { 'ბაკურიანი': [41.7495, 43.5320], 'თბილისი': [41.6925, 44.8015], 'ბათუმი': [41.6475, 41.6370], 'თელავი': [41.9198, 45.4733],
     'სიღნაღი': [41.6200, 45.9220], 'გუდაური': [42.4770, 44.4780], 'ბორჯომი': [41.8390, 43.3890], 'ქუთაისი': [42.2705, 42.7040],
     'მესტია': [43.0450, 42.7300], 'სტეფანწმინდა (ყაზბეგი)': [42.6570, 44.6430] };
-  let eatTown = '', eatData = {}, eatSeen = false;
+  let eatTown = '', eatData = {}, eatSeen = false, eatDown = false; // eatDown: OpenStreetMap did not answer, hide the section
   const eatTowns = () => Object.keys(EAT).filter(c => pub().some(h => h.city === c));
   const eatKind = k => { const K = window.V2FOOD?.KIND || {}; return (K[k] || K.restaurant || [''])[L()] || ''; };
   const eatName = n => n[lang] || n.def;
   const eatDist = m => (m < 1000 ? m + (lang === 'ka' ? ' მ' : lang === 'ru' ? ' м' : ' m') : (m / 1000).toFixed(1) + (lang === 'ka' ? ' კმ' : lang === 'ru' ? ' км' : ' km'));
   function renderEat() {
     if (!$('#eat')) return;
-    const towns = eatTowns(); if (!towns.length) { $('#eat').hidden = true; return; }
+    const towns = eatTowns(); if (!towns.length || eatDown) { $('#eat').hidden = true; return; }
     const sel = $('#search')?.city.value;
     if (!eatTown || !towns.includes(eatTown)) eatTown = towns.includes(sel) ? sel : towns[0];
     $('#eatTowns').innerHTML = towns.map(c => `<button type="button" data-eat="${esc(c)}" aria-pressed="${c === eatTown}">${esc(town(c).replace(/\s*\(.*\)\s*$/, ''))}</button>`).join('');
@@ -314,7 +314,10 @@
     const key = 'v2-eat-' + c;
     try { const x = JSON.parse(localStorage.getItem(key) || 'null'); if (x && Date.now() - x.t < 7 * 864e5) { eatData[c] = x.places; renderEat(); return; } } catch (e) { /* ask */ }
     renderEat();
-    try { eatData[c] = await window.V2OSM.places(EAT[c][0], EAT[c][1]); } catch (e) { eatData[c] = []; renderEat(); delete eatData[c]; return; }
+    // never leave "finding places…" on screen: if nothing comes in 10 s, the section goes away
+    const slow = setTimeout(() => { if (!eatData[c]) { eatDown = true; renderEat(); } }, 10000);
+    try { eatData[c] = await window.V2OSM.places(EAT[c][0], EAT[c][1]); } catch (e) { clearTimeout(slow); eatDown = true; renderEat(); return; }
+    clearTimeout(slow); if (eatDown) { eatDown = false; $('#eat').hidden = false; }
     if (eatData[c].length) try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), places: eatData[c] })); } catch (e) { /* full */ }
     renderEat();
   }
