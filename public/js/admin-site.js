@@ -384,6 +384,39 @@
     };
   }
 
+  // ---------- look: template, colour, font; and what children cost ----------
+  const LOOK_T = [['opal', 'Opal', 'სრული ფოტო, სახელი შუაში'], ['amber', 'Amber', 'ფოტო და ტექსტი გვერდიგვერდ'], ['cobalt', 'Cobalt', 'ფოტოების მოზაიკა'],
+    ['alba', 'Alba', 'ნომრები და ფასები თავიდანვე'], ['jade', 'Jade', 'ისტორია და მასპინძელი წინ']];
+  const LOOK_OLD = { onyx: 'opal', indigo: 'cobalt', ivory: 'amber', lilac: 'jade', umber: 'alba' };
+  const LOOK_C = ['#0E857D', '#3F7A4E', '#1F6FA8', '#2F5A8A', '#B4472F', '#C2410C', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
+  const LOOK_DEF = { opal: '#0E857D', amber: '#B4472F', cobalt: '#1F6FA8', alba: '#1F1A17', jade: '#3F7A4E' };
+  function drawLook() {
+    const p = $('s-look'); if (!p) return;
+    const st = D.site || {}, th = LOOK_OLD[st.theme] || st.theme || 'opal', col = st.accent || LOOK_DEF[th] || LOOK_C[0], font = st.font === 'serif' ? 'serif' : 'sans', k = st.kids || {};
+    p.innerHTML = `<p class="sub">აქ ირჩევთ, როგორ გამოიყურება საიტი. ცვლილება საიტზე „შენახვის“ შემდეგ ჩანს. ნომრები, ფასები და ჯავშნები არ იცვლება.</p>
+      <div class="card2"><div class="fh"><b>შაბლონი</b></div><div class="look-tpl">${LOOK_T.map(([id, n, d]) => `<label class="look-t"><input type="radio" name="lookT" value="${id}"${id === th ? ' checked' : ''}><img src="img/templates/${id}.jpg" alt="" loading="lazy"><b>${n}</b><span>${d}</span></label>`).join('')}</div></div>
+      <div class="card2"><div class="fh"><b>ფერი</b></div><p class="hint">ღილაკების და აქცენტების ფერი. ყველა ფერი თეთრ ტექსტთან კარგად იკითხება.</p><div class="look-col">${LOOK_C.map(c => `<label><input type="radio" name="lookC" value="${c}"${c.toLowerCase() === col.toLowerCase() ? ' checked' : ''} aria-label="ფერი ${c}"><span style="--c:${c}"></span></label>`).join('')}</div></div>
+      <div class="card2"><div class="fh"><b>სათაურების შრიფტი</b></div><div class="look-font">
+        <label><input type="radio" name="lookF" value="sans"${font === 'sans' ? ' checked' : ''}><span style="font-family:'Noto Sans Georgian'">თანამედროვე</span></label>
+        <label><input type="radio" name="lookF" value="serif"${font === 'serif' ? ' checked' : ''}><span style="font-family:'Noto Serif Georgian',serif">კლასიკური</span></label></div></div>
+      <div class="card2"><div class="fh"><b>ბავშვები 2–12 წლის</b></div><p class="hint">სტუმარი ძებნისას ირჩევს: უფროსები (13 წლიდან), ბავშვები (2–12), ჩვილები (2 წლამდე, ყოველთვის უფასოდ). აქ წერთ, რა ღირს ბავშვი.</p>
+        <div class="look-kids">
+          <label class="chk"><input type="radio" name="lookK" value=""${!k.mode ? ' checked' : ''}><span>როგორც უფროსი (ფასი სტუმრების რაოდენობით)</span></label>
+          <label class="chk"><input type="radio" name="lookK" value="free"${k.mode === 'free' ? ' checked' : ''}><span>უფასოდ</span></label>
+          <label class="chk"><input type="radio" name="lookK" value="fixed"${k.mode === 'fixed' ? ' checked' : ''}><span>ფიქსირებული ფასი ღამეში</span></label>
+          <label class="fld look-kp"${k.mode === 'fixed' ? '' : ' hidden'}><b>ერთი ბავშვი, ერთი ღამე (₾)</b><input type="number" inputmode="numeric" min="0" step="1" id="lookKP" value="${esc(k.price ?? '')}"></label>
+        </div></div>`;
+    p.onchange = p.oninput = e => {
+      const t = e.target, site = (D.site = D.site || {});
+      if (t.name === 'lookT') { site.theme = t.value; if (!site.accent) delete site.accent; }
+      if (t.name === 'lookC') site.accent = t.value;
+      if (t.name === 'lookF') { if (t.value === 'serif') site.font = 'serif'; else delete site.font; }
+      if (t.name === 'lookK') { if (t.value) site.kids = { ...(site.kids || {}), mode: t.value }; else delete site.kids; p.querySelector('.look-kp').hidden = t.value !== 'fixed'; }
+      if (t.id === 'lookKP') { site.kids = { ...(site.kids || {}), mode: 'fixed', price: Math.max(0, Math.round(+t.value || 0)) }; }
+      dirty();
+    };
+  }
+
   // ---------- map and places nearby: the hotel's pin, which restaurants guests see, and the host's own tips ----------
   const KINDS = [['restaurant', 'რესტორანი'], ['georgian', 'ქართული სამზარეულო'], ['cafe', 'კაფე'], ['bakery', 'საცხობი'], ['wine', 'ღვინის ბარი'], ['bar', 'ბარი'], ['fish', 'თევზის რესტორანი'], ['grill', 'მწვადი'], ['pizza', 'პიცერია'], ['fast', 'სწრაფი კვება']];
   const kindKa = k => (KINDS.find(x => x[0] === k) || KINDS[0])[1];
@@ -519,7 +552,7 @@
     }));
   }
 
-  function drawAll() { drawTexts(); drawRooms(); drawVideo(); drawContact(); drawFaq(); drawSections(); drawNear(); drawHistory(); }
+  function drawAll() { drawTexts(); drawRooms(); drawVideo(); drawContact(); drawFaq(); drawSections(); drawNear(); drawLook(); drawHistory(); }
 
   // ---------- save, undo, preview ----------
   async function save() {

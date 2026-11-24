@@ -1,5 +1,5 @@
 /* The Visit2.ge header and menu, the same on every platform page (home, partners, privacy, terms).
-   Logo on the left, a "Menu" button on the right; the menu holds the languages and every link.
+   Logo on the left, a menu button (three lines, understood in any language) on the right; the menu holds the languages and every link.
    On a page that starts with a photo (body[data-photo]) the header is see-through until the page scrolls.
    Load it before site/platform.js, which wires the language buttons ([data-plang]). */
 (() => {
@@ -14,7 +14,7 @@
   const head = document.createElement('header');
   head.className = 'h-top' + (document.body.dataset.photo != null ? '' : ' solid'); head.id = 'top';
   head.innerHTML = `<a class="h-logo" href="index.html"><img src="img/brand/visit2.svg" alt="Visit2.ge" width="62" height="34"></a>
-  <button type="button" class="h-menu-btn" id="menuBtn" aria-haspopup="dialog" aria-controls="menu"><span class="h-burger" aria-hidden="true"><i></i><i></i><i></i></span><span data-m="menu">მენიუ</span></button>`;
+  <button type="button" class="h-menu-btn" id="menuBtn" aria-haspopup="dialog" aria-controls="menu" data-ml="menu" aria-label="Menu"><span class="h-burger" aria-hidden="true"><i></i><i></i><i></i></span></button>`;
   const dlg = document.createElement('dialog');
   dlg.className = 'h-menu'; dlg.id = 'menu'; dlg.setAttribute('aria-labelledby', 'menuH');
   dlg.innerHTML = `<div class="h-menu-in">
@@ -39,7 +39,7 @@
   const lang = () => { const l = window.V2LANG?.lang || document.documentElement.lang; return Math.max(0, ['ka', 'en', 'ru'].indexOf(l)); };
   function apply() {
     const i = lang();
-    head.querySelectorAll('[data-m]').forEach(el => { el.textContent = M[el.dataset.m][i]; });
+    head.querySelectorAll('[data-ml]').forEach(el => el.setAttribute('aria-label', M[el.dataset.ml][i]));
     dlg.querySelectorAll('[data-m]').forEach(el => { el.textContent = M[el.dataset.m][i]; });
     dlg.querySelectorAll('[data-ml]').forEach(el => el.setAttribute('aria-label', M[el.dataset.ml][i]));
     let saved = []; try { saved = JSON.parse(localStorage.getItem('v2-saved') || '[]'); } catch (e) { /* private mode */ }

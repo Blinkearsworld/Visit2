@@ -6,29 +6,25 @@
   const V = (document.currentScript && document.currentScript.src.split('?v=')[1]) || '1';
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const lang = () => (I ? I.lang : 'ka');
-  // Georgian capitals (mtavruli): CSS uppercase does not map Georgian, so the Stone template converts the text itself
-  const MT = s => String(s ?? '').replace(/[\u10D0-\u10FA\u10FD-\u10FF]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xBC0));
-  const caps = s => (theme() === 'opal' ? MT(s) : s);
+  const caps = s => s;
   const pick = v => (v == null ? '' : typeof v === 'string' ? v : v[lang()] || v.ka || '');
 
   // ---------- templates ----------
-  // Template ids are colour names; the colour is only the default, owners can change it.
+  // Five templates on one design (the Visit2.ge look): they differ in the top of the page and the order of sections.
+  // Template ids are colour names; colour and font are the owner's choice (admin → საიტის მართვა → იერსახე).
   const THEMES = {
-    opal: { name: 'Opal', accent: '#0E857D' },
-    onyx: { name: 'Onyx', accent: '#3E9B5F' },
-    jade: { name: 'Jade', accent: '#3F7A4E' },
-    amber: { name: 'Amber', accent: '#C2410C' },
-    indigo: { name: 'Indigo', accent: '#B08D57' },
-    ivory: { name: 'Ivory', accent: '#2F5A8A' },
-    cobalt: { name: 'Cobalt', accent: '#1F6FA8' },
-    lilac: { name: 'Lilac', accent: '#7B3E72' },
-    umber: { name: 'Umber', accent: '#9A4A2C' },
-    alba: { name: 'Alba', accent: '#1F1A17' },
+    opal: { name: 'Opal', accent: '#0E857D' },    // a full photo, words in the middle
+    amber: { name: 'Amber', accent: '#B4472F' },  // photo and words side by side
+    cobalt: { name: 'Cobalt', accent: '#1F6FA8' }, // a mosaic of photos
+    alba: { name: 'Alba', accent: '#1F1A17' },    // rooms and prices first
+    jade: { name: 'Jade', accent: '#3F7A4E' },    // the story and the host first
   };
-  // Old template ids, kept so saved demo sites and old links still work.
-  const OLD = { kva: 'opal', ezo: 'jade', kalaki: 'umber', zghva: 'cobalt', ghvino: 'lilac', minimali: 'alba', tye: 'onyx', butiki: 'indigo', peradi: 'amber', klasika: 'ivory' };
+  // Earlier template ids, so saved sites and old links still open the nearest of the five.
+  const OLD = { kva: 'opal', ezo: 'jade', kalaki: 'alba', zghva: 'cobalt', ghvino: 'jade', minimali: 'alba', tye: 'opal', butiki: 'cobalt', peradi: 'amber', klasika: 'amber',
+    onyx: 'opal', indigo: 'cobalt', ivory: 'amber', lilac: 'jade', umber: 'alba' };
   const themeId = t => OLD[t] || t;
-  const ACCENTS = ['#0E857D', '#3F7A4E', '#1F7FB0', '#2F5A8A', '#B4472F', '#E2563B', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
+  // colours that work with white text and on a light page
+  const ACCENTS = ['#0E857D', '#3F7A4E', '#1F6FA8', '#2F5A8A', '#B4472F', '#C2410C', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
 
   // ---------- interface words ----------
   const W = {
@@ -49,7 +45,17 @@
     sampleAbout: ['აქ იქნება შენი სასტუმროს აღწერა: რით არის გამორჩეული, რა არის ახლოს და რატომ ბრუნდებიან სტუმრები. ტექსტს და ფოტოებს ადმინში შეცვლი.', 'Your description goes here: what makes your place special, what is nearby and why guests come back. Change texts and photos in the admin.', 'Здесь будет описание: чем особенно ваше место, что рядом и почему гости возвращаются. Тексты и фото меняются в админке.'],
     sampleAddr: ['შენი მისამართი', 'Your address', 'Ваш адрес'],
     book: ['დაჯავშნა', 'Book', 'Забронировать'], bookShort: ['ჯავშანი', 'Book', 'Бронь'], checkin: ['შესვლა', 'Check-in', 'Заезд'], checkout: ['გასვლა', 'Check-out', 'Выезд'],
-    adults: ['სტუმარი 10 წლიდან', 'Guests 10+', 'Гости от 10 лет'], kids: ['ბავშვი 10 წლამდე', 'Children under 10', 'Дети до 10 лет'],
+    adults: ['უფროსები', 'Adults', 'Взрослые'], adultsAge: ['13 წლიდან', 'Ages 13 or above', 'От 13 лет'], kids: ['ბავშვები', 'Children', 'Дети'], kidsAge: ['2–12 წლის', 'Ages 2–12', 'От 2 до 12 лет'],
+    babies: ['ჩვილები', 'Infants', 'Младенцы'], babiesAge: ['2 წლამდე', 'Under 2', 'До 2 лет'], pets: ['შინაური ცხოველი', 'Pets', 'Домашние животные'],
+    petsOk: ['ცხოველით შეიძლება', 'Pets are welcome', 'Можно с животными'], petsNo: ['ამ სასტუმროში ცხოველით არ შეიძლება', 'Pets are not allowed here', 'С животными нельзя'],
+    dates: ['თარიღები', 'Dates', 'Даты'], guestsW: ['სტუმრები', 'Guests', 'Гости'], addDates: ['აირჩიეთ', 'Add dates', 'Выбрать'],
+    whenQ: ['როდის მოდიხართ?', 'When are you coming?', 'Когда приезжаете?'], whoQ: ['ვინ მოდის?', 'Who is coming?', 'Кто едет?'],
+    arrive: ['ჩამოსვლა', 'Arriving', 'Заезд'], leave: ['წასვლა', 'Leaving', 'Выезд'], pickArrive: ['აირჩიეთ ჩამოსვლის დღე', 'Pick the day you arrive', 'Выберите день заезда'],
+    pickLeave: ['ახლა აირჩიეთ წასვლის დღე', 'Now pick the day you leave', 'Теперь выберите день выезда'], clear: ['გასუფთავება', 'Clear', 'Сбросить'], save: ['შენახვა', 'Save', 'Сохранить'],
+    seePrice: ['ფასის ნახვა', 'See prices', 'Узнать цены'], changeDates: ['თარიღების შეცვლა', 'Change dates', 'Изменить даты'], menu: ['მენიუ', 'Menu', 'Меню'],
+    guestsN: ['{n} სტუმარი', '{n} guests', 'Гостей: {n}'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], babiesN: ['{n} ჩვილი', '{n} infants', 'младенцев: {n}'], petsN: ['ცხოველით', 'with pets', 'с животными'],
+    kidsFree: ['ბავშვები 2–12 წლის უფასოდ', 'Children 2–12 stay free', 'Дети 2–12 лет бесплатно'], kidsFixed: ['ბავშვი 2–12 წლის: {p} ₾ ღამე', 'Child 2–12: {p} ₾ a night', 'Ребёнок 2–12 лет: {p} ₾ за ночь'],
+    babiesFree: ['ჩვილები 2 წლამდე უფასოდ', 'Infants under 2 stay free', 'Младенцы до 2 лет бесплатно'], photos: ['ფოტოები', 'Photos', 'Фото'],
     name: ['სახელი', 'Name', 'Имя'], phone: ['ტელეფონი', 'Phone', 'Телефон'], wish: ['სპეციალური მოთხოვნა', 'Special request', 'Особые пожелания'],
     optional: ['არასავალდებულო', 'optional', 'необязательно'], send: ['მოთხოვნის გაგზავნა', 'Send request', 'Отправить запрос'],
     check: ['თავისუფალი ნომრები', 'Check availability', 'Свободные номера'], perNight: ['ღამე', 'night', 'ночь'], from: ['-დან', 'from', 'от'],
@@ -130,41 +136,51 @@
 
 
   // ---------- template layouts ----------
-  // Each template has its own order of sections and some blocks only it uses. Colour and font stay the owner's choice.
+  // Every template uses the same sections; the top of the page and the order differ.
   const LAYOUT = {
-    opal: ['hero', 'bookBar', 'seasons', 'about', 'amen', 'rooms', 'gallery', 'book', 'where', 'food'],   // seasonal: winter/summer prices up front
-    cobalt: ['hero', 'bookBar', 'facts', 'rooms', 'gallery', 'about', 'amen', 'book', 'where', 'food'],   // seaside: quick facts, rooms early
-    umber: ['hero', 'facts', 'where', 'rooms', 'book', 'about', 'amen', 'gallery', 'food'],                // apartments: address and map first
-    lilac: ['hero', 'about', 'gallery', 'rooms', 'amen', 'book', 'where', 'food'],                         // wine: story and photos
-    jade: ['hero', 'about', 'amen', 'rooms', 'gallery', 'book', 'where', 'food'],                          // family: the host and what is included
-    indigo: ['hero', 'bookBar', 'compare', 'gallery', 'about', 'amen', 'book', 'where', 'food'],           // boutique: room comparison
-    amber: ['hero', 'bookBar', 'compare', 'amen', 'about', 'gallery', 'book', 'where', 'food'],            // hostel: prices side by side
-    onyx: ['hero', 'amen', 'about', 'gallery', 'rooms', 'book', 'where', 'food'],                          // cottage: the place first
-    ivory: ['hero', 'about', 'rooms', 'gallery', 'amen', 'book', 'where', 'food'],                         // old-town house
-    alba: ['hero', 'about', 'rooms', 'book', 'where', 'food'],                                             // minimal: only what matters
+    opal: ['heroFull', 'rooms', 'about', 'amen', 'gallery', 'where', 'food', 'book'],
+    amber: ['heroSplit', 'about', 'rooms', 'amen', 'gallery', 'where', 'food', 'book'],
+    cobalt: ['heroMosaic', 'rooms', 'amen', 'about', 'gallery', 'where', 'food', 'book'],
+    alba: ['heroPlain', 'compare', 'rooms', 'book', 'about', 'amen', 'gallery', 'where', 'food'],
+    jade: ['heroStory', 'about', 'amen', 'rooms', 'gallery', 'where', 'food', 'book'],
   };
   const LAYOUT_OF = th => LAYOUT[th] || LAYOUT.opal;
+  const PHOTO_TOP = ['heroFull', 'heroStory'];
+  const heroWords = (s, h) => `${h.city ? `<p class="hero-city">${esc(h.city)}</p>` : ''}
+      <h1 class="hero-name">${esc(h.name || '')}</h1>
+      ${pick(s.hero?.tagline) ? `<p class="hero-tag">${esc(pick(s.hero?.tagline))}</p>` : ''}`;
   const BLOCK = {
-    hero: (s, h) => `<section class="hero">
+    heroFull: (s, h) => `<section class="hero hero-full">
     <div class="hero-media">${img(s.hero?.img, h.name)}</div>
-    <div class="hero-text">
-      ${h.city ? `<p class="hero-city">${esc(h.city)}</p>` : ''}
-      <h1 class="hero-name">${esc(caps(h.name || ''))}</h1>
-      <p class="hero-tag">${esc(pick(s.hero?.tagline))}</p>
-    </div>
+    <div class="hero-in">${heroWords(s, h)}${pill()}</div>
   </section>`,
-    bookBar: () => bookBar(),
+    heroSplit: (s, h) => `<section class="hero hero-split">
+    <div class="hero-in">${heroWords(s, h)}${pill()}</div>
+    <div class="hero-media">${img(s.hero?.img, h.name)}</div>
+  </section>`,
+    heroMosaic: (s, h) => { const ph = [s.hero?.img, ...(s.gallery || [])].filter(Boolean).slice(0, 5);
+      return `<section class="hero hero-mosaic">
+    <div class="hero-in">${heroWords(s, h)}${pill()}</div>
+    <div class="mosaic n${ph.length}">${ph.map((p, i) => img(p, i ? '' : h.name)).join('')}</div>
+  </section>`; },
+    heroPlain: (s, h) => `<section class="hero hero-plain">
+    <div class="hero-in">${heroWords(s, h)}${pill()}</div>
+    <div class="hero-media">${img(s.hero?.img, h.name)}</div>
+  </section>`,
+    heroStory: (s, h) => `<section class="hero hero-story">
+    <div class="hero-media">${img(s.hero?.img, h.name)}<div class="hero-in">${heroWords(s, h)}</div></div>
+    <div class="hero-bar">${pill()}</div>
+  </section>`,
     about: s => `<section class="about" id="about">
     <div class="about-media">${img(s.about?.img)}</div>
-    <div class="about-text"><h2>${caps(w('about'))}</h2><p>${esc(pick(s.about?.text))}</p></div>
+    <div class="about-text"><h2>${w('about')}</h2><p>${esc(pick(s.about?.text))}</p></div>
   </section>`,
-    amen: s => ((s.amenities || []).length ? `<section class="amen"><h2>${caps(w('amen'))}</h2><ul>${s.amenities.map(k => `<li><span aria-hidden="true">${AMEN[k]?.[0] || '•'}</span>${esc(amenText(k))}</li>`).join('')}</ul></section>` : ''),
-    rooms: () => `<section class="rooms" id="rooms"><h2>${caps(w('rooms'))}</h2><div class="room-list">${typeIds().map(roomCard).join('')}</div></section>`,
-    gallery: s => ((s.gallery || []).length ? `<section class="gallery"><h2>${caps(w('gallery'))}</h2><div class="grid">${s.gallery.map(g => img(g)).join('')}</div></section>` : ''),
-    // the date bar is the only date picker: layouts without it near the top get it right above the request form
-    book: () => (LAYOUT_OF(theme()).includes('bookBar') ? '' : bookBar()) + bookForm(),
+    amen: s => ((s.amenities || []).length ? `<section class="amen"><h2>${w('amen')}</h2><ul>${s.amenities.map(k => `<li><span aria-hidden="true">${AMEN[k]?.[0] || '•'}</span>${esc(amenText(k))}</li>`).join('')}</ul>${kidsLine()}</section>` : ''),
+    rooms: () => `<section class="rooms" id="rooms"><h2>${w('rooms')}</h2><div class="room-list">${typeIds().map(roomCard).join('')}</div></section>`,
+    gallery: s => ((s.gallery || []).length ? `<section class="gallery" id="photos"><h2>${w('gallery')}</h2><div class="grid">${s.gallery.map(g => img(g)).join('')}</div></section>` : ''),
+    book: () => bookForm(),
     where: (s, h, c, tel) => `<section class="where" id="where">
-    <h2>${caps(w('where'))}</h2>
+    <h2>${w('where')}</h2>
     <p>${esc(pick(s.location?.text) || c.addrText || h.city || '')}</p>
     <div class="where-actions">
       ${tel ? `<a class="btn btn-ghost" href="${tel}">${w('call')} ${esc(c.phone)}</a>` : ''}
@@ -173,66 +189,64 @@
     ${mapBlock()}
   </section>`,
     food: () => foodSection(),
-    seasons: () => seasonsBlock(),
-    facts: () => factsBlock(),
     compare: () => compareBlock(),
   };
-  // prices by season, one season at a time (switch on top), for the cheapest version of each room type
-  let seasonShown = '';
-  function seasonsBlock() {
-    const ids = Object.keys(J.SEASONS), now = J.siteSeason ? J.siteSeason() : '';
-    if (!ids.length) return '';
-    if (!ids.includes(seasonShown)) seasonShown = ids.includes(now) ? now : ids[0];
-    const price = k => { const r = J.types[k].rates; const p = r.map(x => x.price?.[seasonShown]).filter(v => v > 0); return p.length ? Math.min(...p) : null; };
-    return `<section class="seasons" id="seasons"><h2>${caps(w('seasonsH'))}</h2>
-    <div class="season-tabs" role="group" aria-label="${esc(w('seasonsH'))}">${ids.map(id => `<button type="button" data-season="${esc(id)}" aria-pressed="${id === seasonShown}">${esc(J.SEASONS[id])}</button>`).join('')}</div>
-    <ul class="season-list">${typeIds().map(k => { const p = price(k); return `<li><span>${esc(typeName(J.types[k].name))}</span><b>${p ? (lang() === 'ka' ? `${p} ₾${w('from')}` : `${w('from')} ${p} ₾`) : '—'}</b></li>`; }).join('')}</ul>
-  </section>`;
+  // what children and infants cost here (the owner sets it: like adults, free, or a price a night)
+  const kidsRule = () => S().kids || {};
+  function kidsLine() {
+    const k = kidsRule(), parts = [];
+    if (k.mode === 'free') parts.push(w('kidsFree')); else if (k.mode === 'fixed' && +k.price > 0) parts.push(w('kidsFixed').replace('{p}', +k.price));
+    parts.push(w('babiesFree'));
+    return `<p class="kids-line">${parts.map(esc).join(' · ')}</p>`;
   }
-  // a strip of plain numbers: rooms, guests, price from
-  function factsBlock() {
-    const ks = typeIds(); if (!ks.length) return '';
-    const rooms = ks.reduce((n, k) => n + roomsOf(k).length, 0), cap = Math.max(...ks.map(k => J.types[k].cap || 0)), from = Math.min(...ks.map(minPrice));
-    return `<section class="facts"><ul>
-    <li><b>${rooms}</b><span>${lang() === 'ka' ? 'ნომერი' : lang() === 'ru' ? 'номеров' : 'rooms'}</span></li>
-    <li><b>${cap}</b><span>${w('upTo')}</span></li>
-    <li><b>${from} ₾</b><span>${w('from').trim() || 'from'} / ${w('perNight')}</span></li>
-  </ul></section>`;
-  }
-  // room types side by side; rows are .room so availability and "choose" work as with cards
+  // room types side by side with their prices (the Alba template shows this first)
   function compareBlock() {
-    return `<section class="rooms compare" id="rooms"><h2>${caps(w('rooms'))}</h2>
-    <div class="cmp">${typeIds().map(k => { const t = J.types[k]; return `<article class="room cmp-row" data-type="${esc(k)}">
-      <h3>${esc(typeName(t.name))}</h3>
-      <p class="cmp-cap">${t.cap} ${w('upTo')}</p>
-      <p class="cmp-price">${lang() === 'ka' ? `${minPrice(k)} ₾${w('from')}` : `${w('from')} ${minPrice(k)} ₾`} <span>/ ${w('perNight')}</span></p>
-      <p class="room-avail" aria-live="polite"></p>
-      <button type="button" class="btn btn-line" data-pick="${esc(k)}">${w('choose')}</button>
-    </article>`; }).join('')}</div>
-  </section>`;
+    return `<section class="compare"><div class="cmp">${typeIds().map(k => { const t = J.types[k]; return `<a class="cmp-row" href="#room-${esc(k)}">
+      <span class="cmp-name">${esc(typeName(t.name))}<small>${t.cap} ${w('upTo')}</small></span>
+      <b class="cmp-price">${lang() === 'ka' ? `${minPrice(k)} ₾${w('from')}` : `${w('from')} ${minPrice(k)} ₾`}<small> / ${w('perNight')}</small></b>
+    </a>`; }).join('')}</div></section>`;
   }
 
   function render() {
     // a template sample (?sample=1) shows placeholder words instead of a real hotel's name and texts
     const s = sample ? { ...S(), hero: { ...S().hero, tagline: w('sampleTag') }, about: { ...S().about, text: w('sampleAbout') }, location: { ...S().location, text: w('sampleAddr') } } : S();
     const h = sample ? { ...(J.hotel || {}), name: w('sampleName'), city: w('sampleCity') } : (J.hotel || {}), c = contact(), th = theme();
-    document.documentElement.dataset.theme = th;
-    document.documentElement.style.setProperty('--accent', accent());
+    const root = document.documentElement, lay = LAYOUT_OF(th);
+    root.dataset.theme = th;
+    root.style.setProperty('--accent', accent());
+    root.dataset.font = S().font === 'serif' ? 'serif' : 'sans';
+    root.toggleAttribute('data-photo', PHOTO_TOP.includes(lay[0]));
     $('#themeCss').href = `site/themes/${th}.css?v=${V}`;
     document.title = (h.name || '') + (h.city ? ' · ' + h.city : '');
     const tel = c.digits ? `tel:+${c.digits}` : '';
     const wasOpen = !!document.querySelector('.demo[open]');
+    const has = id => lay.includes(id) && (id !== 'gallery' || (s.gallery || []).length) && (id !== 'food' || foodList().length);
     $('#app').innerHTML = `
-<header class="top">
-  <a class="brand" href="#top">${esc(caps(h.name || ''))}</a>
-  <nav class="links"><a href="#about">${w('about')}</a><a href="#rooms">${w('rooms')}</a><a href="#where">${w('where')}</a></nav>
-  <div class="langs" role="group" aria-label="Language">${['ka', 'en', 'ru'].map(l => `<button type="button" data-lang="${l}" aria-pressed="${l === lang()}">${l.toUpperCase()}</button>`).join('')}</div>
-  <a class="btn btn-accent top-book" href="#book"><span class="long">${w('book')}</span><span class="short">${w('bookShort')}</span></a>
+<header class="top" id="topbar">
+  <a class="brand" href="#top">${esc(h.name || '')}</a>
+  <a class="btn btn-accent top-book" href="#book">${w('bookShort')}</a>
+  <button type="button" class="menu-btn" id="menuBtn" aria-haspopup="dialog" aria-controls="menu" aria-label="${w('menu')}"><span class="burger" aria-hidden="true"><i></i><i></i><i></i></span></button>
 </header>
+<dialog class="menu" id="menu" aria-label="${w('menu')}">
+  <div class="menu-in">
+    <div class="menu-head"><b>${esc(h.name || '')}</b><button type="button" class="x" data-close aria-label="${w('close')}">×</button></div>
+    <div class="menu-langs" role="group" aria-label="Language">${[['ka', 'ქართული'], ['en', 'English'], ['ru', 'Русский']].map(([l, n]) => `<button type="button" data-lang="${l}" aria-pressed="${l === lang()}">${n}</button>`).join('')}</div>
+    <nav class="menu-links">
+      <a href="#rooms" data-close>${w('rooms')}</a>
+      ${has('gallery') ? `<a href="#photos" data-close>${w('gallery')}</a>` : ''}
+      <a href="#about" data-close>${w('about')}</a>
+      <a href="#where" data-close>${w('where')}</a>
+      ${has('food') ? `<a href="#food" data-close>${w('food')}</a>` : ''}
+      <a href="#book" data-close>${w('book')}</a>
+    </nav>
+    ${tel ? `<a class="btn btn-ghost menu-call" href="${tel}">${w('call')} ${esc(c.phone)}</a>` : ''}
+  </div>
+</dialog>
 <main id="top">
-  ${LAYOUT_OF(th).map(k => (BLOCK[k] ? BLOCK[k](s, h, c, tel) : '')).join('\n  ')}
+  ${lay.map(k => (BLOCK[k] ? BLOCK[k](s, h, c, tel) : '')).join('\n  ')}
 </main>
 <footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span><a href="https://visit2.ge" rel="noopener">Visit2.ge · ${w('directly')}</a></footer>
+${sheetHtml()}
 ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ? backLink() : ''}`;
     if (wasOpen) { const d = document.querySelector('.demo'); if (d) d.open = true; }
     wire();
@@ -375,12 +389,12 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   function roomCard(k) {
     const t = J.types[k], s = S().rooms?.[k] || {}, ph = (s.photos || []).slice(0, 8);
     // one whole photo at a time; more photos are swiped (or clicked through with the arrows)
-    return `<article class="room" data-type="${esc(k)}">
+    return `<article class="room" id="room-${esc(k)}" data-type="${esc(k)}">
   <div class="room-media">${ph.length ? `<div class="slides">${ph.map(p => img(p, typeName(t.name))).join('')}</div>${ph.length > 1 ? `
     <button type="button" class="sl-btn sl-prev" data-sl="-1" aria-label="${w('prevPhoto')}" hidden>‹</button><button type="button" class="sl-btn sl-next" data-sl="1" aria-label="${w('nextPhoto')}">›</button>
     <span class="sl-count" aria-hidden="true">1 / ${ph.length}</span>` : ''}` : img('')}</div>
   <div class="room-body">
-    <h3>${esc(caps(typeName(t.name)))}</h3>
+    <h3>${esc(typeName(t.name))}</h3>
     ${pick(s.text) ? `<p class="room-text">${esc(pick(s.text))}</p>` : ''}
     <p class="room-meta">${t.cap} ${w('upTo')} · ${roomsOf(k).length} ${lang() === 'ka' ? 'ნომერი' : lang() === 'ru' ? 'ном.' : 'rooms'}</p>
     <p class="room-price"><span class="amount">${lang() === 'ka' ? `${minPrice(k)} ₾${w('from')}` : `${w('from')} ${minPrice(k)} ₾`}</span><span class="per"> / ${w('perNight')}</span></p>
@@ -390,20 +404,85 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
 </article>`;
   }
 
-  const opts = (from, to, sel) => Array.from({ length: to - from + 1 }, (_, i) => from + i).map(n => `<option value="${n}"${n === sel ? ' selected' : ''}>${n}</option>`).join('');
-  function bookBar() {
-    return `<form class="bar" id="bar" aria-label="${w('check')}">
-  <label><span>${w('checkin')}</span><input type="date" name="from" required></label>
-  <label><span>${w('checkout')}</span><input type="date" name="to" required></label>
-  <label><span>${w('adults')}</span><select name="adults">${opts(1, 8, 2)}</select></label>
-  <label><span>${w('kids')}</span><select name="kids">${opts(0, 6, 0)}</select></label>
-  <button class="btn btn-accent" type="submit">${w('check')}</button>
-</form>`;
+  // the dates and guests field, like the Visit2.ge search: it opens the sheet with a calendar and guests
+  function pill() {
+    return `<div class="pill" role="group" aria-label="${w('check')}">
+    <button type="button" class="seg" data-open="when"><span>${w('dates')}</span><b class="p-when"></b></button>
+    <button type="button" class="seg" data-open="who"><span>${w('guestsW')}</span><b class="p-who"></b></button>
+    <button type="button" class="btn btn-accent pill-go" data-see>${w('seePrice')}</button>
+  </div>`;
+  }
+  function sheetHtml() {
+    const step = (n, t, sub) => `<div class="step"><div><b>${w(t)}</b><small>${w(sub)}</small></div><div class="stepper"><button type="button" data-n="${n}" data-d="-1" aria-label="−">−</button><output data-v="${n}">0</output><button type="button" data-n="${n}" data-d="1" aria-label="+">+</button></div></div>`;
+    const petsOk = (S().amenities || []).includes('pets');
+    return `<dialog class="sheet" id="sheet" aria-labelledby="sheetH">
+  <div class="sheet-in">
+    <div class="sheet-head"><span></span><h2 id="sheetH"></h2><button type="button" class="x" data-close aria-label="${w('close')}">×</button></div>
+    <div class="view" data-view="when" hidden>
+      <div class="range"><div><span>${w('arrive')}</span><b id="rFrom">—</b></div><div><span>${w('leave')}</span><b id="rTo">—</b></div></div>
+      <p class="nights" id="rNights"></p>
+      <div class="dow" id="dow" aria-hidden="true"></div>
+      <div class="cal" id="cal"></div>
+      <div class="sheet-foot"><button type="button" class="btn btn-ghost" id="calReset">${w('clear')}</button><button type="button" class="btn btn-accent" id="calSave">${w('save')}</button></div>
+    </div>
+    <div class="view" data-view="who" hidden>
+      ${step('adults', 'adults', 'adultsAge')}${step('kids', 'kids', 'kidsAge')}${step('babies', 'babies', 'babiesAge')}
+      <div class="step"><div><b>${w('pets')}</b><small>${w(petsOk ? 'petsOk' : 'petsNo')}</small></div>${petsOk ? `<div class="stepper"><button type="button" data-n="pets" data-d="-1" aria-label="−">−</button><output data-v="pets">0</output><button type="button" data-n="pets" data-d="1" aria-label="+">+</button></div>` : ''}</div>
+      <div class="sheet-foot"><button type="button" class="btn btn-accent" id="whoSave">${w('save')}</button></div>
+    </div>
+  </div>
+</dialog>`;
+  }
+  const MONTHS = { ka: ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'],
+    en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    ru: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'] };
+  const DOW = { ka: ['ორ', 'სა', 'ოთ', 'ხუ', 'პა', 'შა', 'კვ'], en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] };
+  let calFrom = '', calTo = '';
+  function openSheet(v) {
+    const d = $('#sheet'); if (!d.open) d.showModal();
+    d.querySelectorAll('[data-view]').forEach(x => { x.hidden = x.dataset.view !== v; });
+    $('#sheetH').textContent = w(v === 'when' ? 'whenQ' : 'whoQ');
+    if (v === 'when') { calFrom = sel.from; calTo = sel.to; drawCal(); }
+    if (v === 'who') ['adults', 'kids', 'babies', 'pets'].forEach(n => { const o = d.querySelector(`[data-v="${n}"]`); if (o) o.value = sel[n]; });
+    d.querySelector('.sheet-in').scrollTop = 0;
+  }
+  function drawCal() {
+    const L = lang(), today = J.today(), [y0, m0] = today.split('-').map(Number);
+    $('#dow').innerHTML = DOW[L].map(d => `<span>${d}</span>`).join('');
+    let html = '';
+    for (let i = 0; i < 12; i++) {
+      const y = y0 + Math.floor((m0 - 1 + i) / 12), m = (m0 - 1 + i) % 12;
+      const days = new Date(Date.UTC(y, m + 1, 0)).getUTCDate(), pad = (new Date(Date.UTC(y, m, 1)).getUTCDay() + 6) % 7;
+      html += `<section class="month"><h3>${MONTHS[L][m]} ${y}</h3><div class="days">${'<span></span>'.repeat(pad)}`;
+      for (let d = 1; d <= days; d++) {
+        const ds = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        html += ds < today ? `<span class="past">${d}</span>` : `<button type="button" data-day="${ds}">${d}</button>`;
+      }
+      html += '</div></section>';
+    }
+    $('#cal').innerHTML = html; paintCal();
+  }
+  function paintCal() {
+    $('#cal').querySelectorAll('[data-day]').forEach(x => {
+      const d = x.dataset.day;
+      x.className = [d === calFrom ? 'start' : '', d === calTo ? 'end' : '', calFrom && calTo && d > calFrom && d < calTo ? 'in' : ''].filter(Boolean).join(' ');
+      x.setAttribute('aria-pressed', String(d === calFrom || d === calTo));
+    });
+    $('#rFrom').textContent = calFrom ? J.fmt(calFrom) : '—';
+    $('#rTo').textContent = calTo ? J.fmt(calTo) : '—';
+    const n = calFrom && calTo ? J.nights(calFrom, calTo) : 0;
+    $('#rNights').textContent = n ? `${n} ${w('nights')}` : w(calFrom ? 'pickLeave' : 'pickArrive');
+  }
+  const guestsText = () => [w('guestsN').replace('{n}', sel.adults + sel.kids), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(', ');
+  function pillText() {
+    document.querySelectorAll('.p-when').forEach(el => { el.textContent = sel.from && sel.to ? J.fmtRange(sel.from, sel.to) : w('addDates'); });
+    document.querySelectorAll('.p-who').forEach(el => { el.textContent = guestsText(); });
   }
   function bookForm() {
     return `<section class="book" id="book">
   <h2>${caps(w('book'))}</h2>
   <div class="book-sum" id="sum" aria-live="polite">${w('pickDates')}</div>
+  <div class="book-pick">${pill()}</div>
   <form id="req" novalidate>
     <label><span>${w('name')}</span><input name="name" autocomplete="name" required></label>
     <label><span>${w('phone')}</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
@@ -432,15 +511,20 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   }
 
   // ---------- booking ----------
-  const sel = { from: '', to: '', adults: 2, kids: 0, type: '' };
+  const sel = { from: '', to: '', adults: 2, kids: 0, babies: 0, pets: 0, type: '' };
   // dates and guests from the Visit2.ge search (hotel.html?h=…&from=…&to=…&g=…)
   if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('from') || '') && /^\d{4}-\d{2}-\d{2}$/.test(params.get('to') || '') && params.get('to') > params.get('from')) {
-    sel.from = params.get('from'); sel.to = params.get('to'); sel.adults = Math.max(1, Math.min(8, +params.get('g') || 2));
+    sel.from = params.get('from'); sel.to = params.get('to'); sel.adults = Math.max(1, Math.min(16, +params.get('g') || 2));
   }
   const fmtN = n => `${n} ₾`;
+  // beds needed: adults and children (infants share a bed); the price follows the owner's rule for children
+  const beds = () => sel.adults + sel.kids;
+  const priced = () => sel.adults + (kidsRule().mode === 'free' || kidsRule().mode === 'fixed' ? 0 : sel.kids);
+  const quoteOf = (k, from, to) => J.quote(k, from, to, Math.max(1, priced())) + (kidsRule().mode === 'fixed' ? (+kidsRule().price || 0) * sel.kids * J.nights(from, to) : 0);
   function summary() {
     const el = $('#sum'); if (!el) return;
-    const { from, to } = sel, g = sel.adults + sel.kids;
+    const { from, to } = sel, g = beds();
+    pillText();
     document.querySelectorAll('.room').forEach(r => { r.classList.toggle('picked', r.dataset.type === sel.type); });
     if (!from || !to || to <= from) { el.innerHTML = w('pickDates'); availability(); return; }
     const n = J.nights(from, to), free = k => roomsOf(k).filter(r => J.roomFree(r.id, from, to)).length;
@@ -453,34 +537,51 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
       return;
     }
     sel.offer = type;
-    el.innerHTML = `<b>${esc(typeName(J.types[type].name))}</b><br>${J.fmtRange(from, to)} · ${n} ${w('nights')} · ${g} ${lang() === 'ka' ? 'სტუმარი' : lang() === 'ru' ? 'гост.' : 'guests'}<br><span class="sum-total">${w('estimate')}: ${fmtN(J.quote(type, from, to, g))}</span>`;
+    el.innerHTML = `<b>${esc(typeName(J.types[type].name))}</b><br>${J.fmtRange(from, to)} · ${n} ${w('nights')} · ${esc(guestsText())}<br><span class="sum-total">${w('estimate')}: ${fmtN(quoteOf(type, from, to))}</span>`;
   }
   function availability() {
-    const { from, to } = sel, g = sel.adults + sel.kids, ok = from && to && to > from;
+    const { from, to } = sel, g = beds(), ok = from && to && to > from;
     document.querySelectorAll('.room').forEach(r => {
-      const k = r.dataset.type, out = r.querySelector('.room-avail');
+      const k = r.dataset.type, out = r.querySelector('.room-avail'); if (!out) return;
       if (!ok) { out.textContent = ''; return; }
       const free = roomsOf(k).filter(x => J.roomFree(x.id, from, to)).length, fits = J.rateFor(k, g);
-      out.textContent = !fits ? `${J.types[k].cap} ${w('upTo')}` : free ? `${w('left')}: ${free} · ${w('total')} ${fmtN(J.quote(k, from, to, g))}` : w('none');
+      out.textContent = !fits ? `${J.types[k].cap} ${w('upTo')}` : free ? `${w('left')}: ${free} · ${w('total')} ${fmtN(quoteOf(k, from, to))}` : w('none');
       out.dataset.state = !fits || !free ? 'no' : 'yes';
     });
   }
 
   function wire() {
-    const bar = $('#bar'), t0 = J.today();
-    bar.from.min = t0; bar.to.min = J.addDays(t0, 1);
-    Object.assign(bar.from, { value: sel.from }); Object.assign(bar.to, { value: sel.to });
-    bar.adults.value = sel.adults; bar.kids.value = sel.kids;
-    const read = () => {
-      sel.from = bar.from.value; sel.to = bar.to.value; sel.adults = +bar.adults.value; sel.kids = +bar.kids.value;
-      if (sel.from && (!sel.to || sel.to <= sel.from)) { sel.to = J.addDays(sel.from, 2); bar.to.value = sel.to; }
-      bar.to.min = sel.from ? J.addDays(sel.from, 1) : J.addDays(t0, 1);
-      summary();
-    };
-    bar.addEventListener('change', read);
-    bar.addEventListener('submit', e => { e.preventDefault(); read(); $('#rooms').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); });
-    document.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => { sel.type = b.dataset.pick; summary(); $('#book').scrollIntoView({ behavior: 'smooth' }); if (!sel.from) bar.from.focus(); }));
-    $('#sum').addEventListener('click', e => { const b = e.target.closest('[data-next]'); if (!b) return; [sel.from, sel.to] = b.dataset.next.split('|'); bar.from.value = sel.from; bar.to.value = sel.to; summary(); });
+    const sheet = $('#sheet'), menu = $('#menu'), still = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => openSheet(b.dataset.open)));
+    document.querySelectorAll('[data-see]').forEach(b => b.addEventListener('click', () => { if (!sel.from) openSheet('when'); else $('#rooms').scrollIntoView({ behavior: still }); }));
+    sheet.addEventListener('click', e => { if (e.target === sheet || e.target.closest('[data-close]')) sheet.close(); });
+    $('#cal').addEventListener('click', e => {
+      const b = e.target.closest('[data-day]'); if (!b) return; const d = b.dataset.day;
+      if (!calFrom || calTo || d <= calFrom) { calFrom = d; calTo = ''; } else calTo = d;
+      paintCal();
+    });
+    $('#calReset').addEventListener('click', () => { calFrom = calTo = ''; paintCal(); });
+    $('#calSave').addEventListener('click', () => {
+      if (calFrom && !calTo) calTo = J.addDays(calFrom, 1);
+      sel.from = calFrom; sel.to = calTo; summary();
+      openSheet('who');
+    });
+    sheet.querySelector('[data-view="who"]').addEventListener('click', e => {
+      const b = e.target.closest('[data-n]'); if (!b) return;
+      const n = b.dataset.n, o = sheet.querySelector(`[data-v="${n}"]`), min = n === 'adults' ? 1 : 0, max = { adults: 16, kids: 10, babies: 5, pets: 5 }[n];
+      o.value = Math.min(max, Math.max(min, +o.value + +b.dataset.d));
+    });
+    $('#whoSave').addEventListener('click', () => {
+      ['adults', 'kids', 'babies', 'pets'].forEach(n => { const o = sheet.querySelector(`[data-v="${n}"]`); sel[n] = o ? +o.value : 0; });
+      sheet.close(); summary();
+      if (sel.from) $('#rooms').scrollIntoView({ behavior: still });
+    });
+    $('#menuBtn').addEventListener('click', () => menu.showModal());
+    menu.addEventListener('click', e => { if (e.target === menu || e.target.closest('[data-close]')) menu.close(); });
+    const bar = $('#topbar'), onScroll = () => bar.classList.toggle('scrolled', scrollY > 40);
+    window.onscroll = onScroll; onScroll();
+    document.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => { sel.type = b.dataset.pick; summary(); $('#book').scrollIntoView({ behavior: still }); if (!sel.from) openSheet('when'); }));
+    $('#sum').addEventListener('click', e => { const b = e.target.closest('[data-next]'); if (!b) return; [sel.from, sel.to] = b.dataset.next.split('|'); summary(); });
     $('#req').addEventListener('submit', send);
     document.querySelectorAll('#food, #foodDlg').forEach(el => el.addEventListener('click', e => { const b = e.target.closest('[data-food]'); if (b) openPlace(b.dataset.food); }));
     if ($('#placeDlg')) {
@@ -492,7 +593,6 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
       $('#foodX').addEventListener('click', () => $('#foodDlg').close());
       $('#foodDlg').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
     }
-    document.querySelectorAll('button[data-season]').forEach(b => b.addEventListener('click', () => { seasonShown = b.dataset.season; render(); }));
     document.querySelectorAll('button[data-lang]').forEach(b => b.addEventListener('click', () => { I.set(b.dataset.lang); }));
     document.querySelectorAll('button[data-theme]').forEach(b => b.addEventListener('click', () => { params.delete('theme'); saveLocal({ theme: b.dataset.theme, accent: '' }); render(); }));
     document.querySelectorAll('button[data-accent]').forEach(b => b.addEventListener('click', () => { saveLocal({ accent: b.dataset.accent }); render(); }));
@@ -509,13 +609,13 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
 
   async function send(e) {
     e.preventDefault();
-    const f = e.target, msg = $('#msg'), g = sel.adults + sel.kids;
+    const f = e.target, msg = $('#msg'), g = beds();
     const name = f.name.value.trim(), phone = f.phone.value.trim();
     msg.dataset.state = 'bad';
-    if (!sel.from || !sel.to || sel.to <= sel.from) { msg.textContent = w('pickDates'); $('#bar').from.focus(); return; }
+    if (!sel.from || !sel.to || sel.to <= sel.from) { msg.textContent = w('pickDates'); openSheet('when'); return; }
     if (!name || phone.replace(/\D/g, '').length < 9) { msg.textContent = w('needName'); (name ? f.phone : f.name).focus(); return; }
     const btn = f.querySelector('button'); btn.disabled = true;
-    const req = J.createRequest({ from: sel.from, to: sel.to, guests: g, children: sel.kids, name, phone, source: 'site', type: sel.offer || sel.type || undefined, wish: f.wish.value });
+    const req = J.createRequest({ from: sel.from, to: sel.to, guests: g, children: sel.kids, name, phone, source: 'site', type: sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · ') });
     const out = await req.saved;
     btn.disabled = false;
     if (out && out.ok) { msg.dataset.state = 'ok'; msg.textContent = w('sent'); f.reset(); }

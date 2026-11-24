@@ -374,9 +374,9 @@ p { margin: 0 0 1em; }
   padding: 10px var(--pad); padding-top: max(10px, env(safe-area-inset-top)); transition: background .25s, box-shadow .25s; }
 .h-logo { display: inline-flex; min-height: 44px; align-items: center; }
 .h-logo img { display: block; filter: brightness(0) invert(1); transition: filter .25s; }
-.h-menu-btn { min-height: 44px; display: inline-flex; align-items: center; gap: 10px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .6);
+.h-menu-btn { width: 48px; height: 48px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .6);
   background: rgba(20, 20, 20, .18); color: #fff; font: 600 15px/1 var(--font); cursor: pointer; backdrop-filter: blur(8px); }
-.h-burger { display: grid; gap: 4px; } .h-burger i { display: block; width: 18px; height: 2px; border-radius: 2px; background: currentColor; }
+.h-burger { display: grid; gap: 5px; } .h-burger i { display: block; width: 20px; height: 2px; border-radius: 2px; background: currentColor; }
 .h-top.solid { position: sticky; }
 .h-top.scrolled, .h-top.solid { background: rgba(255, 248, 238, .96); box-shadow: 0 1px 0 var(--line); backdrop-filter: blur(10px); }
 .h-top.scrolled .h-logo img, .h-top.solid .h-logo img { filter: none; }

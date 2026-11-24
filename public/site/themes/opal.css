@@ -1,34 +1,7 @@
-/* ქვა (Stone): a mountain house. Full-bleed photo, the hotel's name in large Georgian capitals (mtavruli),
-   cool snow-white ground and a slate band. Rooms as wide rows: photo, then facts. */
-:root {
-  --bg: #F2F3F1; --surface: #FFFFFF; --ink: #1D2327; --muted: #586268; --line: #D6DBD8; --band: #26323A; --on-band: #F2F3F1;
-  --display: "Noto Sans Georgian", system-ui, sans-serif; --radius: 3px;
-}
-h1, h2, .brand { text-transform: uppercase; font-weight: 800; letter-spacing: .02em; }
-h2 { font-size: clamp(24px, 3.4vw, 34px); }
-.hero { height: min(92vh, 860px); min-height: 520px; color: #fff; }
-.hero-media { position: absolute; inset: 0; max-width: none !important; }
-.hero-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,28,33,.15) 30%, rgba(20,28,33,.78)); }
-.hero-text { position: absolute; left: var(--pad); right: var(--pad); bottom: clamp(28px, 6vw, 64px); max-width: var(--max); }
-.hero-city { margin: 0 0 6px; font-weight: 700; letter-spacing: .04em; color: color-mix(in srgb, var(--accent) 45%, #fff); }
-.hero-name { font-size: clamp(44px, 10vw, 128px); line-height: .95; margin: 0 0 14px; overflow-wrap: anywhere; }
-.hero-tag { opacity: .95; }
-.hero-text { text-shadow: 0 1px 12px rgba(0,0,0,.3); }
-.bar { border-top: 4px solid var(--accent); }
-.bar input, .bar select { background: #33414A; color: #fff; border-color: #44535C; color-scheme: dark; }
-.about-media img { aspect-ratio: 3 / 4; }
-.room-list { gap: 0; }
-.room { grid-template-columns: 1.25fr 1fr; gap: clamp(20px, 4vw, 48px); padding: 28px 0; border-top: 1px solid var(--line); background: none; }
-.room:last-child { border-bottom: 1px solid var(--line); }
-.room-body { padding: 4px 0; align-self: center; }
-.room h3 { text-transform: uppercase; letter-spacing: .02em; }
-.amen li { border-radius: var(--radius); background: var(--surface); }
-.gallery .grid { grid-template-columns: 2fr 1fr 1fr; }
-.gallery .grid img:first-child { grid-row: span 2; aspect-ratio: auto; }
-.where { background: var(--band); color: var(--on-band); }
-.where .btn-ghost { color: var(--on-band); }
-@media (max-width: 640px) {
-  .room { grid-template-columns: 1fr; }
-  .gallery .grid { grid-template-columns: 1fr 1fr; }
-  .gallery .grid img:first-child { grid-column: span 2; grid-row: auto; aspect-ratio: 4 / 3; }
-}
+/* Opal: a full photo, the name and the dates field in the middle (like the Visit2.ge home page). */
+.hero-full { display: grid; place-items: center; min-height: min(88svh, 780px); padding: 110px var(--pad) 56px !important; color: #fff; text-align: center; isolation: isolate; overflow: hidden; background: #2a2622; }
+.hero-full .hero-media { position: absolute; inset: 0; z-index: -2; }
+.hero-full::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(0, 0, 0, .42) 0%, rgba(0, 0, 0, .25) 45%, rgba(0, 0, 0, .5) 100%); }
+.hero-full .hero-in { max-width: 860px; text-shadow: 0 2px 22px rgba(0, 0, 0, .35); }
+.hero-full .hero-tag { margin-left: auto; margin-right: auto; }
+.hero-full .pill { margin: 0 auto; }

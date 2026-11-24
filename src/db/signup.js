@@ -6,7 +6,7 @@ import { addMember, normEmail, validEmail, pwProblem } from './users.js';
 import { seedSample, DEFAULT_SETTINGS } from './hotel.js';
 import { saveContent } from './content.js';
 
-export const TEMPLATES = ['opal', 'onyx', 'jade', 'amber', 'indigo', 'ivory', 'cobalt', 'lilac', 'umber', 'alba'];
+export const TEMPLATES = ['opal', 'amber', 'cobalt', 'alba', 'jade'];
 
 // Georgian and Russian letters to latin, for the hotel's address (slug.visit2.ge)
 const KA = { ა: 'a', ბ: 'b', გ: 'g', დ: 'd', ე: 'e', ვ: 'v', ზ: 'z', თ: 't', ი: 'i', კ: 'k', ლ: 'l', მ: 'm', ნ: 'n', ო: 'o', პ: 'p', ჟ: 'zh', რ: 'r', ს: 's', ტ: 't', უ: 'u', ფ: 'p', ქ: 'k', ღ: 'gh', ყ: 'k', შ: 'sh', ჩ: 'ch', ც: 'ts', ძ: 'dz', წ: 'ts', ჭ: 'ch', ხ: 'kh', ჯ: 'j', ჰ: 'h' };

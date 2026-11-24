@@ -16,8 +16,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public')
 OUT = sys.argv[1] if len(sys.argv) > 1 else '/tmp/layout'
 PORT = 8799
 SIZES = [('phone', 375, 812, True), ('tablet', 820, 1180, True), ('desktop', 1440, 900, False)]
-THEMES = [('opal', 'mta'), ('jade', 'nino'), ('umber', 'dzveli'), ('cobalt', 'mta'), ('lilac', 'nino'), ('alba', 'dzveli'),
-          ('onyx', 'kotejebi'), ('indigo', 'mta'), ('amber', 'nino'), ('ivory', 'dzveli')]
+THEMES = [('opal', 'mta'), ('amber', 'terasa'), ('cobalt', 'zghva'), ('alba', 'dzveli'), ('jade', 'nino')]
 PAGES = [('home', 'index.html?lang=ka'), ('owners', 'owners.html?lang=ka'), ('privacy', 'privacy.html?lang=ka'), ('terms', 'terms.html?lang=ru')] + \
         [(f'hotel-{t}', f'hotel.html?h={h}&theme={t}') for t, h in THEMES] + [('admin', 'admin.html?h=mta')] + \
         [('home-ru', 'index.html?lang=ru'), ('owners-ru', 'owners.html?lang=ru')] + \
