@@ -175,7 +175,7 @@
     }).join('') || `<p class="empty">${t(q.center ? 'mapNone' : 'none')}</p>`;
     drawMap(rows, q);
     document.querySelectorAll('#cities button').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.city === q.city)); b.textContent = town(b.dataset.city); });
-    renderKinds(); renderDest(); renderDeck();
+    renderKinds(); renderDest(); renderHero();
   }
   // ---------- map search: tap a point, pick a radius ----------
   let map = null, mapCenter = null, radius = 5, layer = null;
@@ -223,19 +223,55 @@
     const el = $('#kinds'); if (!el) return;
     el.innerHTML = Object.keys(D.KINDS).map(k => `<button type="button" class="kind" data-kind="${k}" aria-pressed="${k === curKind}"><img src="img/h/${KIND_PH[k]}-s.jpg" alt="" loading="lazy">${esc(kindName(k))}</button>`).join('');
   }
-  // hero postcards: three hotels from three different towns, each with a town stamp
-  function renderDeck() {
-    const el = $('#deck'); if (!el) return;
-    const seen = new Set(), pick = [];
-    for (const r of find({ city: '', from: '', to: '', g: 2, kind: '' })) { if (r.h.cover && !seen.has(r.h.city) && pick.length < 3) { seen.add(r.h.city); pick.push(r); } }
-    el.innerHTML = pick.map(({ h, o }, i) => `<a class="pc pc${i + 1}" href="${link(h, {})}"><img src="img/h/${h.cover}-s.jpg" alt="" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}><span class="pc-name">${esc(hname(h))}</span><span class="pc-meta">${esc(t('fromP', { p: o.minFrom }))} / ${esc(t('perNight'))}</span><span class="stamp" aria-hidden="true">${esc(town(h.city))}</span></a>`).join('');
+  // hero "window": a full-screen photo of one town at a time, with its name in very large letters.
+  // It starts on a random town and moves on every few seconds; the dots let a guest pick one.
+  let heroTowns = [], heroAt = -1, heroTimer = 0, heroHold = 0;
+  const still = matchMedia('(prefers-reduced-motion: reduce)');
+  function heroList() {
+    const by = new Map();
+    for (const h of D.list()) if (!h.hidden && h.cover) { const x = by.get(h.city) || { c: h.city, n: 0, covers: [] }; x.n++; x.covers.push(h.cover); by.set(h.city, x); }
+    return [...by.values()];
+  }
+  function heroShow(i, user) {
+    if (!heroTowns.length) return;
+    heroAt = (i + heroTowns.length) % heroTowns.length;
+    const x = heroTowns[heroAt], img = `img/h/${x.covers[Math.floor(Math.random() * x.covers.length)]}.jpg`;
+    const a = $('#heroA'), b = $('#heroB'), front = a.classList.contains('hero-next') ? b : a, back = front === a ? b : a;
+    const swap = () => { back.classList.remove('hero-next'); front.classList.add('hero-next'); };
+    if (front.getAttribute('src') !== img) { back.onload = swap; back.src = img; if (back.complete && back.naturalWidth) swap(); }
+    heroText();
+    if (user) heroHold = Date.now() + 20000;
+  }
+  function heroText() {
+    const x = heroTowns[heroAt]; if (!x) return;
+    const nm = town(x.c), el = $('#townName'), n = t(x.n === 1 ? 'nHotel1' : 'nHotels', { n: x.n });
+    el.textContent = nm; el.dataset.city = x.c;
+    el.setAttribute('aria-label', `${nm}: ${n}`);
+    $('#townMeta').textContent = n;
+    $('#townCount').textContent = `${heroAt + 1} / ${heroTowns.length}`;
+    heroFit();
+  }
+  // shrink the town name until it fits on one line (long names like Stepantsminda)
+  function heroFit() {
+    const el = $('#townName'); el.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > el.clientWidth + 1 && size > 28) { size -= 4; el.style.fontSize = size + 'px'; }
+  }
+  function renderHero() {
+    if (!$('#town')) return;
+    if (!heroTowns.length) {
+      heroTowns = heroList();
+      heroShow(Math.floor(Math.random() * heroTowns.length));
+      clearInterval(heroTimer);
+      heroTimer = setInterval(() => { if (!still.matches && !document.hidden && Date.now() > heroHold && !$('#search').contains(document.activeElement)) heroShow(heroAt + 1); }, 6500);
+    } else heroText();
   }
   // places to go: towns with hotels, the first one large
   const DEST = ['ბაკურიანი', 'თელავი', 'ბათუმი', 'თბილისი', 'გუდაური'];
   function renderDest() {
     const el = $('#dest'); if (!el) return;
     el.innerHTML = DEST.map(c => { const hs = D.list().filter(h => h.city === c && !h.hidden); if (!hs.length) return '';
-      return `<button type="button" class="dest-tile" data-dest="${esc(c)}"><img src="img/h/${hs[0].cover}-s.jpg" alt="" loading="lazy"><div><b>${esc(town(c))}</b><span>${t(hs.length === 1 ? 'nHotel1' : 'nHotels', { n: hs.length })}</span></div><span class="stamp" aria-hidden="true">${esc(town(c))}</span></button>`; }).join('');
+      return `<button type="button" class="dest-tile" data-dest="${esc(c)}"><img src="img/h/${hs[0].cover}${c === DEST[0] ? '' : '-s'}.jpg" alt="" loading="lazy"><div><b>${esc(town(c))}</b><span>${t(hs.length === 1 ? 'nHotel1' : 'nHotels', { n: hs.length })}</span></div></button>`; }).join('');
   }
   if ($('#search')) {
     const f = $('#search');
@@ -262,6 +298,10 @@
       navigator.geolocation.getCurrentPosition(p => setCenter({ lat: p.coords.latitude, lng: p.coords.longitude }), () => { $('#mapHint').textContent = t('noLoc'); }, { timeout: 10000 });
     });
     $('#kinds').addEventListener('click', e => { const b = e.target.closest('[data-kind]'); if (!b) return; curKind = curKind === b.dataset.kind ? '' : b.dataset.kind; search(); });
+    $('#townNav').addEventListener('click', e => { const b = e.target.closest('[data-step]'); if (b) heroShow(heroAt + +b.dataset.step, true); });
+    addEventListener('resize', () => heroFit());
+    document.fonts && document.fonts.ready.then(() => heroFit());
+    $('#townName').addEventListener('click', e => { f.city.value = e.currentTarget.dataset.city; curKind = ''; search(); $('#results').scrollIntoView({ behavior: 'smooth' }); });
     $('#dest').addEventListener('click', e => { const b = e.target.closest('[data-dest]'); if (!b) return; f.city.value = b.dataset.dest; curKind = ''; search(); $('#results').scrollIntoView({ behavior: 'smooth' }); });
   }
 

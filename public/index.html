@@ -7,7 +7,7 @@
 <meta name="description" content="იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ სასტუმროსთან. ნამდვილი თავისუფალი ნომრები, საკომისიოს გარეშე.">
 <link rel="icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&family=Noto+Serif:wght@500;700&family=Noto+Serif+Georgian:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&display=swap">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="site/platform.css?v=20261123c">
 </head>
@@ -19,13 +19,18 @@
 </header>
 <main>
   <section class="hero">
-    <div class="hero-grid">
+    <img class="hero-bg" id="heroA" src="img/h/sighnaghi-terrace.jpg" alt="" fetchpriority="high">
+    <img class="hero-bg hero-next" id="heroB" alt="">
     <div class="hero-in">
       <p class="slogan" lang="en">Your Visit2 Georgia starts here</p>
       <h1 data-t="gH1">იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ</h1>
-      <p class="lead" data-t="gLead">ფასს სასტუმრო თავად აწესებს, შუამავალი არ არის. თავისუფალი ნომრები ნამდვილია: სასტუმროები ჯავშნებს Visit2.ge-ზე მართავენ.</p>
     </div>
-    <div class="deck" id="deck"></div>
+    <div class="town" id="town" aria-live="off">
+      <div class="town-txt">
+        <span class="town-meta" id="townMeta"></span>
+        <button type="button" class="town-name" id="townName"></button>
+      </div>
+      <div class="town-nav" id="townNav"><button type="button" data-step="-1" aria-label="Previous place">‹</button><span id="townCount"></span><button type="button" data-step="1" aria-label="Next place">›</button></div>
     </div>
     <form class="search" id="search">
       <label class="s-where"><span data-t="city">ქალაქი ან კურორტი</span><select name="city" id="city"><option value="" data-t="all">ყველა</option></select></label>
