@@ -61,7 +61,7 @@ export async function checkLogin(db, t, email, password) {
 // ---------- session cookie: uid.ver.expiry.signature, one per hotel host ----------
 export const COOKIE = 'v2_admin';
 const DAYS = 30;
-async function hmac(secret, data) {
+export async function hmac(secret, data) {
   if (!secret) throw new Error('SESSION_SECRET is not set');
   const key = await crypto.subtle.importKey('raw', enc.encode('visit2-session:' + secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   return hex(await crypto.subtle.sign('HMAC', key, enc.encode(data)));
