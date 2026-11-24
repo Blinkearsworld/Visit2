@@ -218,6 +218,9 @@ main > section:nth-of-type(even):not(.hero) { background: var(--soft); }
 .v2pin span { display: block; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--accent); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
 .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding: 28px var(--pad) calc(110px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); color: var(--muted); font-size: 15px; }
 .foot a { text-decoration: none; }
+.made-by { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+.made-by b { color: #0B7A73; }
+.made-by:hover b { text-decoration: underline; }
 
 /* the owner's own site in the preview: a small panel to try templates and colours */
 .demo { position: fixed; left: 12px; top: 76px; z-index: 40; max-width: min(420px, calc(100vw - 24px)); padding: 12px; border-radius: 12px;

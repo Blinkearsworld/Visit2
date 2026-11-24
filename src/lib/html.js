@@ -18,7 +18,7 @@ export function page(title, body, { status = 200, lang = 'ka', tenant = null } =
   a { color: #0B7A73; }
 </style>
 </head>
-<body${tenant ? ` data-tenant="${esc(tenant)}"` : ''}><main>${body}</main></body>
+<body${tenant ? ` data-tenant="${esc(tenant)}"` : ''}><main>${body}${tenant ? '<p style="margin-top:3rem;font-size:.9rem">საიტი შექმნილია <a href="https://visit2.ge">Visit2.ge</a></p>' : ''}</main></body>
 </html>`;
   return new Response(html, { status, headers: { 'content-type': 'text/html; charset=utf-8' } });
 }

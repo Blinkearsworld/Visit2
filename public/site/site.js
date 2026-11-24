@@ -69,7 +69,7 @@
     call: ['დარეკვა', 'Call', 'Позвонить'], map: ['რუკაზე ნახვა', 'Open map', 'На карте'], estimate: ['საორიენტაციო ფასი', 'Estimated price', 'Ориентировочная цена'],
     seasonsH: ['ფასები სეზონების მიხედვით', 'Prices by season', 'Цены по сезонам'],
     template: ['შაბლონი', 'Template', 'Шаблон'], colour: ['ფერი', 'Colour', 'Цвет'], demo: ['დემო: მონაცემები მხოლოდ ამ ბრაუზერშია', 'Demo: data stays in this browser', 'Демо: данные только в этом браузере'],
-    admin: ['ადმინი', 'Admin', 'Админ'], directly: ['პირდაპირ, საკომისიოს გარეშე', 'Book direct, no commission', 'Напрямую, без комиссии'],
+    madeBy: ['საიტი შექმნილია', 'Website by', 'Сайт создан на'], admin: ['ადმინი', 'Admin', 'Админ'], directly: ['პირდაპირ, საკომისიოს გარეშე', 'Book direct, no commission', 'Напрямую, без комиссии'],
   };
   const w = k => (W[k] ? W[k][['ka', 'en', 'ru'].indexOf(lang())] || W[k][0] : k);
 
@@ -251,7 +251,9 @@
 <main id="top">
   ${lay.map(k => (BLOCK[k] ? BLOCK[k](s, h, c, tel) : '')).join('\n  ')}
 </main>
-<footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span><a href="https://visit2.ge" rel="noopener">Visit2.ge · ${w('directly')}</a></footer>
+<!-- Visit2.ge credit: always shown, also on the hotel's own domain; not editable in the admin -->
+<footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span>
+  <a class="made-by" href="https://visit2.ge" rel="noopener">${w('madeBy')} <b>Visit2.ge</b></a></footer>
 ${sheetHtml()}
 ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ? backLink() : ''}`;
     if (wasOpen) { const d = document.querySelector('.demo'); if (d) d.open = true; }
