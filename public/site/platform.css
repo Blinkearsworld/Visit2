@@ -193,11 +193,11 @@ p { margin: 0 0 1em; }
 .gets .soon { display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; background: #fff; font-size: 13px; font-weight: 700; color: var(--teal-dark); }
 
 .tpl { padding: 56px 0; }
-.tpl-list { display: grid; grid-auto-flow: column; grid-auto-columns: 62%; gap: 16px; overflow-x: auto; margin: 18px calc(var(--pad) * -1) 0; padding: 4px var(--pad) 12px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.tpl-list { display: grid; grid-auto-flow: column; grid-auto-columns: min(68vw, 280px); gap: 20px; overflow-x: auto; margin: 22px calc(var(--pad) * -1) 0; padding: 8px var(--pad) 16px; scroll-padding: 0 var(--pad); scroll-snap-type: x mandatory; scrollbar-width: none; }
 .tpl-list::-webkit-scrollbar { display: none; }
 .tpl-item { margin: 0; scroll-snap-align: start; min-width: 0; }
-.tpl-item img { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; object-position: top; border-radius: 22px; border: 5px solid #111; background: #fff; }
-.tpl-item figcaption { padding: 12px 2px 0; }
+.tpl-item img { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; object-position: top; border-radius: 20px; background: #fff; box-shadow: 0 0 0 1px var(--line), 0 14px 34px -18px rgba(31, 26, 23, .45); }
+.tpl-item figcaption { padding: 16px 4px 0; }
 .tpl-item figcaption b { font-size: 19px; }
 .tpl-item .tpl-good { margin: 4px 0 2px; font-weight: 700; color: var(--teal-dark); font-size: 15px; }
 .tpl-item figcaption p { margin: 2px 0 6px; color: var(--muted); font-size: 15px; }
@@ -248,7 +248,7 @@ p { margin: 0 0 1em; }
   .foot-in { grid-template-columns: 1fr auto; align-items: start; }
   .foot-in .small { grid-column: 1 / -1; }
   .gets ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .tpl-list { grid-auto-columns: 34%; }
+  .tpl-list { grid-auto-columns: min(40vw, 300px); }
   .owner-form { grid-template-columns: 1fr 1fr; }
   .owner-form .wide { grid-column: 1 / -1; }
   .acts .btn { flex: none; }
@@ -408,3 +408,6 @@ p { margin: 0 0 1em; }
 .owners .o-hero .price-line { margin: 0 auto 26px; max-width: 46ch; }
 .owners .o-hero .acts { justify-content: center; }
 .owners .o-hero .acts .btn { flex: 0 1 auto; min-width: 220px; }
+
+/* the five templates: a calm row you swipe on a phone, all five side by side on a computer */
+@media (min-width: 1024px) { .tpl-list { grid-auto-flow: row; grid-template-columns: repeat(5, minmax(0, 1fr)); overflow: visible; margin-left: 0; margin-right: 0; padding: 8px 0 0; gap: 24px; } }
