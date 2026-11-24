@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>OpenStreetMap test</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;margin:20px;color:#1F1A17;background:#FFF8EE}li{margin:6px 0}b{font-weight:700}</style>
+</head>
+<body>
+<h1>OpenStreetMap: ტესტი</h1>
+<p>ეს გვერდი შენი ტელეფონიდან ეკითხება რესტორნების სერვერებს (ბაკურიანი, მთის სახლი) და წერს, ვინ რამდენ წამში უპასუხა.</p>
+<ul id="out"><li>ვამოწმებთ…</li></ul>
+<script>
+// Diagnostic only: asks each public Overpass server from this browser and shows status and time.
+(async () => {
+  const out = document.getElementById('out'); out.innerHTML = '';
+  const q = '[out:json][timeout:20];nwr(around:1500,41.7512,43.5268)[amenity~"^(restaurant|cafe|bar|pub|fast_food)$"][name];out center tags 50;';
+  for (const s of ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']) {
+    const li = document.createElement('li'); li.textContent = new URL(s).hostname + ': …'; out.append(li);
+    const t = performance.now();
+    try {
+      const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 30000);
+      const r = await fetch(s, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'content-type': 'application/x-www-form-urlencoded' }, signal: ctl.signal });
+      clearTimeout(tm);
+      const sec = ((performance.now() - t) / 1000).toFixed(1);
+      if (!r.ok) { li.innerHTML = `<b>${new URL(s).hostname}</b>: შეცდომა ${r.status}, ${sec} წმ`; continue; }
+      const d = await r.json(), names = (d.elements || []).map(e => e.tags && e.tags.name).filter(Boolean);
+      li.innerHTML = `<b>${new URL(s).hostname}</b>: ✓ ${names.length} ადგილი, ${sec} წმ<br><small>${names.slice(0, 6).join(', ')}</small>`;
+    } catch (e) { li.innerHTML = `<b>${new URL(s).hostname}</b>: ✕ ${e.name === 'AbortError' ? '30 წამში არ უპასუხა' : e.message}, ${((performance.now() - t) / 1000).toFixed(1)} წმ`; }
+  }
+})();
+</script>
+</body>
+</html>
