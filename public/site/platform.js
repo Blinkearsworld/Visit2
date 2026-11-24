@@ -259,17 +259,18 @@
   }
 
   // ---------- owners: templates and sign-up ----------
+  // Template ids are colour names. "good" says who it suits best; the choice stays with the owner.
   const TPL = [
-    ['kva', 'mta', ['ქვა', 'Stone', 'Камень'], ['მთის სახლისთვის: ფოტო მთელ ეკრანზე და სახელი დიდი მთავრულით.', 'Mountain house: a full-screen photo and the name in large Georgian capitals.', 'Горный дом: фото на весь экран и название крупными грузинскими заглавными.']],
-    ['ezo', 'nino', ['ეზო', 'Courtyard', 'Двор'], ['საოჯახო სასტუმროსთვის: თაღოვანი ფოტოები, რბილი ფერები.', 'Family guesthouse: arched photos, soft colours.', 'Семейный дом: фото в арках, мягкие цвета.']],
-    ['kalaki', 'dzveli', ['ქალაქი', 'City', 'Город'], ['ბინებისთვის: სუფთა სია, ფასები თვალწინ.', 'Apartments: a clean list with prices in view.', 'Квартиры: чистый список, цены на виду.']],
-    ['zghva', 'zghva', ['ზღვა', 'Sea', 'Море'], ['ზღვისპირა სახლისთვის: ტალღის ხაზი, ცისფერი, ნათელი.', 'Seaside house: a wave line, blue and bright.', 'Дом у моря: линия волны, голубой и светлый.']],
-    ['ghvino', 'alazani', ['ღვინო', 'Wine', 'Вино'], ['კახური მარანი-სასტუმროსთვის: ღვინისფერი ჩარჩო, ეტიკეტის ხაზები.', 'Kakhetian wine guesthouse: a wine-red frame and label-like rules.', 'Кахетинский гостевой дом с марани: винная рамка, линии как на этикетке.']],
-    ['minimali', 'gudauri', ['მინიმალი', 'Minimal', 'Минимал'], ['დიზაინერული სახლისთვის: ბევრი თეთრი, მშვიდი ტიპოგრაფია.', 'Design house: lots of white, calm type.', 'Дизайнерский дом: много белого, спокойный шрифт.']],
-    ['tye', 'kotejebi', ['ტყე', 'Forest', 'Лес'], ['კოტეჯებისთვის: მუქი მწვანე ფონი, რბილი ფორმები.', 'Cottages: a dark forest-green page, soft shapes.', 'Коттеджи: тёмно-зелёный фон, мягкие формы.']],
-    ['butiki', 'alpine', ['ბუტიკი', 'Boutique', 'Бутик'], ['ბუტიკ სასტუმროსთვის: მუქი ლურჯი და სპილენძი, სიმეტრია.', 'Boutique hotel: navy and brass, symmetry.', 'Бутик-отель: тёмно-синий и латунь, симметрия.']],
-    ['peradi', 'qvevri', ['ფერადი', 'Colourful', 'Яркий'], ['ჰოსტელისთვის და ოჯახებისთვის: დიდი ფერები, მხიარული ფოტოები.', 'Hostels and families: big colour, playful photos.', 'Хостелы и семьи: яркие цвета, весёлые фото.']],
-    ['klasika', 'terasa', ['კლასიკა', 'Classic', 'Классика'], ['ძველი უბნის სახლისთვის: ფოტო გვერდზე რჩება, ტექსტი მოძრაობს.', 'Old-town house: the photo stays put while the page scrolls.', 'Дом в старом городе: фото остаётся на месте, текст прокручивается.']],
+    ['opal', 'mta', ['Opal', 'Opal', 'Opal'], ['განსაკუთრებით კარგია მთის სახლისთვის', 'Especially good for a mountain house', 'Особенно подходит для горного дома'], ['ფოტო მთელ ეკრანზე, სახელი დიდი მთავრულით.', 'A full-screen photo and the name in large Georgian capitals.', 'Фото на весь экран, название крупными грузинскими заглавными.']],
+    ['onyx', 'kotejebi', ['Onyx', 'Onyx', 'Onyx'], ['განსაკუთრებით კარგია კოტეჯებისთვის', 'Especially good for cottages', 'Особенно подходит для коттеджей'], ['მუქი ფონი და რბილი ფორმები.', 'A dark page and soft shapes.', 'Тёмный фон и мягкие формы.']],
+    ['jade', 'nino', ['Jade', 'Jade', 'Jade'], ['განსაკუთრებით კარგია საოჯახო სასტუმროსთვის', 'Especially good for a family guesthouse', 'Особенно подходит для семейного гостевого дома'], ['თაღოვანი ფოტოები და რბილი ფერები.', 'Arched photos and soft colours.', 'Фото в арках и мягкие цвета.']],
+    ['amber', 'qvevri', ['Amber', 'Amber', 'Amber'], ['განსაკუთრებით კარგია ჰოსტელისთვის და ოჯახებისთვის', 'Especially good for hostels and families', 'Особенно подходит для хостелов и семей'], ['დიდი ფერები და მხიარული ფოტოები.', 'Big colour and playful photos.', 'Яркие цвета и весёлые фото.']],
+    ['indigo', 'alpine', ['Indigo', 'Indigo', 'Indigo'], ['განსაკუთრებით კარგია ბუტიკ სასტუმროსთვის', 'Especially good for a boutique hotel', 'Особенно подходит для бутик-отеля'], ['მუქი ლურჯი, სპილენძი და სიმეტრია.', 'Navy, brass and symmetry.', 'Тёмно-синий, латунь и симметрия.']],
+    ['ivory', 'terasa', ['Ivory', 'Ivory', 'Ivory'], ['განსაკუთრებით კარგია ძველი უბნის სახლისთვის', 'Especially good for an old-town house', 'Особенно подходит для дома в старом городе'], ['ფოტო ადგილზე რჩება, ტექსტი მოძრაობს.', 'The photo stays put while the page scrolls.', 'Фото остаётся на месте, текст прокручивается.']],
+    ['cobalt', 'zghva', ['Cobalt', 'Cobalt', 'Cobalt'], ['განსაკუთრებით კარგია ზღვისპირა სახლისთვის', 'Especially good for a seaside house', 'Особенно подходит для дома у моря'], ['ტალღის ხაზი, ნათელი და ჰაეროვანი.', 'A wave line, bright and airy.', 'Линия волны, светло и воздушно.']],
+    ['lilac', 'alazani', ['Lilac', 'Lilac', 'Lilac'], ['განსაკუთრებით კარგია მარნიანი სასტუმროსთვის', 'Especially good for a guesthouse with a wine cellar', 'Особенно подходит для гостевого дома с марани'], ['ჩარჩო და ეტიკეტის ხაზები.', 'A frame and label-like rules.', 'Рамка и линии как на этикетке.']],
+    ['umber', 'dzveli', ['Umber', 'Umber', 'Umber'], ['განსაკუთრებით კარგია ბინებისთვის', 'Especially good for apartments', 'Особенно подходит для квартир'], ['სუფთა სია, ფასები თვალწინ.', 'A clean list with prices in view.', 'Чистый список, цены на виду.']],
+    ['alba', 'gudauri', ['Alba', 'Alba', 'Alba'], ['განსაკუთრებით კარგია დიზაინერული სახლისთვის', 'Especially good for a design house', 'Особенно подходит для дизайнерского дома'], ['ბევრი თეთრი და მშვიდი ტიპოგრაფია.', 'Lots of white and calm type.', 'Много белого и спокойный шрифт.']],
   ];
   const COLORS = ['#0E857D', '#3F7A4E', '#1F7FB0', '#2F5A8A', '#B4472F', '#E2563B', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
   const showDone = h => {
@@ -279,8 +280,8 @@
   };
   function renderOwners() {
     if (!$('#ownerForm')) return;
-    const cur = $('#ownerForm').theme?.value || 'kva', curC = $('#ownerForm').accent?.value || COLORS[0];
-    $('#tplList').innerHTML = TPL.map(([id, demo, nm, note]) => `<figure class="tpl-item"><img src="img/templates/${id}.jpg" alt="${esc(nm[L()])}" loading="lazy"><figcaption><b>${esc(nm[L()])}</b><p>${esc(note[L()])}</p><a href="hotel.html?h=${demo}&theme=${id}&sample=1${BUILD ? '&v=' + BUILD : ''}">${t('sample')}</a></figcaption></figure>`).join('');
+    const cur = $('#ownerForm').theme?.value || 'opal', curC = $('#ownerForm').accent?.value || COLORS[0];
+    $('#tplList').innerHTML = TPL.map(([id, demo, nm, good, look]) => `<figure class="tpl-item"><img src="img/templates/${id}.jpg" alt="${esc(nm[L()])}" loading="lazy"><figcaption><b>${esc(nm[L()])}</b><p class="tpl-good">${esc(good[L()])}</p><p>${esc(look[L()])}</p><a href="hotel.html?h=${demo}&theme=${id}&sample=1${BUILD ? '&v=' + BUILD : ''}">${t('sample')}</a></figcaption></figure>`).join('');
     $('#tplChoice').innerHTML = TPL.map(([id, , nm]) => `<label><input type="radio" name="theme" value="${id}"${id === cur ? ' checked' : ''}><span class="opt">${esc(nm[L()])}</span></label>`).join('');
     $('#colChoice').innerHTML = COLORS.map(c => `<label><input type="radio" name="accent" value="${c}"${c === curC ? ' checked' : ''} aria-label="${t('fCol')} ${c}"><span class="opt dot" style="--c:${c}"></span></label>`).join('');
     const mine = D.mine(); if (mine) showDone(mine);

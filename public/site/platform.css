@@ -187,6 +187,7 @@ p { margin: 0 0 1em; }
 .tpl-item img { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; object-position: top; border-radius: 22px; border: 5px solid #111; background: #fff; }
 .tpl-item figcaption { padding: 12px 2px 0; }
 .tpl-item figcaption b { font-size: 19px; }
+.tpl-item .tpl-good { margin: 4px 0 2px; font-weight: 700; color: var(--teal-dark); font-size: 15px; }
 .tpl-item figcaption p { margin: 2px 0 6px; color: var(--muted); font-size: 15px; }
 .tpl-item a { display: inline-flex; min-height: 44px; align-items: center; font-weight: 700; }
 

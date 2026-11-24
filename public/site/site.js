@@ -8,22 +8,26 @@
   const lang = () => (I ? I.lang : 'ka');
   // Georgian capitals (mtavruli): CSS uppercase does not map Georgian, so the Stone template converts the text itself
   const MT = s => String(s ?? '').replace(/[\u10D0-\u10FA\u10FD-\u10FF]/g, c => String.fromCharCode(c.charCodeAt(0) + 0xBC0));
-  const caps = s => (theme() === 'kva' ? MT(s) : s);
+  const caps = s => (theme() === 'opal' ? MT(s) : s);
   const pick = v => (v == null ? '' : typeof v === 'string' ? v : v[lang()] || v.ka || '');
 
   // ---------- templates ----------
+  // Template ids are colour names; the colour is only the default, owners can change it.
   const THEMES = {
-    kva: { name: { ka: 'ქვა', en: 'Stone', ru: 'Камень' }, accent: '#0E857D', note: { ka: 'მთის სახლი: დიდი ფოტო, მკაცრი ხაზები', en: 'Mountain house', ru: 'Горный дом' } },
-    ezo: { name: { ka: 'ეზო', en: 'Courtyard', ru: 'Двор' }, accent: '#3F7A4E', note: { ka: 'საოჯახო: თაღოვანი ფოტოები, რბილი ფერები', en: 'Family house', ru: 'Семейный дом' } },
-    kalaki: { name: { ka: 'ქალაქი', en: 'City', ru: 'Город' }, accent: '#B4472F', note: { ka: 'ბინები და ქალაქი: სუფთა სია, ფასები თვალწინ', en: 'City apartments', ru: 'Городские квартиры' } },
-    zghva: { name: { ka: 'ზღვა', en: 'Sea', ru: 'Море' }, accent: '#1F7FB0' },
-    ghvino: { name: { ka: 'ღვინო', en: 'Wine', ru: 'Вино' }, accent: '#7A2638' },
-    minimali: { name: { ka: 'მინიმალი', en: 'Minimal', ru: 'Минимал' }, accent: '#1F1A17' },
-    tye: { name: { ka: 'ტყე', en: 'Forest', ru: 'Лес' }, accent: '#3E9B5F' },
-    butiki: { name: { ka: 'ბუტიკი', en: 'Boutique', ru: 'Бутик' }, accent: '#B08D57' },
-    peradi: { name: { ka: 'ფერადი', en: 'Colourful', ru: 'Яркий' }, accent: '#E2563B' },
-    klasika: { name: { ka: 'კლასიკა', en: 'Classic', ru: 'Классика' }, accent: '#2F5A8A' },
+    opal: { name: 'Opal', accent: '#0E857D' },
+    onyx: { name: 'Onyx', accent: '#3E9B5F' },
+    jade: { name: 'Jade', accent: '#3F7A4E' },
+    amber: { name: 'Amber', accent: '#C2410C' },
+    indigo: { name: 'Indigo', accent: '#B08D57' },
+    ivory: { name: 'Ivory', accent: '#2F5A8A' },
+    cobalt: { name: 'Cobalt', accent: '#1F6FA8' },
+    lilac: { name: 'Lilac', accent: '#7B3E72' },
+    umber: { name: 'Umber', accent: '#9A4A2C' },
+    alba: { name: 'Alba', accent: '#1F1A17' },
   };
+  // Old template ids, kept so saved demo sites and old links still work.
+  const OLD = { kva: 'opal', ezo: 'jade', kalaki: 'umber', zghva: 'cobalt', ghvino: 'lilac', minimali: 'alba', tye: 'onyx', butiki: 'indigo', peradi: 'amber', klasika: 'ivory' };
+  const themeId = t => OLD[t] || t;
   const ACCENTS = ['#0E857D', '#3F7A4E', '#1F7FB0', '#2F5A8A', '#B4472F', '#E2563B', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
 
   // ---------- interface words ----------
@@ -76,7 +80,7 @@
 
   // ---------- the demo hotel (GitHub Pages, no server) ----------
   const DEMO = {
-    theme: 'kva', accent: '',
+    theme: 'opal', accent: '',
     hero: { img: 'img/demo/hero.jpg', tagline: { ka: 'რვა თბილი ნომერი ტყის პირას, საბაგიროდან ხუთ წუთში', en: 'Eight warm rooms at the forest edge, five minutes from the lifts', ru: 'Восемь тёплых номеров у леса, в пяти минутах от подъёмника' } },
     about: { img: 'img/demo/facade.jpg', text: { ka: 'პატარა საოჯახო სასტუმრო, სადაც დილით ტყის სუნი შემოდის და საღამოს ბუხართან ვსხდებით. ყველა ნომერს აქვს სამზარეულო და აივანი, ეზოში ბავშვებისთვის ადგილია, ზამთარში საბაგირომდე ფეხით მიხვალთ.', en: 'A small family hotel where mornings smell of pine and evenings are spent by the fire. Every room has a kitchen and a balcony, the garden has room for kids, and in winter the lifts are a short walk away.', ru: 'Небольшой семейный отель: утром пахнет лесом, вечером собираемся у камина. В каждом номере кухня и балкон, во дворе есть место для детей, зимой до подъёмника можно дойти пешком.' } },
     amenities: ['wifi', 'parking', 'kitchen', 'fireplace', 'garden', 'pool', 'ski', 'pets'],
@@ -104,9 +108,9 @@
   const lookKey = () => 'v2-demo-look-' + slug();
   const loadLocal = () => { try { return JSON.parse(localStorage.getItem(lookKey()) || 'null'); } catch (e) { return null; } };
   const saveLocal = o => { try { localStorage.setItem(lookKey(), JSON.stringify({ ...(loadLocal() || {}), ...o })); } catch (e) {} };
-  const theme = () => { const t = params.get('theme') || S().theme; return THEMES[t] ? t : 'kva'; };
+  const theme = () => { const t = themeId(params.get('theme') || S().theme); return THEMES[t] ? t : 'opal'; };
   // a template preview (?theme=…) shows the template's own colour; otherwise the hotel's
-  const accent = () => (params.get('theme') && THEMES[params.get('theme')] ? THEMES[theme()].accent : S().accent || THEMES[theme()].accent);
+  const accent = () => (params.get('theme') && THEMES[themeId(params.get('theme'))] ? THEMES[theme()].accent : S().accent || THEMES[theme()].accent);
   const contact = () => (window.JC ? window.JC.contact() : {});
 
   async function loadContent() {
@@ -271,7 +275,7 @@ ${isDemo() ? demoPanel() : ''}`;
   <summary>Visit2.ge · ${mine ? (lang() === 'ka' ? 'შენი საიტი' : 'Your site') : (lang() === 'ka' ? 'დემო' : 'Demo')}</summary>
   <p class="demo-head"><a href="index.html">${lang() === 'ka' ? 'ყველა სასტუმრო' : 'All hotels'}</a> · <a href="admin.html?h=${esc(slug())}">${w('admin')} (PIN 1234)</a></p>
   <p class="demo-note">${w('demo')}</p>
-  ${mine ? `<div class="demo-row">${Object.entries(THEMES).map(([id, t]) => `<button type="button" data-theme="${id}" aria-pressed="${id === theme()}">${esc(pick(t.name))}</button>`).join('')}</div>
+  ${mine ? `<div class="demo-row">${Object.entries(THEMES).map(([id, t]) => `<button type="button" data-theme="${id}" aria-pressed="${id === theme()}">${esc(t.name)}</button>`).join('')}</div>
   <div class="demo-row">${ACCENTS.map(a => `<button type="button" class="sw" data-accent="${a}" style="--c:${a}" aria-label="${w('colour')} ${a}" aria-pressed="${a.toLowerCase() === accent().toLowerCase()}"></button>`).join('')}</div>` : ''}
 </details>`;
   }
