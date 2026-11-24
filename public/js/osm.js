@@ -4,7 +4,7 @@
    our server and never contact Overpass; only sample hotels and hotels without a saved list ask from the guest's browser. */
 (() => {
   const SERVERS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
-  const RADIUS = 1500, MAX = 40; // metres, places
+  const RADIUS = 1500, WIDE = 6000, MAX = 40; // metres, places: villages often have nothing within 1.5 km, then we look wider
 
   function kindOf(t) {
     if (t.shop) return 'bakery';
@@ -24,7 +24,7 @@
   }
   const safeUrl = u => (/^https?:\/\//i.test(u) ? u.slice(0, 300) : '');
   // OSM elements → the short list the site shows, nearest first, without duplicates
-  function toPlaces(elements, lat, lng) {
+  function toPlaces(elements, lat, lng, radius = RADIUS) {
     const seen = new Set();
     return elements.map(e => {
       const t = e.tags || {}, p = e.center || e;
@@ -36,20 +36,25 @@
         cuisine: String(t.cuisine || '').split(';')[0].trim(),
         phone: t.phone || t['contact:phone'] || '', web: safeUrl(t.website || t['contact:website'] || ''), hours: t.opening_hours || '',
       };
-    }).filter(p => p && p.m <= RADIUS && !seen.has(p.name.def + p.kind) && seen.add(p.name.def + p.kind))
+    }).filter(p => p && p.m <= radius && !seen.has(p.name.def + p.kind) && seen.add(p.name.def + p.kind))
       .sort((a, b) => a.m - b.m).slice(0, MAX);
   }
-  async function places(lat, lng) {
-    const q = `[out:json][timeout:20];(nwr(around:${RADIUS},${lat},${lng})[amenity~"^(restaurant|cafe|bar|pub|fast_food)$"][name];nwr(around:${RADIUS},${lat},${lng})[shop~"^(bakery|pastry)$"][name];);out center tags ${MAX * 3};`;
+  async function ask(lat, lng, radius) {
+    const q = `[out:json][timeout:25];(nwr(around:${radius},${lat},${lng})[amenity~"^(restaurant|cafe|bar|pub|fast_food)$"][name];nwr(around:${radius},${lat},${lng})[shop~"^(bakery|pastry)$"][name];);out center tags ${radius > RADIUS ? 400 : MAX * 3};`;
     for (const s of SERVERS) {
       try {
-        const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 12000);
+        const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 15000);
         const r = await fetch(s, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'content-type': 'application/x-www-form-urlencoded' }, signal: ctl.signal });
         clearTimeout(tm);
-        if (r.ok) return toPlaces((await r.json()).elements || [], lat, lng);
+        if (r.ok) return toPlaces((await r.json()).elements || [], lat, lng, radius);
       } catch (e) { /* next server */ }
     }
     throw new Error('places unavailable');
+  }
+  async function places(lat, lng) {
+    const near = await ask(lat, lng, RADIUS);
+    if (near.length >= 5) return near;
+    try { const wide = await ask(lat, lng, WIDE); return wide.length > near.length ? wide : near; } catch (e) { return near; }
   }
   // town or address in Georgia → [{ name, lat, lng }]
   async function geocode(q) {

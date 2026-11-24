@@ -468,7 +468,7 @@
     const el = $('nearList'); if (!el) return;
     if (!D.site?.pin) { el.innerHTML = '<p class="hint">ჯერ რუკაზე მონიშნეთ სასტუმრო.</p>'; return; }
     if (!nearPlaces) { el.innerHTML = `<p class="hint">${esc(nearMsg || 'ადგილებს ვეძებთ…')}</p>`; return; }
-    if (!nearPlaces.length) { el.innerHTML = '<p class="hint">1,5 კმ-ში რესტორანი ან კაფე ვერ ვიპოვეთ. თქვენი რჩევები ქვემოთ დაამატეთ.</p>'; return; }
+    if (!nearPlaces.length) { el.innerHTML = '<p class="hint">6 კმ-ში რესტორანი ან კაფე რუკაზე ვერ ვიპოვეთ. თქვენი რჩევები ქვემოთ დაამატეთ.</p>'; return; }
     const hide = new Set(D.site?.food?.hide || []);
     el.innerHTML = `<p class="hint">მონიშნული ადგილები ჩანს საიტზე. მოხსენით ნიშანი, თუ ადგილს არ ურჩევთ სტუმრებს.</p>${nearPlaces.map(x =>
       `<label class="chk"><input type="checkbox" data-pid="${esc(x.id)}"${hide.has(x.id) ? '' : ' checked'}><span>${esc(x.name.ka || x.name.def)} <span class="hint">· ${esc(kindKa(x.kind))} · ${x.m < 1000 ? x.m + ' მ' : (x.m / 1000).toFixed(1) + ' კმ'}</span></span></label>`).join('')}`;
