@@ -313,7 +313,10 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:var(--teal)!impor
 /* the new-requests notice: soft warm bar, the button stays the strong part */
 .alert{background:#FFF1D9;border-bottom:1px solid #F3DCA4;color:var(--ink)}
 .alert.new{animation:none;background:#FFE7B8}
-@media(max-width:640px){.bar .v2logo{height:22px}.bar b{font-size:16px;padding-left:10px}}
+/* header on one line: logo and hotel name on the left, the site link and sign-out on the right */
+.bar .in>div:last-child{display:flex;align-items:center;gap:6px;flex:none;white-space:nowrap}
+.bar .out{margin-left:6px}
+@media(max-width:640px){.bar .v2logo{height:22px}.bar b{font-size:16px;padding-left:10px}.bar .in{gap:8px;padding:0 12px}.bar .out{padding:0 10px}}
 </style>
 </head>
 <body>
@@ -533,7 +536,7 @@ function applyPerms(){
  const any=[...document.querySelectorAll('[data-mode]')].some(b=>!b.hidden);
  $('noAccess').hidden=any;
  $('meName').textContent=me.name+(me.owner?' · მთავარი':'');
- if(J.mode==='api')$('logout').textContent=me.name+' · გასვლა';
+ if(J.mode==='api')$('logout').textContent='გასვლა';$('logout').title=me.name;
  window.adminMode&&window.adminMode.refresh();
  if(!any){$('bookArea').hidden=true;$('siteArea').hidden=true;$('teamArea').hidden=true}
 }
