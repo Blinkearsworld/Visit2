@@ -61,6 +61,9 @@
     sample: ['ნიმუშის ნახვა', 'View sample', 'Посмотреть'], suH: ['შექმენი შენი საიტი', 'Create your site', 'Создайте свой сайт'],
     suP: ['შეავსე სამი ველი და საიტს მაშინვე ნახავ. შაბლონს, ფერს და ტექსტებს მერეც შეცვლი.', 'Fill in three fields and see your site right away. You can change the template, colour and texts later.', 'Заполните три поля и сразу увидите сайт. Шаблон, цвет и тексты можно поменять позже.'],
     fName: ['სასტუმროს სახელი', 'Hotel name', 'Название отеля'], fCity: ['ქალაქი ან სოფელი', 'Town or village', 'Город или село'], fEmail: ['ელფოსტა', 'Email', 'Эл. почта'],
+    fPass: ['პაროლი ადმინისთვის', 'Password for the admin', 'Пароль для админки'], needEP: ['ჩაწერე ელფოსტა და პაროლი (მინიმუმ 8 სიმბოლო)', 'Enter an email and a password (at least 8 characters)', 'Введите почту и пароль (минимум 8 символов)'],
+    sending: ['იქმნება…', 'Creating…', 'Создаём…'], netErr: ['კავშირი ვერ მოხერხდა. შეამოწმე ინტერნეტი და სცადე თავიდან.', 'Could not connect. Check the internet and try again.', 'Нет связи. Проверьте интернет и попробуйте снова.'],
+    loginHint: ['ადმინში შედი შენი ელფოსტით და პაროლით.', 'Sign in to the admin with your email and password.', 'Входите в админку с вашей почтой и паролем.'],
     fTpl: ['შაბლონი', 'Template', 'Шаблон'], fCol: ['ფერი', 'Colour', 'Цвет'], needNC: ['ჩაწერე სასტუმროს სახელი და ქალაქი', 'Enter the hotel name and town', 'Укажите название и город'],
     ready: ['✓ „{n}“-ის საიტი მზადაა', '✓ {n}: your site is ready', '✓ Сайт «{n}» готов'],
     doneP: ['ადმინში ნომრები, ფასები და ტექსტები შეცვალე.', 'Change rooms, prices and texts in the admin.', 'Номера, цены и тексты меняйте в админке.'],
@@ -337,9 +340,12 @@
     ['alba', 'gudauri', ['Alba', 'Alba', 'Alba'], ['განსაკუთრებით კარგია დიზაინერული სახლისთვის', 'Especially good for a design house', 'Особенно подходит для дизайнерского дома'], ['მხოლოდ მთავარი: ტექსტი, ნომრები, ჯავშანი.', 'Only what matters: text, rooms, booking.', 'Только главное: текст, номера, бронь.']],
   ];
   const COLORS = ['#0E857D', '#3F7A4E', '#1F7FB0', '#2F5A8A', '#B4472F', '#E2563B', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
-  const showDone = h => {
+  // On Cloudflare the form creates a real hotel on the server; the GitHub preview keeps it in this browser.
+  const SERVER = !/github\.io$/.test(location.hostname) && !['8765', '8798', '8799'].includes(location.port);
+  const showDone = (h, links) => {
     $('#doneTitle').textContent = t('ready', { n: h.name });
-    $('#doneSite').href = 'hotel.html?h=my' + (BUILD ? '&v=' + BUILD : ''); $('#doneAdmin').href = 'admin.html?h=my' + (BUILD ? '&v=' + BUILD : '');
+    if (links) { $('#doneSite').href = links.site; $('#doneAdmin').href = links.admin; $('#done').querySelector('[data-t="doneP"]').textContent = t('loginHint'); }
+    else { $('#doneSite').href = 'hotel.html?h=my' + (BUILD ? '&v=' + BUILD : ''); $('#doneAdmin').href = 'admin.html?h=my' + (BUILD ? '&v=' + BUILD : ''); }
     $('#done').classList.add('show');
   };
   function renderOwners() {
@@ -348,7 +354,8 @@
     $('#tplList').innerHTML = TPL.map(([id, demo, nm, good, look]) => `<figure class="tpl-item"><img src="img/templates/${id}.jpg" alt="${esc(nm[L()])}" loading="lazy"><figcaption><b>${esc(nm[L()])}</b><p class="tpl-good">${esc(good[L()])}</p><p>${esc(look[L()])}</p><a href="hotel.html?h=${demo}&theme=${id}&sample=1${BUILD ? '&v=' + BUILD : ''}">${t('sample')}</a></figcaption></figure>`).join('');
     $('#tplChoice').innerHTML = TPL.map(([id, , nm]) => `<label><input type="radio" name="theme" value="${id}"${id === cur ? ' checked' : ''}><span class="opt">${esc(nm[L()])}</span></label>`).join('');
     if ($('#colChoice')) $('#colChoice').innerHTML = COLORS.map(c => `<label><input type="radio" name="accent" value="${c}"${c === curC ? ' checked' : ''} aria-label="${t('fCol')} ${c}"><span class="opt dot" style="--c:${c}"></span></label>`).join('');
-    const mine = D.mine(); if (mine) showDone(mine);
+    if ($('#pwRow')) $('#pwRow').hidden = !SERVER;
+    const mine = !SERVER && D.mine(); if (mine) showDone(mine);
   }
   if ($('#ownerForm')) {
     const dl = document.createElement('datalist'); dl.id = 'towns';
@@ -359,6 +366,17 @@
       const f = e.target, name = f.name.value.trim(), city = f.city.value.trim(), msg = $('#formMsg');
       if (name.length < 2 || city.length < 2) { msg.textContent = t('needNC'); (name.length < 2 ? f.name : f.city).focus(); return; }
       if (!f.agree.checked) { msg.textContent = t('needAgree'); f.agree.focus(); return; }
+      if (SERVER) {
+        const email = f.email.value.trim(), password = f.password.value;
+        if (!email || password.length < 8) { msg.textContent = t('needEP'); (email ? f.password : f.email).focus(); return; }
+        const btn = f.querySelector('button[type=submit]'); btn.disabled = true; msg.textContent = t('sending');
+        fetch('api/signup', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, city, email, password, theme: f.theme.value, agree: true }) })
+          .then(r => r.json()).then(o => {
+            if (!o.ok) { msg.textContent = o.msg || t('netErr'); if (o.field && f[o.field]) f[o.field].focus(); return; }
+            msg.textContent = ''; f.hidden = true; showDone({ name }, o); $('#done').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }).catch(() => { msg.textContent = t('netErr'); }).finally(() => { btn.disabled = false; });
+        return;
+      }
       const h = D.saveMine({ name, city, theme: f.theme.value, accent: f.accent.value, email: f.email.value.trim() });
       msg.textContent = ''; showDone(h); $('#done').scrollIntoView({ behavior: 'smooth', block: 'center' });
     });

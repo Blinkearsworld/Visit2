@@ -6,6 +6,7 @@ import { tenantByHost, tenantBySlug, normHost, allTenants } from './db/tenants.j
 import { purgeHotel } from './db/retention.js';
 import { page, esc } from './lib/html.js';
 import { hotelApi } from './api.js';
+import { platformApi } from './platform.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -30,7 +31,8 @@ export default {
 
     if (tenant) return hotelSite(request, env, tenant, { dev: !!dev });
     if (dev || !(platformHosts.includes(host) || isPreviewHost(env, host))) return notFound();
-    // the platform: guests' search (index.html) and the owners' page (owners.html), static for now
+    // the platform: its own API (sign-up), then the pages (guests' search, partners' page)
+    if (url.pathname.startsWith('/api/')) return platformApi(request, env, { preview: isPreviewHost(env, host) });
     return env.ASSETS.fetch(request);
   },
   // daily: remove guests' personal data past its retention time (public/privacy.html)
