@@ -261,10 +261,10 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   async function loadPlaces() {
     const p = pin(); if (!p || sample) return;
     const key = p.lat.toFixed(3) + ',' + p.lng.toFixed(3); if (plFor === key) return; plFor = key;
-    try {
-      const r = await fetch(`api/places?lat=${p.lat}&lng=${p.lng}`);
-      PL = r.ok ? ((await r.json()).places || []) : null;
-    } catch (e) { PL = null; }
+    for (let i = 0; i < 2 && !PL; i++) {
+      if (i) await new Promise(r => setTimeout(r, 4000));
+      try { const r = await fetch(`api/places?lat=${p.lat}&lng=${p.lng}`); if (r.ok) PL = (await r.json()).places || []; } catch (e) { /* try again */ }
+    }
     if (PL) render();
   }
   // the list shown: host's tips, then real places (minus hidden), nearest first
@@ -272,8 +272,9 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     const f = S().food || {}, hide = new Set(f.hide || []), p = pin();
     const own = (f.own || []).filter(x => pick(x.name)).map((x, i) => ({ id: 'own' + i, name: pick(x.name), kind: x.kind || 'restaurant', note: pick(x.note), own: true, m: null }));
     if (PL) return [...own, ...PL.filter(x => !hide.has(x.id)).map(x => ({ ...x, name: nameOf(x.name), m: p ? metres(p, x) : x.m }))];
-    const F = window.V2FOOD;
-    if (!isDemo() || !F) return own;
+    // invented names only in the offline preview (GitHub Pages, local testing); on visit2.ge only real places
+    const F = window.V2FOOD, offline = /github\.io$/.test(location.hostname) || location.protocol === 'file:' || ['8765', '8799'].includes(location.port);
+    if (!offline || !isDemo() || !F) return own;
     return [...own, ...F.all((J.hotel || {}).city).map(x => ({ ...x, id: 'demo-' + x.name, demo: true }))];
   }
   const shortList = all => [...all].sort((a, b) => (b.own - a.own) || ((b.sponsored || 0) - (a.sponsored || 0)) || ((a.m ?? 0) - (b.m ?? 0))).slice(0, 4);

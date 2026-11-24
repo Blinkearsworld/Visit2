@@ -2,7 +2,8 @@
 // GET /api/places?lat=41.75&lng=43.52 → { places: [{ id, name, kind, lat, lng, m, cuisine, phone, web, hours }] }
 // Answers are kept in Cloudflare's cache for a week per ~100 m square, so Overpass is asked rarely.
 // Nothing about the guest is sent: only the rounded coordinates of the hotel.
-const OVERPASS = 'https://overpass-api.de/api/interpreter';
+// several public Overpass servers: if one is busy or refuses, the next is asked
+const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
 const RADIUS = 1500; // metres
 const MAX = 40;
 const WEEK = 7 * 86400;
@@ -16,15 +17,18 @@ export async function placesApi(request, env, ctx) {
   const cache = typeof caches !== 'undefined' ? caches.default : null;
   const hit = cache && await cache.match(key);
   if (hit) return hit;
-  let places;
-  try {
-    const q = `[out:json][timeout:20];(nwr(around:${RADIUS},${lat},${lng})[amenity~"^(restaurant|cafe|bar|pub|fast_food)$"][name];nwr(around:${RADIUS},${lat},${lng})[shop~"^(bakery|pastry)$"][name];);out center tags ${MAX * 3};`;
-    const r = await fetch(OVERPASS, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'content-type': 'application/x-www-form-urlencoded', 'user-agent': 'Visit2.ge (visit2ge@gmail.com)' } });
-    if (!r.ok) throw new Error('overpass ' + r.status);
-    places = toPlaces((await r.json()).elements || [], lat, lng);
-  } catch (e) {
-    return json({ error: 'places unavailable', places: [] }, 503, 'no-store');
+  let places = null; const why = [];
+  const q = `[out:json][timeout:20];(nwr(around:${RADIUS},${lat},${lng})[amenity~"^(restaurant|cafe|bar|pub|fast_food)$"][name];nwr(around:${RADIUS},${lat},${lng})[shop~"^(bakery|pastry)$"][name];);out center tags ${MAX * 3};`;
+  for (const server of OVERPASS) {
+    try {
+      const r = await fetch(server, { method: 'POST', body: 'data=' + encodeURIComponent(q), signal: AbortSignal.timeout(15000),
+        headers: { 'content-type': 'application/x-www-form-urlencoded', accept: 'application/json', 'user-agent': 'Visit2.ge/1.0 (https://visit2.ge; visit2ge@gmail.com)' } });
+      if (!r.ok) throw new Error(r.status);
+      places = toPlaces((await r.json()).elements || [], lat, lng);
+      break;
+    } catch (e) { why.push(new URL(server).hostname + ': ' + (e.message || e)); }
   }
+  if (!places) return json({ error: 'places unavailable', why, places: [] }, 503, 'no-store');
   const res = json({ places }, 200, `public, max-age=${WEEK}`);
   if (cache) ctx?.waitUntil ? ctx.waitUntil(cache.put(key, res.clone())) : await cache.put(key, res.clone());
   return res;
