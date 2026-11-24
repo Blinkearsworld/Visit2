@@ -535,7 +535,9 @@ window.JIJI = (() => {
   window.addEventListener('online', () => { if (mode === 'api') resync(); });
   // Demo data is only for the GitHub preview and local testing. On the real site the server must answer:
   // if it does not, we keep trying and the site says so, instead of showing made-up availability.
-  const demoHost = !/^https?:$/.test(location.protocol) || /github\.io$/.test(location.hostname) || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && ['8765', '8799'].includes(location.port));
+  // Visit2.ge's own pages (sample hotels, template previews) have no hotel behind them: show the sample data at once
+  const platformPage = (/^(www\.)?visit2\.ge$/.test(location.hostname) || (/\.workers\.dev$/.test(location.hostname) && !/^\/h\//.test(location.pathname)));
+  const demoHost = !/^https?:$/.test(location.protocol) || /github\.io$/.test(location.hostname) || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) && ['8765', '8799'].includes(location.port)) || platformPage;
   async function loadServer() {
     const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 10000);
     try {
