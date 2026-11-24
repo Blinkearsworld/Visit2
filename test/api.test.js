@@ -69,9 +69,9 @@ describe('admin API of two hotels', () => {
   });
 
   it('site texts and photos belong to one hotel', async () => {
-    await call(HA, '/api/admin/content', { method: 'POST', cookie: ca, body: { content: { 'hero.p': 'A-ს ტექსტი' } } });
+    await call(HA, '/api/admin/content', { method: 'POST', cookie: ca, body: { content: { site: { hero: { tagline: { ka: 'A-ს ტექსტი' } } } } } });
     const a = await (await call(HA, '/api/content')).json(), b = await (await call(HB, '/api/content')).json();
-    expect(a.content['hero.p']).toBe('A-ს ტექსტი');
+    expect(a.content.site.hero.tagline.ka).toBe('A-ს ტექსტი');
     expect(b.content).toEqual({});
     const up = await exports.default.fetch(new Request(`https://${HA}/api/admin/content`, { method: 'PUT', headers: { cookie: ca, 'content-type': 'image/png' }, body: new Uint8Array([137, 80, 78, 71]) }));
     const { url } = await up.json();

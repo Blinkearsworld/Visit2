@@ -2,6 +2,7 @@
 // The JSON holds only what the hotel changed; everything else comes from the site template and public/js/content.js.
 // Ported from Villa JIJI functions/_lib/content.js.
 import { nowIso } from '../lib/time.js';
+import { cleanContent } from './clean.js';
 
 const KEEP = 20;
 export const MAX_MEDIA = 1900000; // a D1 row holds up to 2 MB; the admin shrinks photos to ~1600 px first
@@ -26,7 +27,7 @@ export async function getVersion(db, t, id) {
 }
 
 export async function saveContent(db, t, content, note = '') {
-  const v = JSON.stringify(content || {});
+  const v = JSON.stringify(cleanContent(content));
   if (v.length > 900000) throw new Error('content too large');
   await db.batch([
     db.prepare('INSERT INTO site_content (tenant_id, v, created, note) VALUES (?, ?, ?, ?)').bind(t.id, v, nowIso(), String(note).slice(0, 80)),

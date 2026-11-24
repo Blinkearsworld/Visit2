@@ -1,0 +1,80 @@
+// What a hotel may save as its site content, checked on the server before it is stored.
+// The admin builds this JSON; anything else (unknown keys, odd links, very long texts) is dropped here,
+// so a hotel's page never carries script links or junk, whatever is sent to the API.
+const LANGS = ['ka', 'en', 'ru'];
+const THEMES = ['opal', 'amber', 'cobalt', 'alba', 'jade', 'onyx', 'indigo', 'ivory', 'lilac', 'umber'];
+const AMEN = ['wifi', 'parking', 'breakfast', 'kitchen', 'fireplace', 'pool', 'garden', 'bbq', 'balcony', 'kids', 'pets', 'ski', 'sea', 'center', 'transfer'];
+const KINDS = ['restaurant', 'georgian', 'cafe', 'bakery', 'wine', 'bar', 'fish', 'grill', 'pizza', 'fast'];
+
+const str = (v, max = 400) => (typeof v === 'string' ? v.slice(0, max) : '');
+const tri = (v, max = 2000) => {
+  if (typeof v === 'string') return { ka: str(v, max) };
+  if (!v || typeof v !== 'object') return undefined;
+  const o = {}; for (const l of LANGS) if (typeof v[l] === 'string') o[l] = v[l].slice(0, max);
+  return Object.keys(o).length ? o : undefined;
+};
+// photos: our own uploads (media/…), the template images (img/…), or https
+const img = v => (typeof v === 'string' && (/^media\/[\w.-]{1,60}$/.test(v) || /^img\/[\w./-]{1,120}\.(jpe?g|webp|png)$/.test(v) || /^https:\/\/[^\s"'<>]{1,300}$/.test(v)) ? v : undefined);
+const url = v => (typeof v === 'string' && /^https?:\/\/[^\s"'<>]{1,300}$/.test(v) ? v : undefined);
+const gmap = v => (typeof v === 'string' && /^https:\/\/(www\.)?(google\.[a-z.]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.)[^\s"'<>]{0,300}$/.test(v) ? v : undefined);
+const num = (v, lo, hi) => (Number.isFinite(+v) && +v >= lo && +v <= hi ? +v : undefined);
+const prune = o => { for (const k of Object.keys(o)) if (o[k] === undefined || (typeof o[k] === 'object' && o[k] !== null && !Array.isArray(o[k]) && !Object.keys(o[k]).length)) delete o[k]; return o; };
+const list = (v, max, f) => (Array.isArray(v) ? v.slice(0, max).map(f).filter(x => x !== undefined) : undefined);
+
+function cleanSite(s) {
+  if (!s || typeof s !== 'object' || Array.isArray(s)) return undefined;
+  const o = {};
+  if (THEMES.includes(s.theme)) o.theme = s.theme;
+  if (typeof s.accent === 'string' && /^#[0-9a-f]{6}$/i.test(s.accent)) o.accent = s.accent;
+  if (s.font === 'serif') o.font = 'serif';
+  if (s.hero) o.hero = prune({ img: img(s.hero.img), tagline: tri(s.hero.tagline, 200) });
+  if (s.about) o.about = prune({ img: img(s.about.img), text: tri(s.about.text, 3000) });
+  if (s.location) o.location = prune({ text: tri(s.location.text, 500), map: url(s.location.map) });
+  if (s.gallery) o.gallery = list(s.gallery, 40, img);
+  if (s.amenities) o.amenities = list(s.amenities, 20, a => (AMEN.includes(a) ? a : undefined));
+  if (s.rooms && typeof s.rooms === 'object') {
+    o.rooms = {};
+    for (const k of Object.keys(s.rooms).slice(0, 30)) {
+      if (!/^[\w-]{1,40}$/.test(k)) continue;
+      const r = s.rooms[k] || {};
+      o.rooms[k] = prune({ text: tri(r.text, 1500), photos: list(r.photos, 12, img) });
+    }
+    prune(o.rooms);
+  }
+  if (s.kids && ['free', 'fixed'].includes(s.kids.mode)) o.kids = prune({ mode: s.kids.mode, price: s.kids.mode === 'fixed' ? num(s.kids.price, 0, 10000) : undefined });
+  if (s.pin) { const lat = num(s.pin.lat, -90, 90), lng = num(s.pin.lng, -180, 180); if (lat != null && lng != null) o.pin = { lat, lng }; }
+  if (s.food && typeof s.food === 'object') {
+    const f = s.food;
+    o.food = prune({
+      hide: list(f.hide, 200, x => (typeof x === 'string' && /^[nwr]\d{1,15}$/.test(x) ? x : undefined)),
+      own: list(f.own, 20, x => (x && typeof x === 'object' ? prune({ name: tri(x.name, 80), kind: KINDS.includes(x.kind) ? x.kind : 'restaurant', note: tri(x.note, 300), map: gmap(x.map), web: url(x.web), phone: str(x.phone, 30).replace(/[^\d+ ()-]/g, '') || undefined }) : undefined)),
+      places: list(f.places, 60, x => (x && typeof x === 'object' && /^[nwr]\d{1,15}$/.test(x.id) ? prune({
+        id: x.id, name: prune({ def: str(x.name?.def, 120), ka: str(x.name?.ka, 120) || undefined, en: str(x.name?.en, 120) || undefined, ru: str(x.name?.ru, 120) || undefined }),
+        kind: KINDS.includes(x.kind) ? x.kind : 'restaurant', lat: num(x.lat, -90, 90), lng: num(x.lng, -180, 180), m: num(x.m, 0, 100000),
+        cuisine: str(x.cuisine, 40) || undefined, phone: str(x.phone, 30) || undefined, web: url(x.web), hours: str(x.hours, 120) || undefined }) : undefined)),
+      at: typeof f.at === 'string' && /^-?\d{1,3}\.\d{1,6},-?\d{1,3}\.\d{1,6}$/.test(f.at) ? f.at : undefined,
+    });
+  }
+  return prune(o);
+}
+
+function cleanContact(c) {
+  if (!c || typeof c !== 'object') return undefined;
+  const o = {};
+  for (const k of ['phone', 'wa']) if (typeof c[k] === 'string') o[k] = c[k].slice(0, 30).replace(/[^\d+ ()-]/g, '');
+  for (const k of ['fb', 'ig', 'tk', 'map']) if (typeof c[k] === 'string') o[k] = c[k] === '' ? '' : url(c[k]);
+  if (typeof c.email === 'string') o.email = /^[^\s@<>"]{1,64}@[^\s@<>"]{1,120}$/.test(c.email) || c.email === '' ? c.email : undefined;
+  for (const k of ['from', 'to']) if (typeof c[k] === 'string' && /^\d{2}:\d{2}$/.test(c[k])) o[k] = c[k];
+  if (c.addr) o.addr = tri(c.addr, 200);
+  return prune(o);
+}
+
+// → the content as it will be stored: site, contact and FAQ only
+export function cleanContent(c) {
+  if (!c || typeof c !== 'object' || Array.isArray(c)) return {};
+  return prune({
+    site: cleanSite(c.site),
+    contact: cleanContact(c.contact),
+    faq: list(c.faq, 30, x => (x && typeof x === 'object' ? prune({ q: tri(x.q, 200), a: tri(x.a, 1500) }) : undefined)),
+  });
+}

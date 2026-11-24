@@ -1,5 +1,5 @@
-/* Villa JIJI admin — საიტის მართვა: page texts in three languages, photos, videos, contacts, FAQ and sections.
-   Defaults are read from index.html itself (elements marked data-c), so every editable spot shows up here on its own.
+/* Visit2 admin — საიტის მართვა: what the hotel's site shows (content.site, read by site/site.js):
+   the top of the page, the story, photos, rooms, amenities, look, map and restaurants; plus contacts and FAQ (js/content.js).
    Only the changes are saved: on Cloudflare in D1 (api/admin/content), in the demo in this browser. */
 (() => {
   const J = window.JIJI, JC = window.JC, I = window.I18N;
@@ -15,8 +15,7 @@
   const api = () => J.mode === 'api';
   const node = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 
-  let saved = {}, D = {}, secs = [], versions = [], started = false, busy = 0;
-  const openSecs = new Set(['hero']);
+  let saved = {}, D = {}, versions = [], started = false, busy = 0;
 
   // ---------- messages ----------
   let toastT = 0;
@@ -24,68 +23,6 @@
     const t = $('toast'); if (!t) return;
     t.textContent = msg; t.classList.toggle('bad', !!bad); t.hidden = false;
     clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, bad ? 6000 : 3500);
-  }
-
-  // ---------- labels for the fields found in index.html ----------
-  const SEC = {
-    hero: 'მთავარი ეკრანი', about: 'სასტუმროს შესახებ', newyear: 'ახალი წელი (ჩანს ზამთარში)', summer: 'ზაფხული (ჩანს ზაფხულში)',
-    fire: 'ბუხრის ოთახი', photos: 'ფოტოების ზოლი', spaces: 'შიდა სივრცეები', grounds: 'ეზო', near: 'რა არის ახლოს',
-    rooms: 'ნომრების სექცია (სათაური)', book: 'დაჯავშნა და კონტაქტი'
-  };
-  function labelOf(el) {
-    const tag = el.tagName.toLowerCase(), cl = el.classList, ct = el.dataset.ct;
-    if (ct === 'gallery') return 'ფოტოები';
-    if (ct === 'list') return cl.contains('chips') ? 'იარლიყები (თითო სტრიქონზე ერთი)' : 'ჩამონათვალი (თითო სტრიქონზე ერთი პუნქტი)';
-    if (tag === 'img') return el.hasAttribute('data-w') ? 'ფოტო' : el.dataset.cv ? 'ვიდეოს ყდის ფოტო' : 'ფოტო';
-    if (tag === 'b') return 'რიცხვი';
-    if (tag === 'span' && cl.contains('len')) return 'ვიდეოს ხანგრძლივობა (ცარიელი — არ გამოჩნდება)';
-    if (tag === 'span' && cl.contains('d')) return 'მანძილი';
-    if (tag === 'span') return 'წარწერა';
-    if (tag === 'button') return 'ღილაკის წარწერა';
-    if (tag === 'figcaption') return 'წარწერა ფოტოზე';
-    if (tag === 'h1' || tag === 'h2') return 'სათაური';
-    if (tag === 'h3') return 'ქვესათაური';
-    if (cl.contains('tag')) return 'დევიზი';
-    if (cl.contains('lead') || cl.contains('big')) return 'ძირითადი ტექსტი';
-    if (cl.contains('small') || cl.contains('note') || cl.contains('rnote')) return 'მცირე შენიშვნა';
-    return 'ტექსტი';
-  }
-
-  function fieldOf(el, card) {
-    const k = el.dataset.c, ct = el.dataset.ct, tag = el.tagName.toLowerCase(), label = labelOf(el);
-    if (ct === 'gallery') return { k, card, label, type: 'gallery', def: [...el.querySelectorAll('figure')].map(f => {
-      const im = f.querySelector('img'), cap = f.querySelector('figcaption');
-      return { src: im.getAttribute('src'), alt: tri(im.getAttribute('alt') || ''), cap: tri(cap ? cap.textContent.trim() : ''), season: f.classList.contains('only-w') ? 'w' : f.classList.contains('only-s') ? 's' : '' };
-    }) };
-    if (tag === 'img') {
-      if (el.hasAttribute('data-w')) {
-        const p = v => { const [src, alt] = String(v).split('|'); return { src, alt: tri(alt || '') }; };
-        return { k, card, label, type: 'img2', def: { w: p(el.dataset.w), s: p(el.dataset.s) } };
-      }
-      return { k, card, label, type: 'img', def: { src: el.getAttribute('src'), alt: tri(el.getAttribute('alt') || '') } };
-    }
-    if (ct === 'list') return { k, card, label, type: 'list', def: triList([...el.children].map(c => c.textContent.trim()).filter(Boolean)) };
-    const short = /^(h1|h2|h3|button|span|b|figcaption)$/.test(tag);
-    if (el.hasAttribute('data-w')) return { k, card, label, type: 'text2', short, def: { w: tri(el.dataset.w), s: tri(el.dataset.s) } };
-    const ka = el.textContent.trim();
-    return { k, card, label, type: 'text', short, one: short && !GEO.test(ka), def: tri(ka) };
-  }
-
-  async function readPage() {
-    const html = await (await fetch('index.html', { cache: 'no-store' })).text();
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    const out = [];
-    doc.querySelectorAll('main > section').forEach(sec => {
-      const fields = [], cards = new Map();
-      sec.querySelectorAll('[data-c]').forEach(el => {
-        if (el.parentElement.closest('[data-ct="gallery"]')) return;
-        const c = el.closest('.sp,.nr,.yard figure,.facts > div');
-        if (c && !cards.has(c)) cards.set(c, cards.size + 1);
-        fields.push(fieldOf(el, c ? cards.get(c) : 0));
-      });
-      if (fields.length) out.push({ id: sec.id, name: SEC[sec.id] || sec.getAttribute('aria-label') || sec.id, hideable: sec.hasAttribute('data-cs'), fields });
-    });
-    return out;
   }
 
   // ---------- draft state ----------
@@ -158,29 +95,6 @@
   const stale = (v, def) => v && def && v.ka !== def.ka && ((def.en && v.en === def.en) || (def.ru && v.ru === def.ru));
   const WARN = '<p class="warn" hidden>⚠ ქართული შეიცვალა — განაახლეთ ინგლისური და რუსული ტექსტიც.</p>';
 
-  function textField(f, group = 't') {
-    const cur = () => getIn(group, f.k, f.def);
-    const box = node(`<div class="fld"><div class="fh"><b>${esc(f.label)}</b><button type="button" class="lnk" data-reset hidden>თავდაპირველზე დაბრუნება</button></div></div>`);
-    const v = cur(), opt = { short: f.short && f.type !== 'list', one: f.one, rows: f.type === 'list' ? 5 : 3 };
-    if (f.type === 'text2') box.insertAdjacentHTML('beforeend', ['w', 's'].map(z => `<div class="sz"><i>${z === 'w' ? '❄ ზამთარში' : '☀ ზაფხულში'}</i>${langFields(v[z] || {}, { ...opt, z })}</div>`).join(''));
-    else box.insertAdjacentHTML('beforeend', langFields(v, opt));
-    box.insertAdjacentHTML('beforeend', WARN);
-    const sync = () => {
-      const c = cur();
-      box.querySelector('[data-reset]').hidden = same(c, f.def);
-      box.querySelector('.warn').hidden = f.type === 'text2' ? !(stale(c.w, f.def.w) || stale(c.s, f.def.s)) : !stale(c, f.def);
-    };
-    box.addEventListener('input', e => {
-      const i = e.target.closest('[data-l]'); if (!i) return;
-      const nv = clone(cur());
-      if (i.dataset.z) nv[i.dataset.z][i.dataset.l] = i.value; else nv[i.dataset.l] = i.value;
-      setIn(group, f.k, nv, f.def); sync();
-    });
-    box.querySelector('[data-reset]').addEventListener('click', () => { setIn(group, f.k, null, f.def); box.replaceWith(textField(f, group)); });
-    sync();
-    return box;
-  }
-
   function imgCard(v, title, onSrc, onAlt) {
     const c = node(`<div class="ic"><img alt="" src="${esc(v.src)}"><div class="icb">${title ? `<i>${title}</i>` : ''}<button type="button" class="btn" data-up>ფოტოს შეცვლა</button>
       <details><summary>ფოტოს აღწერა</summary><p class="hint">ჩანს თუ ფოტო ვერ ჩაიტვირთა, ეხმარება Google-ს და უსინათლოებს.</p>${langFields(v.alt || {}, { short: true })}</details></div></div>`);
@@ -190,19 +104,6 @@
     });
     c.querySelector('details').addEventListener('input', e => { const i = e.target.closest('[data-l]'); if (i) onAlt(i.dataset.l, i.value); });
     return c;
-  }
-
-  function imgField(f) {
-    const box = node(`<div class="fld"><div class="fh"><b>${esc(f.label)}</b><button type="button" class="lnk" data-reset hidden>თავდაპირველი ფოტო</button></div><div class="ics"></div></div>`);
-    const cur = () => clone(getIn('img', f.k, f.def));
-    const sync = () => { box.querySelector('[data-reset]').hidden = same(cur(), f.def); };
-    const put = (z, fn) => { const v = cur(); fn(z ? v[z] : v); setIn('img', f.k, v, f.def); sync(); };
-    const v = cur(), wrap = box.querySelector('.ics');
-    if (f.type === 'img2') ['w', 's'].forEach(z => wrap.append(imgCard(v[z], z === 'w' ? '❄ ზამთარში' : '☀ ზაფხულში', src => put(z, o => { o.src = src; }), (l, t) => put(z, o => { o.alt = o.alt || {}; o.alt[l] = t; }))));
-    else wrap.append(imgCard(v, '', src => put(null, o => { o.src = src; }), (l, t) => put(null, o => { o.alt = o.alt || {}; o.alt[l] = t; })));
-    box.querySelector('[data-reset]').addEventListener('click', () => { setIn('img', f.k, null, f.def); box.replaceWith(imgField(f)); });
-    sync();
-    return box;
   }
 
   // a list of photos: reorder, remove, add; optional season and caption per photo
@@ -240,87 +141,69 @@
     return box;
   }
 
-  function galField(f) {
-    const box = node(`<div class="fld"><div class="fh"><b>${esc(f.label)}</b></div><p class="hint">ზამთრის ფოტოები ჩანს ზამთარში, ზაფხულისა — ზაფხულში.</p></div>`);
-    box.append(galleryEditor(() => clone(getIn('gal', f.k, f.def)), a => setIn('gal', f.k, a, f.def),
-      { season: true, caps: true, reset: () => setIn('gal', f.k, null, f.def), changed: () => !!(D.gal && D.gal[f.k]) }));
+  // ---------- the hotel's site (content.site) ----------
+  // what the site shows until the owner changes it: a sample hotel's own texts in the demo, otherwise nothing
+  const base = () => { const h = J.hotel || {}; return (h.demo && window.V2DEMO && window.V2DEMO.get(h.slug)?.site) || {}; };
+  const siteGet = k => (D.site && D.site[k] !== undefined ? D.site[k] : base()[k]);
+  const sitePut = (k, v) => { D.site = D.site || {}; if (v == null || same(v, base()[k])) delete D.site[k]; else D.site[k] = v; if (!Object.keys(D.site).length) delete D.site; dirty(); };
+  const asTri = v => (typeof v === 'string' ? { ka: v, en: '', ru: '' } : { ka: '', en: '', ru: '', ...(v || {}) });
+  // one photo with a "change" button
+  function onePhoto(title, get, set) {
+    const has = get();
+    const box = node(`<div class="fld"><div class="fh"><b>${title}</b></div><div class="one-ph">${has ? `<img alt="" src="${esc(has)}">` : '<div class="ph-empty">ფოტო ჯერ არ არის</div>'}<button type="button" class="btn">${has ? 'ფოტოს შეცვლა' : '+ ფოტოს ატვირთვა'}</button></div></div>`);
+    box.querySelector('button').addEventListener('click', async () => {
+      const [f] = await pickFiles(false); if (!f) return;
+      const [url] = await uploadMany([f]); if (!url) return;
+      set(url); box.replaceWith(onePhoto(title, get, set));
+    });
     return box;
   }
-
-  const fieldEl = f => (f.type === 'img' || f.type === 'img2' ? imgField(f) : f.type === 'gallery' ? galField(f) : textField(f));
-  const changedIn = s => s.fields.filter(f => (f.type === 'img' || f.type === 'img2' ? D.img : f.type === 'gallery' ? D.gal : D.t)?.[f.k] != null).length;
-
-  // ---------- panels ----------
+  // a text in three languages
+  function triText(title, hint, get, set, opt = {}) {
+    const box = node(`<div class="fld"><div class="fh"><b>${title}</b></div>${hint ? `<p class="hint">${hint}</p>` : ''}${langFields(asTri(get()), opt)}</div>`);
+    box.addEventListener('input', e => { const i = e.target.closest('[data-l]'); if (!i) return; const v = asTri(get()); v[i.dataset.l] = i.value; set(v); });
+    return box;
+  }
   function drawTexts() {
-    const p = $('s-texts'); p.innerHTML = '<p class="sub">აირჩიეთ საიტის ნაწილი. თითო ტექსტი სამ ენაზეა: ქართული, ინგლისური, რუსული. შეცვლის შემდეგ დააჭირეთ „შენახვა“.</p>';
-    secs.forEach(s => {
-      const n = changedIn(s);
-      const d = node(`<details class="sx" data-id="${s.id}"${openSecs.has(s.id) ? ' open' : ''}><summary><span>${esc(s.name)}</span>${n ? `<small class="chg">შეცვლილია ${n}</small>` : ''}</summary><div class="in"></div></details>`);
-      d.addEventListener('toggle', () => { d.open ? openSecs.add(s.id) : openSecs.delete(s.id); if (d.open && !d.__drawn) fill(); });
-      const fill = () => {
-        d.__drawn = true;
-        const inn = d.querySelector('.in'); let cardBox = null, cardNo = 0;
-        s.fields.forEach(f => {
-          if (f.card) {
-            if (f.card !== cardNo) { cardNo = f.card; cardBox = node(`<div class="card2"><i class="cn">${s.id === 'near' ? 'ადგილი' : s.id === 'grounds' ? 'ფოტო ეზოში' : s.id === 'about' ? 'ციფრი' : 'ბარათი'} ${f.card}</i></div>`); inn.append(cardBox); }
-            cardBox.append(fieldEl(f));
-          } else { cardNo = 0; inn.append(fieldEl(f)); }
-        });
-      };
-      if (d.open) fill();
-      p.append(d);
-    });
+    const p = $('s-texts'); p.innerHTML = '<p class="sub">საიტის თავი, თქვენი ამბავი და მისამართი. თითო ტექსტი სამ ენაზეა: ქართული, ინგლისური, რუსული. თუ ინგლისური ან რუსული ცარიელია, საიტზე ქართული ჩანს.</p>';
+    const obj = (k, f) => ({ ...(siteGet(k) || {}), ...f });
+    const top = node('<div class="card2"><div class="fh"><b>საიტის თავი</b></div></div>');
+    top.append(onePhoto('მთავარი ფოტო', () => siteGet('hero')?.img, url => sitePut('hero', obj('hero', { img: url }))),
+      triText('ერთი წინადადება სახელის ქვეშ', 'მაგ.: „თბილი ხის სახლი ნაძვნარში, საბაგიროდან ხუთ წუთში“.', () => siteGet('hero')?.tagline, v => sitePut('hero', obj('hero', { tagline: v })), { short: true }));
+    const about = node('<div class="card2"><div class="fh"><b>ჩვენ შესახებ</b></div></div>');
+    about.append(triText('თქვენი ამბავი', 'რით არის გამორჩეული ადგილი, რა არის ახლოს, რატომ ბრუნდებიან სტუმრები.', () => siteGet('about')?.text, v => sitePut('about', obj('about', { text: v })), { rows: 5 }),
+      onePhoto('ფოტო ტექსტის გვერდით', () => siteGet('about')?.img, url => sitePut('about', obj('about', { img: url }))));
+    const where = node('<div class="card2"><div class="fh"><b>სად ვართ</b></div></div>');
+    where.append(triText('მისამართი და როგორ მოვიდეთ', 'მაგ.: „დიდველის გზა 4, საბაგირომდე 400 მ“. რუკაზე ადგილს „რუკა და რესტორნები“-ში ნიშნავთ.', () => siteGet('location')?.text, v => sitePut('location', obj('location', { text: v })), { rows: 2 }));
+    p.append(top, about, where);
   }
-
+  function drawPhotos() {
+    const p = $('s-photos'); p.innerHTML = '<p class="sub">ფოტოები საიტის „ფოტოების“ ნაწილში. პირველი ოთხი Cobalt-ის შაბლონის მოზაიკაშიც ჩანს. ისრებით რიგს ცვლით.</p>';
+    p.append(galleryEditor(() => (siteGet('gallery') || []).map(src => ({ src })), a => sitePut('gallery', a.map(x => x.src))));
+  }
   function drawRooms() {
-    const p = $('s-rooms'); p.innerHTML = '<p class="sub">ნომრების აღწერა, ჩამონათვალი და ფოტოები. ფასები და ტევადობა „ფასები და სეზონი“ ჩანართშია.</p>';
+    const p = $('s-rooms'); p.innerHTML = '<p class="sub">თითო ტიპის ნომრის აღწერა და ფოტოები. ფასები და ტევადობა „ფასებში“ იცვლება.</p>';
     const types = Object.entries(J.types).filter(([k]) => J.ROOMS.some(r => r.type === k));
+    if (!types.length) { p.insertAdjacentHTML('beforeend', '<p class="hint">ნომრები ჯერ არ არის. დაამატეთ „ფასებში“.</p>'); return; }
     types.forEach(([k, t]) => {
-      const def = { text: tri(JC.DEF.roomText[k] || ''), feats: triList(JC.DEF.roomFeats[k] || []), photos: (JC.DEF.roomPhotos[k] || []).slice() };
-      const cur = prop => (D.rooms && D.rooms[k] && D.rooms[k][prop] != null ? D.rooms[k][prop] : def[prop]);
-      const put = (prop, v) => {
-        D.rooms = D.rooms || {}; const o = D.rooms[k] = D.rooms[k] || {};
-        if (v == null || same(v, def[prop])) delete o[prop]; else o[prop] = v;
-        if (!Object.keys(o).length) delete D.rooms[k];
-        if (!Object.keys(D.rooms).length) delete D.rooms;
-        dirty();
-      };
+      const cur = () => (siteGet('rooms') || {})[k] || {};
+      const put = (prop, v) => { const all = clone(siteGet('rooms') || {}); all[k] = { ...(all[k] || {}), [prop]: v }; sitePut('rooms', all); };
       const nums = J.ROOMS.filter(r => r.type === k).map(r => r.id).join(', ');
-      const d = node(`<details class="sx"><summary><span>${esc(t.name)} <small class="hint">(${esc(nums)})</small></span></summary><div class="in"></div></details>`);
-      const inn = d.querySelector('.in');
-      const tf = (prop, label, type) => {
-        const box = node(`<div class="fld"><div class="fh"><b>${label}</b><button type="button" class="lnk" data-reset hidden>თავდაპირველზე დაბრუნება</button></div>${langFields(cur(prop), { rows: type === 'list' ? 6 : 4 })}${WARN}</div>`);
-        const sync = () => { box.querySelector('[data-reset]').hidden = same(cur(prop), def[prop]); box.querySelector('.warn').hidden = !stale(cur(prop), def[prop]); };
-        box.addEventListener('input', e => { const i = e.target.closest('[data-l]'); if (!i) return; const v = clone(cur(prop)); v[i.dataset.l] = i.value; put(prop, v); sync(); });
-        box.querySelector('[data-reset]').addEventListener('click', () => { put(prop, null); box.replaceWith(tf(prop, label, type)); });
-        sync(); return box;
-      };
-      inn.append(tf('text', 'აღწერა'), tf('feats', 'რა არის ნომერში (თითო სტრიქონზე ერთი)', 'list'));
-      const pf = node('<div class="fld"><div class="fh"><b>ფოტოები</b></div><p class="hint">პირველი ფოტო ჩანს ბარათზე, დანარჩენი — გადაფურცვლით.</p></div>');
-      pf.append(galleryEditor(() => cur('photos').map(src => ({ src })), a => put('photos', a.map(x => x.src)),
-        { reset: () => put('photos', null), changed: () => !!(D.rooms && D.rooms[k] && D.rooms[k].photos) }));
-      inn.append(pf);
-      p.append(d);
+      const d = node(`<div class="card2"><div class="fh"><b>${esc(t.name)} <small class="hint">(${esc(nums)})</small></b></div></div>`);
+      d.append(triText('აღწერა', '', () => cur().text, v => put('text', v), { rows: 3 }));
+      const pf = node('<div class="fld"><div class="fh"><b>ფოტოები</b></div><p class="hint">პირველი ფოტო ჩანს ბარათზე, დანარჩენს სტუმარი თითით გადაასრიალებს.</p></div>');
+      pf.append(galleryEditor(() => (cur().photos || []).map(src => ({ src })), a => put('photos', a.map(x => x.src))));
+      d.append(pf); p.append(d);
     });
   }
-
-  function drawVideo() {
-    const p = $('s-video');
-    const row = (k, name) => `<div class="fld"><div class="fh"><b>${name}</b></div><input class="cin" data-v="${k}" inputmode="url" placeholder="https://www.youtube.com/watch?v=…" value="${esc((D.video || {})[k] || '')}"><p class="hint" data-vs="${k}"></p></div>`;
-    p.innerHTML = `<p class="sub">ჩასვით YouTube-ის ბმული. ცარიელი ველი — საიტზე დარჩება ახლანდელი ვიდეო. ვიდეოს ხანგრძლივობის წარწერა „ტექსტები და ფოტოები“ ჩანართშია.</p>
-      <div class="card2">${row('ny', 'ახალი წლის ვიდეო (ზამთარში ჩანს)')}</div><div class="card2">${row('sum', 'ზაფხულის ვიდეო (ზაფხულში ჩანს)')}</div>`;
-    const status = k => {
-      const v = (D.video || {})[k] || '', id = JC.youtube(v), s = p.querySelector(`[data-vs="${k}"]`);
-      s.innerHTML = !v ? 'გამოიყენება საიტის ახლანდელი ვიდეო.' : id ? `<span class="okt">✓ YouTube ვიდეო ნაპოვნია</span><br><img class="yt" alt="" src="https://i.ytimg.com/vi/${id}/hqdefault.jpg">` : '<span class="bad">ეს ბმული YouTube ვიდეოდ ვერ ვიცანი.</span>';
-    };
-    p.oninput = e => {
-      const i = e.target.closest('[data-v]'); if (!i) return;
-      D.video = D.video || {}; const v = i.value.trim();
-      if (v) D.video[i.dataset.v] = v; else delete D.video[i.dataset.v];
-      if (!Object.keys(D.video).length) delete D.video;
-      status(i.dataset.v); dirty();
-    };
-    status('ny'); status('sum');
+  const AMEN = [['wifi', 'Wi-Fi'], ['parking', 'უფასო პარკინგი'], ['breakfast', 'საუზმე'], ['kitchen', 'სამზარეულო ნომერში'], ['fireplace', 'ბუხარი'], ['pool', 'აუზი'],
+    ['garden', 'ეზო'], ['bbq', 'მაყალი'], ['balcony', 'აივანი'], ['kids', 'საბავშვო კუთხე'], ['pets', 'შინაური ცხოველით შეიძლება'], ['ski', 'საბაგიროსთან ახლოს'],
+    ['sea', 'ზღვასთან ახლოს'], ['center', 'ცენტრში'], ['transfer', 'ტრანსფერი']];
+  function drawAmen() {
+    const p = $('s-amen'), on = new Set(siteGet('amenities') || []);
+    p.innerHTML = `<p class="sub">მონიშნეთ, რაც გაქვთ. საიტზე ჩანს „რა გვაქვს“ ნაწილში. თუ „შინაური ცხოველით შეიძლება“ მონიშნულია, სტუმარს ცხოველის მითითება შეუძლია და ძებნაშიც გამოჩნდებით.</p>
+      <div class="card2 amen-list">${AMEN.map(([k, n]) => `<label class="chk"><input type="checkbox" data-a="${k}"${on.has(k) ? ' checked' : ''}><span>${n}</span></label>`).join('')}</div>`;
+    p.onchange = e => { const i = e.target.closest('[data-a]'); if (!i) return; const set = new Set(siteGet('amenities') || []); if (i.checked) set.add(i.dataset.a); else set.delete(i.dataset.a); sitePut('amenities', AMEN.map(([k]) => k).filter(k => set.has(k))); };
   }
 
   function drawContact() {
@@ -370,18 +253,6 @@
     });
     p.querySelector('[data-addq]').addEventListener('click', () => { list.push({ q: { ka: '', en: '', ru: '' }, a: { ka: '', en: '', ru: '' } }); put(clone(list)); drawFaq(); const l = p.querySelectorAll('.card2'); l[l.length - 1]?.querySelector('input')?.focus(); });
     p.querySelector('[data-resetq]').addEventListener('click', () => { if (confirm('დავაბრუნოთ თავდაპირველი კითხვები?')) { delete D.faq; dirty(); drawFaq(); } });
-  }
-
-  function drawSections() {
-    const p = $('s-sections'), h = D.hide || {};
-    p.innerHTML = `<p class="sub">მონიშნული ნაწილები ჩანს საიტზე. მაგალითად, ახალი წლის ვიდეოს დამალვა შეგიძლიათ, სანამ ახალს დაამატებთ.</p><div class="card2">${
-      secs.filter(s => s.hideable).map(s => `<label class="chk"><input type="checkbox" data-h="${s.id}"${h[s.id] ? '' : ' checked'}><span>${esc(s.name)}</span></label>`).join('')}</div>`;
-    p.onchange = e => {
-      const i = e.target.closest('[data-h]'); if (!i) return;
-      D.hide = D.hide || {}; if (i.checked) delete D.hide[i.dataset.h]; else D.hide[i.dataset.h] = true;
-      if (!Object.keys(D.hide).length) delete D.hide;
-      dirty();
-    };
   }
 
   // ---------- look: template, colour, font; and what children cost ----------
@@ -552,7 +423,7 @@
     }));
   }
 
-  function drawAll() { drawTexts(); drawRooms(); drawVideo(); drawContact(); drawFaq(); drawSections(); drawNear(); drawLook(); drawHistory(); }
+  function drawAll() { drawTexts(); drawPhotos(); drawRooms(); drawAmen(); drawContact(); drawFaq(); drawNear(); drawLook(); drawHistory(); }
 
   // ---------- save, undo, preview ----------
   async function save() {
@@ -571,14 +442,15 @@
         try { localStorage.setItem(JC.K_DEMO, JSON.stringify(D)); } catch (e) { throw new Error('ბრაუზერის მეხსიერება სავსეა (სადემონსტრაციო ვერსიაში ფოტოები აქ ინახება)'); }
         saved = clone(D);
       }
-      dirty(); drawHistory(); drawTexts();
+      dirty(); drawHistory();
       say('✓ შენახულია. საიტზე უკვე ჩანს.');
     } catch (e) { say('ვერ შეინახა: ' + (e.message || e) + '. შეამოწმეთ ინტერნეტი და სცადეთ ხელახლა.', true); dirty(); }
   }
   function undo() { if (!confirm('გავაუქმოთ ყველა შეუნახავი ცვლილება?')) return; D = clone(saved); drawAll(); dirty(); }
   function preview() {
     try { localStorage.setItem(JC.K_PREVIEW, JSON.stringify(D)); } catch (e) { return say('წინასწარი ნახვა ვერ მოხერხდა: მეხსიერება სავსეა.', true); }
-    window.open('index.html?preview=1', '_blank');
+    const h = J.hotel || {};
+    window.open(h.demo ? `hotel.html?h=${encodeURIComponent(h.slug)}&preview=1` : './?preview=1', '_blank');
   }
 
   // ---------- start ----------
@@ -593,7 +465,6 @@
         const d = await r.json(); saved = d.content || {}; versions = d.versions || [];
       } else { try { saved = JSON.parse(localStorage.getItem(JC.K_DEMO) || '{}') || {}; } catch (e) { saved = {}; } }
       D = clone(saved);
-      secs = await readPage();
       drawAll(); dirty();
     } catch (e) {
       started = false;

@@ -110,9 +110,11 @@
   const isDemo = () => !!(J.hotel && J.hotel.demo);
   const slug = () => (J.hotel && J.hotel.slug) || 'demo';
   const demoHotel = () => (isDemo() && window.V2DEMO ? window.V2DEMO.get(slug()) : null);
+  // a real hotel starts empty (the owner fills it in the admin); sample hotels have their own texts; the offline preview uses DEMO
+  const EMPTY = { hero: {}, about: {}, amenities: [], gallery: [], rooms: {}, location: {} };
   const S = () => {
     const d = demoHotel();
-    const base = d ? { ...d.site, theme: d.theme, accent: d.accent } : DEMO;
+    const base = d ? { ...d.site, theme: d.theme, accent: d.accent } : isDemo() ? DEMO : EMPTY;
     return { ...base, ...(C.site || {}), ...(isDemo() ? (loadLocal() || {}) : {}) };
   };
   const lookKey = () => 'v2-demo-look-' + slug();
@@ -124,7 +126,10 @@
   const contact = () => (window.JC ? window.JC.contact() : {});
 
   async function loadContent() {
-    if (isDemo()) return;
+    // the admin's "preview" (unsaved changes) and, in the demo, the owner's own site saved in this browser
+    const ls = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+    if (params.get('preview') === '1' && ls('v2-content-preview')) { C = ls('v2-content-preview'); return; }
+    if (isDemo()) { if (J.hotel && J.hotel.mine) C = ls('v2-content-demo') || {}; return; }
     try { const r = await fetch('api/content', { cache: 'no-store' }); if (r.ok) C = (await r.json()).content || {}; } catch (e) { /* keep defaults */ }
   }
 
@@ -171,7 +176,7 @@
     <div class="hero-media">${img(s.hero?.img, h.name)}<div class="hero-in">${heroWords(s, h)}</div></div>
     <div class="hero-bar">${pill()}</div>
   </section>`,
-    about: s => `<section class="about" id="about">
+    about: s => !pick(s.about?.text) ? '' : `<section class="about" id="about">
     <div class="about-media">${img(s.about?.img)}</div>
     <div class="about-text"><h2>${w('about')}</h2><p>${esc(pick(s.about?.text))}</p></div>
   </section>`,
@@ -234,7 +239,7 @@
     <nav class="menu-links">
       <a href="#rooms" data-close>${w('rooms')}</a>
       ${has('gallery') ? `<a href="#photos" data-close>${w('gallery')}</a>` : ''}
-      <a href="#about" data-close>${w('about')}</a>
+      ${pick(s.about?.text) ? `<a href="#about" data-close>${w('about')}</a>` : ''}
       <a href="#where" data-close>${w('where')}</a>
       ${has('food') ? `<a href="#food" data-close>${w('food')}</a>` : ''}
       <a href="#book" data-close>${w('book')}</a>
