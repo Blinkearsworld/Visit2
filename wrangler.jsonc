@@ -9,6 +9,12 @@
   "assets": { "directory": "public", "binding": "ASSETS", "run_worker_first": true },
   // daily at 03:17 UTC: data retention (src/db/retention.js)
   "triggers": { "crons": ["17 3 * * *"] },
+  // visit2.ge: the platform; {slug}.visit2.ge: each hotel's site (needs a proxied "*" DNS record)
+  "routes": [
+    { "pattern": "visit2.ge", "custom_domain": true },
+    { "pattern": "www.visit2.ge", "custom_domain": true },
+    { "pattern": "*.visit2.ge/*", "zone_name": "visit2.ge" }
+  ],
   "d1_databases": [
     { "binding": "DB", "database_name": "visit2", "database_id": "4a62c23d-9361-4fff-b13c-9ca64a29d630", "migrations_dir": "migrations" }
   ],
