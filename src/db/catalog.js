@@ -6,7 +6,7 @@ import { getContent } from './content.js';
 import { findOffer } from '../lib/availability.js';
 import { nights } from '../lib/time.js';
 
-const KINDS = ['mountain', 'sea', 'wine', 'city', 'nature'];
+const KINDS = ['mountain', 'sea', 'history', 'wine', 'food', 'nature', 'city'];
 const pick = v => (v == null ? '' : typeof v === 'string' ? v : v.ka || v.en || v.ru || '');
 
 // hotels listed: open (trial or active), with prices and a main photo, so no card looks broken
@@ -26,7 +26,7 @@ export async function catalog(db, { siteOf, from = '', to = '', guests = 2 } = {
     const h = {
       slug: t.slug, name: t.name, city: t.city || '', url: site, real: true,
       img: abs(s.hero.img), tagline: pick(s.hero?.tagline).slice(0, 160),
-      kind: KINDS.includes(s.kind) ? s.kind : '',
+      kinds: (Array.isArray(s.kinds) ? s.kinds : [s.kind]).filter(k => KINDS.includes(k)).slice(0, 2),
       lat: s.pin?.lat ?? null, lng: s.pin?.lng ?? null,
       amenities: Array.isArray(s.amenities) ? s.amenities : [],
       minFrom: Math.min(...prices),

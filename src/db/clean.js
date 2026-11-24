@@ -29,7 +29,10 @@ function cleanSite(s) {
   if (THEMES.includes(th)) o.theme = th;
   if (typeof s.accent === 'string' && /^#[0-9a-f]{6}$/i.test(s.accent)) o.accent = s.accent;
   if (s.font === 'serif') o.font = 'serif';
-  if (['mountain', 'sea', 'wine', 'city', 'nature'].includes(s.kind)) o.kind = s.kind;
+  // up to two kinds of stay (kind = the first, kept for older readers)
+  const KS = ['mountain', 'sea', 'history', 'wine', 'food', 'nature', 'city'];
+  const ks = [...new Set([...(Array.isArray(s.kinds) ? s.kinds : []), s.kind].filter(k => KS.includes(k)))].slice(0, 2);
+  if (ks.length) { o.kinds = ks; o.kind = ks[0]; }
   if (s.hero) o.hero = prune({ img: img(s.hero.img), tagline: tri(s.hero.tagline, 200) });
   if (s.about) o.about = prune({ img: img(s.about.img), text: tri(s.about.text, 3000) });
   if (s.location) o.location = prune({ text: tri(s.location.text, 500), map: url(s.location.map) });

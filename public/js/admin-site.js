@@ -265,7 +265,7 @@
     const p = $('s-look'); if (!p) return;
     const st = D.site || {}, th = LOOK_OLD[st.theme] || st.theme || 'opal', col = st.accent || LOOK_DEF[th] || LOOK_C[0], font = st.font === 'serif' ? 'serif' : 'sans', k = st.kids || {};
     p.innerHTML = `<p class="sub">აქ ირჩევთ, როგორ გამოიყურება საიტი. ცვლილება საიტზე „შენახვის“ შემდეგ ჩანს. ნომრები, ფასები და ჯავშნები არ იცვლება.</p>
-      <div class="card2"><div class="fh"><b>რა ადგილია</b></div><p class="hint">Visit2.ge-ის მთავარ გვერდზე ამ რიგში გამოჩნდებით.</p><div class="look-font">${[['mountain', 'მთა'], ['sea', 'ზღვა'], ['wine', 'ღვინო და კახეთი'], ['city', 'ქალაქი'], ['nature', 'ბუნება']].map(([v, n]) => `<label><input type="radio" name="lookKind" value="${v}"${st.kind === v ? ' checked' : ''}><span>${n}</span></label>`).join('')}</div></div>
+      <div class="card2"><div class="fh"><b>რა ადგილია</b></div><p class="hint">მონიშნეთ ერთი ან ორი. Visit2.ge-ის მთავარ გვერდზე ამ რიგებში გამოჩნდებით. თუ არცერთი არ ერგება, დატოვეთ ცარიელი: მაინც ჩანხართ ძებნაში და რუკაზე.</p><div class="look-font look-kinds">${[['mountain', '🏔️ მთა'], ['sea', '🌊 ზღვა'], ['history', '🏛️ ისტორია'], ['wine', '🍷 ღვინო'], ['food', '🥟 სამზარეულო'], ['nature', '🌲 ბუნება'], ['city', '🏙️ ქალაქი']].map(([v, n]) => `<label><input type="checkbox" name="lookKind" value="${v}"${(st.kinds || (st.kind ? [st.kind] : [])).includes(v) ? ' checked' : ''}><span>${n}</span></label>`).join('')}</div></div>
       <div class="card2"><div class="fh"><b>შაბლონი</b></div><div class="look-tpl">${LOOK_T.map(([id, n, d]) => `<label class="look-t"><input type="radio" name="lookT" value="${id}"${id === th ? ' checked' : ''}><img src="img/templates/${id}.jpg" alt="" loading="lazy"><b>${n}</b><span>${d}</span></label>`).join('')}</div></div>
       <div class="card2"><div class="fh"><b>ფერი</b></div><p class="hint">ღილაკების და აქცენტების ფერი. ყველა ფერი თეთრ ტექსტთან კარგად იკითხება.</p><div class="look-col">${LOOK_C.map(c => `<label><input type="radio" name="lookC" value="${c}"${c.toLowerCase() === col.toLowerCase() ? ' checked' : ''} aria-label="ფერი ${c}"><span style="--c:${c}"></span></label>`).join('')}</div></div>
       <div class="card2"><div class="fh"><b>სათაურების შრიფტი</b></div><div class="look-font">
@@ -280,7 +280,11 @@
         </div></div>`;
     p.onchange = p.oninput = e => {
       const t = e.target, site = (D.site = D.site || {});
-      if (t.name === 'lookKind') site.kind = t.value;
+      if (t.name === 'lookKind') {
+        let ks = [...p.querySelectorAll('input[name=lookKind]:checked')].map(x => x.value);
+        if (ks.length > 2) { t.checked = false; ks = ks.filter(k => k !== t.value); }
+        if (ks.length) { site.kinds = ks; site.kind = ks[0]; } else { delete site.kinds; delete site.kind; }
+      }
       if (t.name === 'lookT') { site.theme = t.value; if (!site.accent) delete site.accent; }
       if (t.name === 'lookC') site.accent = t.value;
       if (t.name === 'lookF') { if (t.value === 'serif') site.font = 'serif'; else delete site.font; }

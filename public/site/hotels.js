@@ -33,7 +33,7 @@ window.V2DEMO = (() => {
   };
   const roomsPh = RP(['lake-double', 'lake-double2'], ['lake-twin', 'lake-twin2'], ['lake-suite']);
 
-  // kind: what guests look for on Visit2.ge (mountain, sea, wine, city, nature)
+  // kind: what guests look for on Visit2.ge (see KINDS below; kinds = up to two)
   const I = n => 'img/h/' + n + '.jpg';
   const T3 = (ka, en, ru) => ({ ka, en, ru });
   const H = (slug, name, nameEn, nameRu, city, kind, theme, accent, k, photos, tag, about, amenities, loc, extra = {}) => ({
@@ -107,7 +107,12 @@ window.V2DEMO = (() => {
       T3('ექვსი ნომერი ცოლის ქუჩაზე: ფეხით ბაზრამდე და თეთრი ხიდამდე, ეზოში ღვინის საღამოები.', 'Six rooms on a quiet street: walk to the market and the White Bridge, wine evenings in the yard.', 'Шесть номеров на тихой улице: пешком до рынка и Белого моста, винные вечера во дворе.'),
       ['wifi', 'center', 'breakfast'], T3('ტაბიძის ქუჩა 11.', '11 Tabidze St.', 'ул. Табидзе 11.'), { lat: 42.2701, lng: 42.7029 }),
   ];
-  const KINDS = { mountain: ['მთა', 'Mountains', 'Горы'], sea: ['ზღვა', 'Sea', 'Море'], wine: ['ღვინო და კახეთი', 'Wine country', 'Вино и Кахетия'], city: ['ქალაქი', 'City', 'Город'], nature: ['ბუნება', 'Nature', 'Природа'] };
+  // the seven kinds of stay guests look for (a hotel may have up to two)
+  const KINDS = { mountain: ['მთა', 'Mountains', 'Горы'], sea: ['ზღვა', 'Sea', 'Море'], history: ['ისტორია', 'History', 'История'], wine: ['ღვინო', 'Wine', 'Вино'],
+    food: ['სამზარეულო', 'Cuisine', 'Кухня'], nature: ['ბუნება', 'Nature', 'Природа'], city: ['ქალაქი', 'City', 'Город'] };
+  const KINDS_OF = { dzveli: ['history', 'city'], kutaisi: ['history', 'city'], terasa: ['history', 'wine'], alazani: ['wine', 'food'], qvevri: ['wine', 'food'],
+    racha: ['nature', 'food'], svaneti: ['mountain', 'history'], kazbegi: ['mountain', 'nature'] };
+  HOTELS.forEach(h => { h.kinds = KINDS_OF[h.slug] || [h.kind]; });
 
   // only for scripts/check-layout.py: the longest name and town we expect, never listed
   const STRESS = { slug: 'test-long', hidden: true, name: 'საოჯახო სასტუმრო „დიდი მთის ძველი სახლი“', city: 'სტეფანწმინდა (ყაზბეგი)', theme: 'kva', accent: '#0E857D', types: types(1.4), site: HOTELS[0].site, kind: 'mountain', cover: 'bakuriani-chalet', lat: 42.66, lng: 44.64 };

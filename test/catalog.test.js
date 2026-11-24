@@ -27,7 +27,7 @@ describe('the guests\' catalogue', () => {
     const a = h.find(x => x.slug === 'cat-a');
     expect(a.url).toBe('https://cat-a.visit2.ge/');
     expect(a.img).toBe('https://cat-a.visit2.ge/media/a.webp');
-    expect(a.kind).toBe('mountain');
+    expect(a.kinds).toEqual(['mountain']);
     expect(h.some(x => x.slug === 'cat-b')).toBe(false); // no photo yet
     expect(h.some(x => x.slug === 'cat-c')).toBe(false); // closed
   });

@@ -172,9 +172,10 @@
   // distance in km between two points (haversine)
   const km = (a, b) => { const R = 6371, r = x => x * Math.PI / 180, dLa = r(b.lat - a.lat), dLn = r(b.lng - a.lng);
     return 2 * R * Math.asin(Math.sqrt(Math.sin(dLa / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLn / 2) ** 2)); };
+  const kindsOf = h => (Array.isArray(h.kinds) && h.kinds.length ? h.kinds : h.kind ? [h.kind] : []);
   const find = ({ city = '', from = '', to = '', g = 2, kind = '', center = null, r = 5 }) => {
     const dated = from && to && to > from;
-    return pub().filter(h => !h.hidden && (!city || h.city === city) && (!kind || h.kind === kind))
+    return pub().filter(h => !h.hidden && (!city || h.city === city) && (!kind || kindsOf(h).includes(kind)))
       .map(h => ({ h, o: offer(h, from, to, g), d: center && h.lat ? km(center, h) : null }))
       .filter(x => !center || (x.d != null && x.d <= r))
       .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) : 0) || (center ? a.d - b.d : 0) || (!!b.h.promo - !!a.h.promo) || (dated ? (a.o.best?.total || 0) - (b.o.best?.total || 0) : 0));
@@ -185,7 +186,7 @@
   // header: solid once the page scrolls, so the logo (home) and links stay readable everywhere
   const top = document.querySelector('.p-top');
   if (top) { const on = () => top.classList.toggle('scrolled', scrollY > 30); addEventListener('scroll', on, { passive: true }); on(); }
-  window.V2FIND = { loadReal, onReal: f => realHooks.push(f), find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t, pub, nights, kindName: k => kindName(k), get lang() { return lang; } };
+  window.V2FIND = { kindsOf, loadReal, onReal: f => realHooks.push(f), find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t, pub, nights, kindName: k => kindName(k), get lang() { return lang; } };
 
   // the town list: popular places first, in order of popularity, then every place alphabetically
   function fillTowns() {

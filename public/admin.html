@@ -73,7 +73,7 @@ body.site .toast{bottom:130px}
 .look-col{display:flex;flex-wrap:wrap;gap:10px}.look-col label{position:relative;cursor:pointer}.look-col input{position:absolute;opacity:0}.look-col span{display:block;width:44px;height:44px;border-radius:50%;background:var(--c);border:3px solid #fff;box-shadow:0 0 0 1px #ddd}
 .look-col input:checked+span{box-shadow:0 0 0 3px #1F1A17}.look-col input:focus-visible+span{outline:3px solid #0E857D;outline-offset:3px}
 .look-font{display:flex;flex-wrap:wrap;gap:10px}.look-font label{position:relative;cursor:pointer}.look-font input{position:absolute;opacity:0}.look-font span{display:inline-flex;align-items:center;min-height:52px;padding:0 18px;border:1px solid var(--line);border-radius:12px;font-size:19px;font-weight:700}
-.look-font input:checked+span{border-color:#1F1A17;box-shadow:inset 0 0 0 1px #1F1A17}.look-kids{display:grid;gap:6px}.look-kids .chk{position:relative}.look-kp input{max-width:160px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
+.look-kinds span{font-size:16px!important;font-weight:600!important;min-height:44px!important}.look-font input:checked+span{border-color:#1F1A17;box-shadow:inset 0 0 0 1px #1F1A17}.look-kids{display:grid;gap:6px}.look-kids .chk{position:relative}.look-kp input{max-width:160px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
 .one-ph{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.one-ph img,.ph-empty{width:200px;max-width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;background:#eee}.ph-empty{display:grid;place-items:center;color:var(--mute,#645C55);font-size:14px;border:1px dashed var(--line)}
 .amen-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 16px}
 .near-find{display:flex;gap:8px}.near-find input{flex:1;min-width:0;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
@@ -531,10 +531,10 @@ body:has(#gate:not([hidden])) .v2h-btn{display:none}
 </form>
 </dialog>
 
-<script src="site/hotels.js?v=20261124x"></script>
-<script src="js/i18n.js?v=20261124x"></script>
-<script src="js/store.js?v=20261124x"></script>
-<script src="js/content.js?v=20261124x"></script>
+<script src="site/hotels.js?v=20261124y"></script>
+<script src="js/i18n.js?v=20261124y"></script>
+<script src="js/store.js?v=20261124y"></script>
+<script src="js/content.js?v=20261124y"></script>
 <script>
 {
 const J=JIJI,$=id=>document.getElementById(id);
@@ -1072,10 +1072,10 @@ function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderS
 J.onChange(()=>{if(!$('app').hidden){renderAll();checkNew()}});
 }
 </script>
-<script src="js/admin-dates.js?v=20261124x"></script>
-<script src="js/admin-team.js?v=20261124x"></script>
-<script src="js/osm.js?v=20261124x"></script>
-<script src="js/admin-site.js?v=20261124x"></script>
-<script src="js/admin-help.js?v=20261124x"></script>
+<script src="js/admin-dates.js?v=20261124y"></script>
+<script src="js/admin-team.js?v=20261124y"></script>
+<script src="js/osm.js?v=20261124y"></script>
+<script src="js/admin-site.js?v=20261124y"></script>
+<script src="js/admin-help.js?v=20261124y"></script>
 </body>
 </html>

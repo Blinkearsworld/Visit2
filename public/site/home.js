@@ -28,7 +28,8 @@
     pet1: ['ცხოველით', 'with a pet', 'с животным'], petsN: ['{n} ცხოველით', 'with {n} pets', 'с животными: {n}'],
     guestsN: ['{n} სტუმარი', '{n} guests', 'Гостей: {n}'], guest1: ['1 სტუმარი', '1 guest', '1 гость'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], kid1: ['1 ბავშვი', '1 child', '1 ребёнок'],
     all: ['ყველა', 'All', 'Все'], seeAll: ['ყველას ნახვა', 'See all', 'Смотреть все'],
-    rowKind: { mountain: ['მთაში', 'In the mountains', 'В горах'], wine: ['ღვინის მხარეში', 'In wine country', 'В винном крае'], sea: ['ზღვაზე', 'By the sea', 'У моря'], city: ['ქალაქში', 'In the city', 'В городе'], nature: ['ბუნებაში', 'In nature', 'На природе'] },
+    rowKind: { mountain: ['მთაში', 'In the mountains', 'В горах'], sea: ['ზღვაზე', 'By the sea', 'У моря'], history: ['ისტორიასთან ახლოს', 'Close to history', 'Рядом с историей'], wine: ['ღვინის მხარეში', 'In wine country', 'В винном крае'],
+      food: ['სახლის სამზარეულოთი', 'With home cooking', 'С домашней кухней'], nature: ['ბუნებაში', 'In nature', 'На природе'], city: ['ქალაქში', 'In the city', 'В городе'] },
     newH: ['ახალი Visit2.ge-ზე', 'New on Visit2.ge', 'Новые на Visit2.ge'], newSub: ['ახლახან შემოგვიერთდნენ', 'Just joined us', 'Недавно присоединились'],
     saved: ['შენახული', 'Saved', 'Сохранённые'], saveIt: ['შენახვა', 'Save', 'Сохранить'], unsave: ['შენახულიდან ამოღება', 'Remove from saved', 'Убрать из сохранённых'],
     perNight: ['ღამე', 'night', 'ночь'], fromP: ['{p} ₾-დან', 'from {p} ₾', 'от {p} ₾'], totalN: ['{n} ღამე', '{n} nights', 'ночей: {n}'], busy: ['ამ თარიღებზე დაკავებულია', 'Booked on these dates', 'На эти даты занято'],
@@ -49,8 +50,8 @@
     en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     ru: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'] };
   const DOW = { ka: ['ორ', 'სა', 'ოთ', 'ხუ', 'პა', 'შა', 'კვ'], en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] };
-  const KIND_ICON = { mountain: '⛰️', sea: '🌊', wine: '🍷', city: '🏙️', nature: '🌲' };
-  const KIND_ORDER = ['mountain', 'wine', 'sea', 'city', 'nature'];
+  const KIND_ICON = { mountain: '🏔️', sea: '🌊', history: '🏛️', wine: '🍷', food: '🥟', nature: '🌲', city: '🏙️' };
+  const KIND_ORDER = ['mountain', 'sea', 'history', 'wine', 'food', 'nature', 'city'];
   const shortTown = c => F.town(c).replace(/\s*\(.*\)\s*$/, '');
 
   function applyTexts() {
@@ -233,7 +234,7 @@
   <a href="${F.link(x, isDated ? { from: s.from, to: s.to, g: s.g + s.kids } : {})}">
     <div class="h-card-ph">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : ''}</div>
     <h3>${esc(F.hname(x))}</h3>
-    <p class="h-card-m">${esc(shortTown(x.city))}${x.kind ? ' · ' + esc(F.kindName(x.kind)) : ''}${o.d != null ? ' · ' + h('km', { k: o.d < 10 ? o.d.toFixed(1) : Math.round(o.d) }) : ''}</p>
+    <p class="h-card-m">${esc(shortTown(x.city))}${F.kindsOf(x).length ? ' · ' + esc(F.kindsOf(x).map(F.kindName).join(', ')) : ''}${o.d != null ? ' · ' + h('km', { k: o.d < 10 ? o.d.toFixed(1) : Math.round(o.d) }) : ''}</p>
     <p class="h-card-p">${price}</p>
   </a>${heart(x.slug)}</article>`;
   }
@@ -241,7 +242,7 @@
   // ---------- kinds (chips) and rows ----------
   let curKind = '';
   function renderChips() {
-    const kinds = KIND_ORDER.filter(k => D.KINDS[k] && F.pub().some(x => x.kind === k && !x.hidden));
+    const kinds = KIND_ORDER.filter(k => D.KINDS[k] && F.pub().some(x => F.kindsOf(x).includes(k) && !x.hidden));
     $('#chips').innerHTML = [['', '✨', h('all')], ...kinds.map(k => [k, KIND_ICON[k] || '', F.kindName(k)])]
       .map(([k, i, n]) => `<button type="button" class="h-chip" data-kind="${k}" aria-pressed="${k === curKind}"><span aria-hidden="true">${i}</span> ${esc(n)}</button>`).join('');
   }
@@ -254,7 +255,7 @@
     <div class="h-row-head wrap"><div><h2>${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div>${more ? `<button type="button" class="h-more" ${more} aria-label="${esc(h('seeAll') + ': ' + title)}"><span aria-hidden="true">→</span></button>` : ''}</div>
     <div class="h-row">${items}</div></section>`;
   function renderRows() {
-    const s = st(), all = F.find({ g: s.g + s.kids }).filter(r => (!curKind || r.h.kind === curKind) && petsOk(r.h, s));
+    const s = st(), all = F.find({ g: s.g + s.kids }).filter(r => (!curKind || F.kindsOf(r.h).includes(curKind)) && petsOk(r.h, s));
     const by = new Map(all.map(r => [r.h.slug, r]));
     let html = '';
     const sv = saved().map(x => by.get(x) || F.find({ g: 2 }).find(r => r.h.slug === x)).filter(Boolean);
@@ -263,7 +264,7 @@
     if (!curKind && fresh.length) html += row('', h('newH'), h('newSub'), [...fresh].reverse().map(r => card(r.h, r.o, {})).join(''), '');
     if (!curKind) {
       for (const k of KIND_ORDER) {
-        const rs = all.filter(r => r.h.kind === k); if (!rs.length) continue;
+        const rs = all.filter(r => F.kindsOf(r.h).includes(k)); if (!rs.length) continue;
         html += row('', H.rowKind[k][LI()], [...new Set(rs.map(r => shortTown(r.h.city)))].join(', '), rs.map(r => card(r.h, r.o, {})).join(''), `data-more-kind="${k}"`);
       }
     } else {
