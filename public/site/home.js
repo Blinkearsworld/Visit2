@@ -38,6 +38,7 @@
     locating: ['ვეძებ შენს ადგილს…', 'Finding you…', 'Определяем место…'], noLoc: ['ადგილი ვერ განისაზღვრა. დააჭირე რუკაზე.', 'Could not get your location. Tap the map instead.', 'Не удалось определить место. Нажмите на карте.'],
     eatH: ['რესტორნები', 'Restaurants', 'Рестораны'], eatSub: ['რესტორნები, კაფეები და ბარები ქალაქის ცენტრში', 'Restaurants, cafés and bars in the town centre', 'Рестораны, кафе и бары в центре'],
     eatNote: ['ადგილები და რუკა: © OpenStreetMap-ის მონაწილეები.', 'Places and map: © OpenStreetMap contributors.', 'Места и карта: © участники OpenStreetMap.'],
+    adBadge: ['რეკომენდებული · ნიმუში', 'Recommended · sample', 'Рекомендуем · образец'],
     fromCentre: ['ცენტრიდან {m}', '{m} from the centre', '{m} от центра'],
     aboutH: ['Visit2.ge-ის შესახებ', 'About Visit2.ge', 'О Visit2.ge'],
     aboutP: ['Visit2.ge ქართული პლატფორმაა მცირე სასტუმროებისა და ბინებისთვის. სტუმარი პირდაპირ სასტუმროსთან ჯავშნის, ფასს სასტუმრო თავად აწესებს და საკომისიოს არავინ იხდის.', 'Visit2.ge is a Georgian platform for small hotels and flats. Guests book straight with the hotel, the hotel sets its own price, and nobody pays a commission.', 'Visit2.ge — грузинская платформа для небольших отелей и квартир. Гости бронируют напрямую у отеля, цену устанавливает сам отель, и никто не платит комиссию.'],
@@ -352,6 +353,7 @@
 
   // ---------- where to eat: the weekly list from OpenStreetMap (data/places.json), by town ----------
   let eatFile = null, eatTown = '';
+  const EAT_C = { 'ბაკურიანი': [41.7495, 43.5320], 'თბილისი': [41.6925, 44.8015], 'ბათუმი': [41.6475, 41.6370], 'თელავი': [41.9198, 45.4733], 'გუდაური': [42.4770, 44.4780] };
   const eatKind = k => { const K = window.V2FOOD?.KIND || {}; return (K[k] || K.restaurant || [''])[LI()] || ''; };
   const dist = m => (m < 1000 ? m + ' ' + ['მ', 'm', 'м'][LI()] : (m / 1000).toFixed(1) + ' ' + ['კმ', 'km', 'км'][LI()]);
   async function renderEat() {
@@ -362,7 +364,10 @@
     $('#eat').hidden = false;
     if (!list.includes(eatTown)) eatTown = list.includes(st().city) ? st().city : list[0];
     $('#eatTowns').innerHTML = list.map(c => `<button type="button" class="h-chip" data-eat="${esc(c)}" aria-pressed="${c === eatTown}">${esc(shortTown(c))}</button>`).join('');
-    $('#eatRow').innerHTML = towns[eatTown].slice(0, 10).map(x => `<a class="h-eat" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((x.name.def || '') + ', ' + F.town(eatTown).replace(/\s*\(.*\)\s*$/, '') + ', Georgia')}" target="_blank" rel="noopener">
+    const ads = (window.V2ADS?.inTown(eatTown) || []).map(x => ({ ...x, m: window.V2ADS.metres({ lat: EAT_C[eatTown]?.[0] ?? x.lat, lng: EAT_C[eatTown]?.[1] ?? x.lng }, x) }));
+    $('#eatRow').innerHTML = ads.map(x => `<a class="h-eat h-eat-ad" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.name.ka + ', ' + shortTown(eatTown))}" target="_blank" rel="noopener">
+      <img src="${esc(x.photo)}" alt="" loading="lazy"><span class="h-eat-badge">${h('adBadge')}</span>
+      <span class="h-eat-k">${esc(eatKind(x.kind))}</span><b>${esc(x.name[F.lang] || x.name.ka)}</b><span>${esc(x.note[F.lang] || x.note.ka)}</span></a>`).join('') + towns[eatTown].slice(0, 10).map(x => `<a class="h-eat" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((x.name.def || '') + ', ' + F.town(eatTown).replace(/\s*\(.*\)\s*$/, '') + ', Georgia')}" target="_blank" rel="noopener">
       <span class="h-eat-k">${esc(eatKind(x.kind))}</span><b>${esc(x.name[F.lang] || x.name.def)}</b><span>${esc(h('fromCentre', { m: dist(x.m) }))}</span></a>`).join('');
   }
   $('#eatTowns').addEventListener('click', e => { const b = e.target.closest('[data-eat]'); if (!b) return; eatTown = b.dataset.eat; renderEat(); });

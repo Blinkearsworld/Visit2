@@ -4,7 +4,10 @@
 (() => {
   const DEMO = /github\.io$/.test(location.hostname) || location.protocol === 'file:' || ['8765', '8799'].includes(location.port)
     || (/^(www\.)?visit2\.ge$/.test(location.hostname) || (/\.workers\.dev$/.test(location.hostname) && !/^\/h\//.test(location.pathname))); // Visit2.ge's own sample pages
-  const K_CACHE = 'v2-content', K_DEMO = 'v2-content-demo', K_PREVIEW = 'v2-content-preview';
+  // keys carry the hotel's own address, so two hotels opened in one browser (e.g. the /h/{slug}/ preview addresses,
+  // which share one origin) never see each other's cached texts, phone numbers or unsaved previews
+  const SCOPE = location.host + (location.pathname.match(/^\/h\/[a-z0-9-]+\//) || [''])[0];
+  const K_CACHE = 'v2-content:' + SCOPE, K_DEMO = 'v2-content-demo', K_PREVIEW = 'v2-content-preview:' + SCOPE;
   const ls = {
     get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage full or off */ } }

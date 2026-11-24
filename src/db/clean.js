@@ -2,7 +2,8 @@
 // The admin builds this JSON; anything else (unknown keys, odd links, very long texts) is dropped here,
 // so a hotel's page never carries script links or junk, whatever is sent to the API.
 const LANGS = ['ka', 'en', 'ru'];
-const THEMES = ['opal', 'amber', 'cobalt', 'alba', 'jade', 'onyx', 'indigo', 'ivory', 'lilac', 'umber'];
+const THEMES = ['opal', 'amber', 'cobalt', 'alba', 'jade'];
+const OLD_THEME = { onyx: 'opal', indigo: 'cobalt', ivory: 'amber', lilac: 'jade', umber: 'alba' }; // earlier templates, retired
 const AMEN = ['wifi', 'parking', 'breakfast', 'kitchen', 'fireplace', 'pool', 'garden', 'bbq', 'balcony', 'kids', 'pets', 'ski', 'sea', 'center', 'transfer'];
 const KINDS = ['restaurant', 'georgian', 'cafe', 'bakery', 'wine', 'bar', 'fish', 'grill', 'pizza', 'fast'];
 
@@ -24,7 +25,8 @@ const list = (v, max, f) => (Array.isArray(v) ? v.slice(0, max).map(f).filter(x 
 function cleanSite(s) {
   if (!s || typeof s !== 'object' || Array.isArray(s)) return undefined;
   const o = {};
-  if (THEMES.includes(s.theme)) o.theme = s.theme;
+  const th = OLD_THEME[s.theme] || s.theme;
+  if (THEMES.includes(th)) o.theme = th;
   if (typeof s.accent === 'string' && /^#[0-9a-f]{6}$/i.test(s.accent)) o.accent = s.accent;
   if (s.font === 'serif') o.font = 'serif';
   if (s.hero) o.hero = prune({ img: img(s.hero.img), tagline: tri(s.hero.tagline, 200) });

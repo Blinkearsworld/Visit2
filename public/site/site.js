@@ -30,7 +30,7 @@
   const W = {
     about: ['ჩვენ შესახებ', 'About', 'О нас'], rooms: ['ნომრები', 'Rooms', 'Номера'], amen: ['რა გვაქვს', 'Amenities', 'Удобства'],
     gallery: ['ფოტოები', 'Photos', 'Фото'], where: ['სად ვართ', 'Location', 'Где мы'], faq: ['ხშირი კითხვები', 'FAQ', 'Вопросы'],
-    food: ['რესტორნები და კაფეები ახლოს', 'Restaurants and cafés nearby', 'Рестораны и кафе рядом'], recommended: ['რეკომენდებული', 'Recommended', 'Рекомендуем'],
+    food: ['რესტორნები და კაფეები ახლოს', 'Restaurants and cafés nearby', 'Рестораны и кафе рядом'], adSample: ['რეკომენდებული · ნიმუში', 'Recommended · sample', 'Рекомендуем · образец'], recommended: ['რეკომენდებული', 'Recommended', 'Рекомендуем'],
     foodAll: ['ყველა რესტორანი და კაფე ახლოს', 'All restaurants and cafés nearby', 'Все рестораны и кафе рядом'], foodAllH: ['რესტორნები და კაფეები, ჯერ უახლოესი', 'Restaurants and cafés, nearest first', 'Рестораны и кафе, сначала ближайшие'],
     foodMap: ['რუკაზე ნახვა', 'Open map', 'На карте'], foodWalk: ['ფეხით ~{n} წთ', '~{n} min walk', '~{n} мин пешком'], foodHours: ['ღიაა 10:00–23:00', 'Open 10:00–23:00', 'Открыто 10:00–23:00'],
     foodDemo: ['დემო: ნამდვილ საიტზე აქ იქნება რესტორნის ტელეფონი, მისამართი, მენიუ და ფოტოები.', 'Demo: the real site shows the phone, address, menu and photos here.', 'Демо: на настоящем сайте здесь будут телефон, адрес, меню и фото.'],
@@ -128,7 +128,8 @@
   async function loadContent() {
     // the admin's "preview" (unsaved changes) and, in the demo, the owner's own site saved in this browser
     const ls = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
-    if (params.get('preview') === '1' && ls('v2-content-preview')) { C = ls('v2-content-preview'); return; }
+    const KP = window.JC ? window.JC.K_PREVIEW : '';
+    if (params.get('preview') === '1' && KP && ls(KP)) { C = ls(KP); return; }
     if (isDemo()) { if (J.hotel && J.hotel.mine) C = ls('v2-content-demo') || {}; return; }
     try { const r = await fetch('api/content', { cache: 'no-store' }); if (r.ok) C = (await r.json()).content || {}; } catch (e) { /* keep defaults */ }
   }
@@ -297,6 +298,9 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     const f = S().food || {}, hide = new Set(f.hide || []), p = pin();
     const own = (f.own || []).filter(x => pick(x.name)).map((x, i) => ({ id: 'own' + i, name: pick(x.name), kind: x.kind || 'restaurant', note: pick(x.note), own: true, m: null,
       phone: x.phone || '', web: /^https?:\/\//i.test(x.web || '') ? x.web : '', mapUrl: /^https:\/\/(www\.)?(google\.[a-z.]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.)/i.test(x.map || '') ? x.map : '' }));
+    // sample paid places (site/ads.js), only on sample hotels; real hotels will get real ones from the server
+    const ads = isDemo() && window.V2ADS && p ? window.V2ADS.near(p).map(x => ({ id: x.id, name: x.name[lang()] || x.name.ka, kind: x.kind, note: x.note[lang()] || x.note.ka, photo: x.photo, lat: x.lat, lng: x.lng, m: x.m, sponsored: true, sample: true })) : [];
+    own.push(...ads);
     const real = Array.isArray(f.places) ? f.places : PL;
     if (real) return [...own, ...real.filter(x => !hide.has(x.id)).map(x => ({ ...x, name: nameOf(x.name), m: p ? metres(p, x) : x.m }))];
     // invented names only in the offline preview (GitHub Pages, local testing); on visit2.ge only real places
@@ -304,7 +308,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     if (!offline || !isDemo() || !F) return own;
     return [...own, ...F.all((J.hotel || {}).city).map(x => ({ ...x, id: 'demo-' + x.name, demo: true }))];
   }
-  const shortList = all => [...all].sort((a, b) => (b.own - a.own) || ((b.sponsored || 0) - (a.sponsored || 0)) || ((a.m ?? 0) - (b.m ?? 0))).slice(0, 4);
+  const shortList = all => [...all].sort((a, b) => ((b.sponsored || 0) - (a.sponsored || 0)) || ((b.own || 0) - (a.own || 0)) || ((a.m ?? 0) - (b.m ?? 0))).slice(0, 4);
 
   function foodSection() {
     const all = foodList(); if (!all.length) return '';
@@ -326,8 +330,9 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   }
   const dist = m => (m < 1000 ? `${m} ${lang() === 'ka' ? 'მ' : lang() === 'ru' ? 'м' : 'm'}` : `${(m / 1000).toFixed(1)} ${lang() === 'ka' ? 'კმ' : lang() === 'ru' ? 'км' : 'km'}`);
   const kindName = k => { const K = window.V2FOOD?.KIND || {}; const n = K[k] || K.restaurant || ['']; return n[['ka', 'en', 'ru'].indexOf(lang())] || n[0]; };
-  const foodItem = r => `<li><button type="button" class="food-item${r.own || r.sponsored ? ' rec' : ''}" data-food="${esc(r.id)}">
-    ${r.own ? `<span class="food-badge">${w('hostTip')}</span>` : r.sponsored ? `<span class="food-badge">${w('recommended')}</span>` : ''}
+  const foodItem = r => `<li${r.photo ? ' class="ad"' : ''}><button type="button" class="food-item${r.own || r.sponsored ? ' rec' : ''}${r.photo ? ' has-ph' : ''}" data-food="${esc(r.id)}">
+    ${r.photo ? `<img src="${esc(r.photo)}" alt="" loading="lazy">` : ''}
+    ${r.sponsored ? `<span class="food-badge">${w(r.sample ? 'adSample' : 'recommended')}</span>` : r.own ? `<span class="food-badge">${w('hostTip')}</span>` : ''}
     <b>${esc(r.name)}</b>
     <span class="food-meta">${[kindName(r.kind), r.m != null ? dist(r.m) : '', r.price ? '₾'.repeat(r.price) : ''].filter(Boolean).map(esc).join(' · ')}</span>
   </button></li>`;
@@ -337,7 +342,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     const city = (J.hotel || {}).city || '', d = $('#placeDlg');
     // a Google Maps search by name and town opens the place's own Google page (reviews, photos, links); free, no Google key
     const where = `${r.name}, ${city.replace(/\s*\(.*\)\s*$/, '')}, Georgia`;
-    d.querySelector('.place-body').innerHTML = `${r.own ? `<span class="food-badge">${w('hostTip')}</span>` : r.sponsored ? `<span class="food-badge">${w('recommended')}</span>` : ''}
+    d.querySelector('.place-body').innerHTML = `${r.photo ? `<img class="place-ph" src="${esc(r.photo)}" alt="">` : ''}${r.sponsored ? `<span class="food-badge">${w(r.sample ? 'adSample' : 'recommended')}</span>` : r.own ? `<span class="food-badge">${w('hostTip')}</span>` : ''}
       <h2 id="placeH">${esc(r.name)}</h2>
       <p class="food-meta">${esc([kindName(r.kind), r.cuisine && !/georgian/i.test(r.cuisine) ? r.cuisine : '', r.price ? '₾'.repeat(r.price) : ''].filter(Boolean).join(' · '))}</p>
       ${r.note ? `<p>${esc(r.note)}</p>` : ''}

@@ -78,4 +78,25 @@ describe('admin API of two hotels', () => {
     expect((await call(HA, '/' + url)).status).toBe(200);
     expect((await call(HB, '/' + url)).status).toBe(404);
   });
+
+  it('one hotel\'s changes never reach another hotel', async () => {
+    // B saves its own look; A's stays
+    await call(HB, '/api/admin/content', { method: 'POST', cookie: cb, body: { content: { site: { theme: 'alba', accent: '#1F1A17', hero: { tagline: { ka: 'B-ს ტექსტი' } } } } } });
+    const a = await (await call(HA, '/api/content')).json(), b = await (await call(HB, '/api/content')).json();
+    expect(a.content.site.hero.tagline.ka).toBe('A-ს ტექსტი');
+    expect(a.content.site.theme).toBeUndefined();
+    expect(b.content.site.hero.tagline.ka).toBe('B-ს ტექსტი');
+    // A's cookie cannot save at B's address, and B's history is not readable with A's cookie
+    expect((await call(HB, '/api/admin/content', { method: 'POST', cookie: ca, body: { content: { site: { hero: { tagline: { ka: 'ხაკერი' } } } } } })).status).toBe(401);
+    expect((await (await call(HB, '/api/content')).json()).content.site.hero.tagline.ka).toBe('B-ს ტექსტი');
+    const hb = await (await call(HB, '/api/admin/content', { cookie: cb })).json();
+    const verB = hb.versions[0].id;
+    const peek = await call(HA, `/api/admin/content?ver=${verB}`, { cookie: ca });
+    expect(peek.status).toBe(404); // A asks for B's version number at its own address: not found
+    // the same through the preview addresses /h/{slug}/ on one host
+    const pa = await (await call('visit2.example.workers.dev', '/h/api-a/api/content')).json();
+    const pb = await (await call('visit2.example.workers.dev', '/h/api-b/api/content')).json();
+    expect(pa.content.site.hero.tagline.ka).toBe('A-ს ტექსტი');
+    expect(pb.content.site.hero.tagline.ka).toBe('B-ს ტექსტი');
+  });
 });
