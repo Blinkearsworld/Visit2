@@ -328,3 +328,21 @@ p { margin: 0 0 1em; }
   .home .kinds { padding-top: 76px; }
 }
 @media (prefers-reduced-motion: reduce) { .home .hero-bg { transition: none; } }
+
+/* ===== Partners page: calm hero (24 Nov 2026) — one photo, one heading, one button ===== */
+.o-hero { display: flex; align-items: flex-end; min-height: min(78svh, 720px); padding: 120px 0 40px; }
+.o-hero::after { background: linear-gradient(180deg, rgba(10, 18, 17, .5) 0%, rgba(10, 18, 17, .1) 30%, rgba(10, 18, 17, .35) 55%, rgba(10, 18, 17, .85) 100%); }
+.o-hero-in { display: block; width: 100%; }
+.o-hero h1 { max-width: 20ch; font-size: clamp(30px, 7vw, 54px); font-weight: 800; line-height: 1.18; }
+.o-hero .lead { margin: 0 0 6px; }
+.o-hero .price-line { margin: 0 0 22px; font-size: 15px; font-weight: 600; color: rgba(255, 255, 255, .85); }
+.o-hero .acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; }
+.o-more { display: inline-flex; align-items: center; min-height: 44px; color: #fff; font-weight: 700; text-decoration: underline 1px rgba(255, 255, 255, .6); text-underline-offset: 5px; }
+@media (min-width: 1025px) {
+  .o-hero { min-height: 640px; padding: 150px 0 72px; }
+}
+.gets ul { gap: 0; }
+.gets li { padding: 18px 0; border-radius: 0; background: none; border-bottom: 1px solid var(--line); }
+.gets li:last-child { border-bottom: 0; }
+.gets .soon { background: var(--warm); }
+@media (min-width: 641px) { .gets ul { grid-template-columns: 1fr 1fr; column-gap: 40px; } .gets li:nth-last-child(2) { border-bottom: 0; } }

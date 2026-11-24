@@ -20,14 +20,10 @@
   <section class="o-hero">
     <img class="hero-bg" src="img/h/ski-spa.jpg" alt="">
     <div class="wrap o-hero-in">
-      <div class="o-hero-text">
-        <p class="slogan" data-t="oSlogan">შენი ვიზიტ2 უკვე გეძებს</p>
-        <h1 data-t="oH1">შენი სასტუმროს საიტი, ჯავშნები და ჩატბოტი ერთ ადგილას</h1>
-        <p class="lead" data-t="oLead">აირჩიე შაბლონი, ჩაწერე სახელი, და საიტი მზადაა.</p>
-        <p class="price-line" data-t="oPrice">50₾ თვეში, საკომისიოს გარეშე. პირველი 30 დღე უფასოა, ბარათი არ გჭირდება.</p>
-        <div class="acts"><a class="btn btn-teal" href="#signup" data-t="create">საიტის შექმნა</a><a class="btn btn-glass" href="#templates" data-t="seeTpl">შაბლონების ნახვა</a></div>
-      </div>
-      <div class="phone-stack" aria-hidden="true"><img src="img/templates/jade.jpg" alt=""><img src="img/templates/opal.jpg" alt=""></div>
+      <h1 data-t="oH1">შენი სასტუმროს საიტი, ჯავშნები და ჩატბოტი ერთ ადგილას</h1>
+      <p class="lead" data-t="oLead">აირჩიე შაბლონი, ჩაწერე სახელი, და საიტი მზადაა.</p>
+      <p class="price-line" data-t="oPrice">50₾ თვეში, საკომისიოს გარეშე · პირველი 30 დღე უფასოდ</p>
+      <div class="acts"><a class="btn btn-teal" href="#signup" data-t="create">საიტის შექმნა</a><a class="o-more" href="#templates" data-t="seeTpl">შაბლონების ნახვა</a></div>
     </div>
   </section>
   <section class="gets">
@@ -57,7 +53,7 @@
         <label><span data-t="fCity">ქალაქი ან სოფელი</span><input name="city" required maxlength="40" placeholder="მაგ.: ბაკურიანი"></label>
         <label class="wide"><span data-t="fEmail">ელფოსტა</span><input name="email" type="email" autocomplete="email" placeholder="შენი ელფოსტა ადმინში შესასვლელად"></label>
         <fieldset class="wide"><legend data-t="fTpl">შაბლონი</legend><div class="choice" id="tplChoice"></div></fieldset>
-        <fieldset class="wide"><legend data-t="fCol">ფერი</legend><div class="choice" id="colChoice"></div></fieldset>
+        <input type="hidden" name="accent" value="">
         <label class="agree wide"><input type="checkbox" name="agree"><span data-t="fAgree">ვეთანხმები პირობებს</span></label>
         <button class="btn btn-teal wide" type="submit" data-t="create">საიტის შექმნა</button>
         <p class="form-msg wide" id="formMsg" role="status"></p>

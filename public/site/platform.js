@@ -48,8 +48,8 @@
     yours: ['შენი სასტუმრო', 'your hotel', 'ваш отель'], none: ['აქ Visit2.ge-ზე სასტუმრო ან ბინა ჯერ არ არის. სცადე ახლომდებარე ადგილი.', 'No hotels or flats here on Visit2.ge yet. Try a place nearby.', 'Здесь на Visit2.ge пока нет отелей и квартир. Попробуйте место рядом.'],
     oSlogan: ['შენი ვიზიტ2 უკვე გეძებს', 'Your guests are already looking for you', 'Ваши гости уже ищут вас'],
     oH1: ['შენი სასტუმროს საიტი, ჯავშნები და ჩატბოტი ერთ ადგილას', 'Your hotel website, bookings and chatbot in one place', 'Сайт отеля, брони и чат-бот в одном месте'],
-    oLead: ['აირჩიე შაბლონი, ჩაწერე სახელი, და საიტი მზადაა. ჯავშნებს, ფასებს და კალენდარს ადმინში მართავ, სტუმრებს ჩატბოტი პასუხობს.', 'Pick a template, type your name, and the site is ready. Manage bookings, prices and the calendar in the admin; the chatbot answers guests.', 'Выберите шаблон, впишите название, и сайт готов. Брони, цены и календарь в админке, гостям отвечает чат-бот.'],
-    oPrice: ['50₾ თვეში, საკომისიოს გარეშე. პირველი 30 დღე უფასოა, ბარათი არ გჭირდება.', '50₾ a month, no commission. The first 30 days are free, no card needed.', '50₾ в месяц, без комиссии. Первые 30 дней бесплатно, карта не нужна.'],
+    oLead: ['აირჩიე შაბლონი, ჩაწერე სახელი, და საიტი მზადაა.', 'Pick a template, type your name, and your site is ready.', 'Выберите шаблон, впишите название, и сайт готов.'],
+    oPrice: ['50₾ თვეში, საკომისიოს გარეშე · პირველი 30 დღე უფასოდ', '50₾ a month, no commission · first 30 days free', '50₾ в месяц, без комиссии · первые 30 дней бесплатно'],
     create: ['საიტის შექმნა', 'Create my site', 'Создать сайт'], seeTpl: ['შაბლონების ნახვა', 'See templates', 'Шаблоны'], getsH: ['რას იღებ', 'What you get', 'Что вы получаете'],
     get1: ['<b>საიტი</b>ათი შაბლონიდან ერთ-ერთი, შენი ფერით, ფოტოებით და ტექსტებით. ქართულად, ინგლისურად და რუსულად.', '<b>Website</b>One of ten templates with your colour, photos and texts. In Georgian, English and Russian.', '<b>Сайт</b>Один из десяти шаблонов с вашим цветом, фото и текстами. На грузинском, английском и русском.'],
     get2: ['<b>ადმინი</b>მოთხოვნები, კალენდარი, ფასები სეზონებით, გადახდები, სტუმრების ისტორია, გუნდი და ჟურნალი.', '<b>Admin</b>Requests, calendar, seasonal prices, payments, guest history, team and activity log.', '<b>Админка</b>Запросы, календарь, сезонные цены, оплаты, история гостей, команда и журнал.'],
@@ -342,7 +342,7 @@
     const cur = $('#ownerForm').theme?.value || 'opal', curC = $('#ownerForm').accent?.value || COLORS[0];
     $('#tplList').innerHTML = TPL.map(([id, demo, nm, good, look]) => `<figure class="tpl-item"><img src="img/templates/${id}.jpg" alt="${esc(nm[L()])}" loading="lazy"><figcaption><b>${esc(nm[L()])}</b><p class="tpl-good">${esc(good[L()])}</p><p>${esc(look[L()])}</p><a href="hotel.html?h=${demo}&theme=${id}&sample=1${BUILD ? '&v=' + BUILD : ''}">${t('sample')}</a></figcaption></figure>`).join('');
     $('#tplChoice').innerHTML = TPL.map(([id, , nm]) => `<label><input type="radio" name="theme" value="${id}"${id === cur ? ' checked' : ''}><span class="opt">${esc(nm[L()])}</span></label>`).join('');
-    $('#colChoice').innerHTML = COLORS.map(c => `<label><input type="radio" name="accent" value="${c}"${c === curC ? ' checked' : ''} aria-label="${t('fCol')} ${c}"><span class="opt dot" style="--c:${c}"></span></label>`).join('');
+    if ($('#colChoice')) $('#colChoice').innerHTML = COLORS.map(c => `<label><input type="radio" name="accent" value="${c}"${c === curC ? ' checked' : ''} aria-label="${t('fCol')} ${c}"><span class="opt dot" style="--c:${c}"></span></label>`).join('');
     const mine = D.mine(); if (mine) showDone(mine);
   }
   if ($('#ownerForm')) {
