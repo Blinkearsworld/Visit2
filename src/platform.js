@@ -1,5 +1,6 @@
 // API of the platform itself (visit2.ge, not a hotel).
 //   POST /api/signup  { name, city, email, password, theme, agree } → { ok, slug, site, admin }
+//   GET /api/catalog?from&to&g  real hotels for the guests' search (public facts only)
 //   /api/ops/*        Visit2's own admin: login, logout, state (hotels, to-do), task (save), task-del
 import { json, readJson } from './lib/http.js';
 import { signUp, signUpsFrom, noteSignUp, SIGNUP_LIMIT } from './db/signup.js';
@@ -7,6 +8,7 @@ import { ROOT_DOMAIN } from './db/tenants.js';
 import { tooManyFails, noteFail, clearFails } from './db/users.js';
 import { opsLogin, opsCookie, opsClear, opsUser, allHotels, autoTasks, listTasks, saveTask, deleteTask } from './db/ops.js';
 import { today, addDays } from './lib/time.js';
+import { catalog } from './db/catalog.js';
 
 export async function platformApi(request, env, { preview = false } = {}) {
   const url = new URL(request.url), p = url.pathname, m = request.method, db = env.DB;
@@ -21,6 +23,13 @@ export async function platformApi(request, env, { preview = false } = {}) {
     // before the real domain works, hotels open under /h/{slug}/ on this same address
     const site = preview ? `${url.origin}/h/${r.tenant.slug}/` : `https://${r.tenant.slug}.${ROOT_DOMAIN}/`;
     return json({ ok: true, slug: r.tenant.slug, site, admin: site + 'admin' });
+  }
+  if (p === '/api/catalog' && m === 'GET') {
+    const q = url.searchParams, from = q.get('from') || '', to = q.get('to') || '', g = Math.max(1, Math.min(20, +q.get('g') || 2));
+    // a hotel's address: its own subdomain, or /h/{slug}/ on the preview address
+    const siteOf = t => (preview ? `${url.origin}/h/${t.slug}/` : `https://${t.slug}.${ROOT_DOMAIN}/`);
+    const hotels = await catalog(db, { siteOf, from, to, guests: g });
+    return json({ hotels }, 200, { 'cache-control': 'public, max-age=60' });
   }
   if (p.startsWith('/api/ops/')) return opsApi(request, env, url, preview);
   return json({ error: 'not found' }, 404);

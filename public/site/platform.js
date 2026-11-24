@@ -3,7 +3,25 @@
 (() => {
   const D = window.V2DEMO, $ = s => document.querySelector(s);
   // the guest catalogue: published hotels only. The owner's own demo site ("mine") stays private to them.
-  const pub = () => D.list().filter(h => !h.mine);
+  // + real hotels from the server (api/catalog), when this page runs on Visit2.ge with a server behind it
+  let REAL = [], realKey = null, realWait = null;
+  const realHooks = [];
+  const pub = () => [...REAL, ...D.list().filter(h => !h.mine)];
+  const HAS_SERVER = /^https?:$/.test(location.protocol) && !/github\.io$/.test(location.hostname) && !['8765', '8798', '8799'].includes(location.port);
+  // asks the server once per set of dates; the answer says which real hotels are free and their price
+  function loadReal(q = {}) {
+    if (!HAS_SERVER) return Promise.resolve(REAL);
+    const dated = q.from && q.to && q.to > q.from, key = dated ? `${q.from}|${q.to}|${q.g || 2}` : '';
+    if (key === realKey) return realWait || Promise.resolve(REAL);
+    realKey = key;
+    realWait = fetch('api/catalog' + (dated ? `?from=${q.from}&to=${q.to}&g=${q.g || 2}` : ''))
+      .then(r => (r.ok ? r.json() : { hotels: [] })).then(d => {
+        REAL = (d.hotels || []).map(h => ({ ...h, offerKey: key, types: {}, site: { amenities: h.amenities || [] } }));
+        realHooks.forEach(f => { try { f(); } catch (e) { console.error(e); } });
+        return REAL;
+      }).catch(() => REAL).finally(() => { realWait = null; });
+    return realWait;
+  }
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ---------- language ----------
@@ -131,6 +149,12 @@
   // ---------- guests: search (also used by the chatbot) ----------
   const booked = h => { try { const st = JSON.parse(localStorage.getItem('v2-demo-' + h.slug) || 'null'); return st ? st.bookings.filter(b => b.status === 'confirmed') : []; } catch (e) { return []; } };
   function offer(h, from, to, g) {
+    if (h.real) {
+      const dated = from && to && to > from;
+      if (!dated) return { minFrom: h.minFrom };
+      const fresh = h.offerKey === `${from}|${to}|${g}`;
+      return { minFrom: h.minFrom, best: fresh && h.offer ? { total: h.offer.total, type: h.offer.type } : null, n: nights(from, to), unknown: !fresh };
+    }
     const rate = ty => (h.types[ty]?.rates || []).find(r => r.guests >= g);
     const minFrom = Math.min(...Object.values(h.types).flatMap(ty => ty.rates.map(r => Math.min(...Object.values(r.price)))));
     if (!from || !to || to <= from) return { minFrom };
@@ -157,11 +181,11 @@
   };
   // this build's stamp (from our own script tag), so a hotel page never comes from an old browser copy
   const BUILD = ((document.querySelector('script[src*="site/platform.js"]') || {}).src || '').split('?v=')[1] || '';
-  const link = (h, q) => `hotel.html?h=${encodeURIComponent(h.slug)}${q.from && q.to ? `&from=${q.from}&to=${q.to}&g=${q.g}` : ''}${BUILD ? '&v=' + BUILD : ''}`;
+  const link = (h, q) => h.real ? h.url + (q.from && q.to ? `?from=${q.from}&to=${q.to}&g=${q.g}` : '') : `hotel.html?h=${encodeURIComponent(h.slug)}${q.from && q.to ? `&from=${q.from}&to=${q.to}&g=${q.g}` : ''}${BUILD ? '&v=' + BUILD : ''}`;
   // header: solid once the page scrolls, so the logo (home) and links stay readable everywhere
   const top = document.querySelector('.p-top');
   if (top) { const on = () => top.classList.toggle('scrolled', scrollY > 30); addEventListener('scroll', on, { passive: true }); on(); }
-  window.V2FIND = { find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t, pub, nights, kindName: k => kindName(k), get lang() { return lang; } };
+  window.V2FIND = { loadReal, onReal: f => realHooks.push(f), find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t, pub, nights, kindName: k => kindName(k), get lang() { return lang; } };
 
   // the town list: popular places first, in order of popularity, then every place alphabetically
   function fillTowns() {

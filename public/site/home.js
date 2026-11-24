@@ -29,6 +29,7 @@
     guestsN: ['{n} სტუმარი', '{n} guests', 'Гостей: {n}'], guest1: ['1 სტუმარი', '1 guest', '1 гость'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], kid1: ['1 ბავშვი', '1 child', '1 ребёнок'],
     all: ['ყველა', 'All', 'Все'], seeAll: ['ყველას ნახვა', 'See all', 'Смотреть все'],
     rowKind: { mountain: ['მთაში', 'In the mountains', 'В горах'], wine: ['ღვინის მხარეში', 'In wine country', 'В винном крае'], sea: ['ზღვაზე', 'By the sea', 'У моря'], city: ['ქალაქში', 'In the city', 'В городе'], nature: ['ბუნებაში', 'In nature', 'На природе'] },
+    newH: ['ახალი Visit2.ge-ზე', 'New on Visit2.ge', 'Новые на Visit2.ge'], newSub: ['ახლახან შემოგვიერთდნენ', 'Just joined us', 'Недавно присоединились'],
     saved: ['შენახული', 'Saved', 'Сохранённые'], saveIt: ['შენახვა', 'Save', 'Сохранить'], unsave: ['შენახულიდან ამოღება', 'Remove from saved', 'Убрать из сохранённых'],
     perNight: ['ღამე', 'night', 'ночь'], fromP: ['{p} ₾-დან', 'from {p} ₾', 'от {p} ₾'], totalN: ['{n} ღამე', '{n} nights', 'ночей: {n}'], busy: ['ამ თარიღებზე დაკავებულია', 'Booked on these dates', 'На эти даты занято'],
     freeN: ['თავისუფალია: {n}', 'Available: {n}', 'Свободно: {n}'], pickDates: ['აირჩიე თარიღები, რომ ნახო თავისუფალი ნომრები და ფასი', 'Add dates to see free rooms and the price', 'Выберите даты, чтобы увидеть свободные номера и цену'],
@@ -82,7 +83,7 @@
   let heroList = [], heroAt = 0, heroHold = 0;
   const still = matchMedia('(prefers-reduced-motion: reduce)');
   function pickHero() {
-    const all = F.pub().filter(x => !x.hidden && x.cover);
+    const all = F.pub().filter(x => !x.hidden && (x.cover || x.img));
     for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
     const seen = new Set(), out = [];
     for (const x of all) if (!seen.has(x.city) && out.length < 6) { seen.add(x.city); out.push(x); }
@@ -91,7 +92,7 @@
   function heroShow(i) {
     if (!heroList.length) return;
     heroAt = (i + heroList.length) % heroList.length;
-    const x = heroList[heroAt], src = `img/h/${x.cover}.jpg`, a = $('#heroA'), b = $('#heroB');
+    const x = heroList[heroAt], src = x.img || `img/h/${x.cover}.jpg`, a = $('#heroA'), b = $('#heroB');
     const front = a.classList.contains('h-next') ? b : a, back = front === a ? b : a;
     const swap = () => { back.classList.remove('h-next'); front.classList.add('h-next'); };
     if (front.getAttribute('src') !== src) { back.onload = swap; back.src = src; if (back.complete && back.naturalWidth) swap(); }
@@ -224,11 +225,11 @@
 
   // ---------- one hotel card ----------
   function card(x, o, s) {
-    const img = x.cover ? `img/h/${x.cover}-s.jpg` : x.site?.hero?.img || '';
+    const img = x.img || (x.cover ? `img/h/${x.cover}-s.jpg` : x.site?.hero?.img || '');
     const isDated = dated(s);
-    const price = isDated ? (o.best ? `<b>${o.best.total} ₾</b> · ${h('totalN', { n: o.n })}` : `<span class="h-busy">${h('busy')}</span>`)
+    const price = isDated && o.unknown ? `<b>${h('fromP', { p: o.minFrom })}</b> / ${h('perNight')}` : isDated ? (o.best ? `<b>${o.best.total} ₾</b> · ${h('totalN', { n: o.n })}` : `<span class="h-busy">${h('busy')}</span>`)
       : `<b>${h('fromP', { p: o.minFrom })}</b> / ${h('perNight')}`;
-    return `<article class="h-card${isDated && !o.best ? ' busy' : ''}">
+    return `<article class="h-card${isDated && !o.best && !o.unknown ? ' busy' : ''}">
   <a href="${F.link(x, isDated ? { from: s.from, to: s.to, g: s.g + s.kids } : {})}">
     <div class="h-card-ph">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : ''}</div>
     <h3>${esc(F.hname(x))}</h3>
@@ -258,6 +259,8 @@
     let html = '';
     const sv = saved().map(x => by.get(x) || F.find({ g: 2 }).find(r => r.h.slug === x)).filter(Boolean);
     if (sv.length) html += row('saved', h('saved'), '', sv.map(r => card(r.h, r.o, {})).join(''), '');
+    const fresh = all.filter(r => r.h.real);
+    if (!curKind && fresh.length) html += row('', h('newH'), h('newSub'), [...fresh].reverse().map(r => card(r.h, r.o, {})).join(''), '');
     if (!curKind) {
       for (const k of KIND_ORDER) {
         const rs = all.filter(r => r.h.kind === k); if (!rs.length) continue;
@@ -284,6 +287,7 @@
   let center = null, radius = 5, map = null, layer = null;
   const RADII = [1, 3, 5, 10, 25];
   function showResults(scroll) {
+    if (dated(st())) { const s0 = st(); F.loadReal({ from: s0.from, to: s0.to, g: s0.g + s0.kids }); }
     const s = st(), rows = F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, kind: curKind, center, r: radius }).filter(r => petsOk(r.h, s));
     $('#results').hidden = false;
     $('#resTitle').textContent = center ? h('within', { r: radius }) : s.city ? F.town(s.city) : curKind ? F.kindName(curKind) : h('allStays');
@@ -319,7 +323,7 @@
       const price = dated(s) ? (o.best ? o.best.total + ' ₾' : '—') : h('fromP', { p: o.minFrom });
       const icon = L.divIcon({ className: '', html: `<span class="pin${dated(s) && !o.best ? ' no' : ''}">${esc(price)}</span>`, iconSize: null });
       L.marker([x.lat, x.lng], { icon, title: F.hname(x) }).addTo(layer)
-        .bindPopup(`<a class="pop" href="${F.link(x, dated(s) ? { from: s.from, to: s.to, g: s.g + s.kids } : {})}"><img src="img/h/${x.cover}-s.jpg" alt=""><b>${esc(F.hname(x))}</b><span>${esc(shortTown(x.city))} · ${esc(price)}</span></a>`);
+        .bindPopup(`<a class="pop" href="${F.link(x, dated(s) ? { from: s.from, to: s.to, g: s.g + s.kids } : {})}"><img src="${esc(x.img || `img/h/${x.cover}-s.jpg`)}" alt=""><b>${esc(F.hname(x))}</b><span>${esc(shortTown(x.city))} · ${esc(price)}</span></a>`);
       pts.push([x.lat, x.lng]);
     }
     if (!center && pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.2), { maxZoom: 13 });
@@ -383,5 +387,8 @@
 
   function renderAll() { applyTexts(); summary(); heroCredit(); renderChips(); renderRows(); if (!$('#results').hidden) showResults(false); if (!$('#eat').hidden) renderEat(); if (view && sheet.open) show(view); }
   window.V2LANG?.onChange(renderAll);
+  // real hotels arrive from the server a moment later: redraw what shows hotels
+  F.onReal(() => { renderChips(); renderRows(); if (!$('#results').hidden) showResults(false); if (heroList.every(x => !x.real) && F.pub().some(x => x.real)) { heroList = pickHero(); heroShow(0); } });
+  F.loadReal();
   renderAll();
 })();
