@@ -74,16 +74,6 @@
     document.querySelector('.h-pill').classList.toggle('set', !!(s.city || dated(s)));
   }
 
-  // ---------- menu ----------
-  const menu = $('#menu');
-  $('#menuBtn').addEventListener('click', () => menu.showModal());
-  menu.addEventListener('click', e => { if (e.target === menu || e.target.closest('[data-close]')) menu.close(); });
-
-  // header: see-through on the photo, solid once the page scrolls
-  const top = $('#top');
-  const onScroll = () => top.classList.toggle('scrolled', scrollY > 40);
-  addEventListener('scroll', onScroll, { passive: true }); onScroll();
-
   // ---------- hero: real hotels from the catalogue, one at a time ----------
   let heroList = [], heroAt = 0, heroHold = 0;
   const still = matchMedia('(prefers-reduced-motion: reduce)');

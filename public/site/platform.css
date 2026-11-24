@@ -367,3 +367,44 @@ p { margin: 0 0 1em; }
 .p-top.on-photo.scrolled .p-link { color: var(--ink); text-shadow: none; }
 .p-top.on-photo.scrolled .p-langs button { color: var(--muted); }
 .p-top.on-photo.scrolled .p-langs button[aria-pressed="true"] { color: var(--ink); text-decoration-color: var(--teal); }
+
+/* ---------- shared header and menu (site/menu.js) ---------- */
+/* header: logo and a menu button, see-through on the photo, solid when scrolled */
+.h-top { position: fixed; z-index: 30; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px var(--pad); padding-top: max(10px, env(safe-area-inset-top)); transition: background .25s, box-shadow .25s; }
+.h-logo { display: inline-flex; min-height: 44px; align-items: center; }
+.h-logo img { display: block; filter: brightness(0) invert(1); transition: filter .25s; }
+.h-menu-btn { min-height: 44px; display: inline-flex; align-items: center; gap: 10px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .6);
+  background: rgba(20, 20, 20, .18); color: #fff; font: 600 15px/1 var(--font); cursor: pointer; backdrop-filter: blur(8px); }
+.h-burger { display: grid; gap: 4px; } .h-burger i { display: block; width: 18px; height: 2px; border-radius: 2px; background: currentColor; }
+.h-top.solid { position: sticky; }
+.h-top.scrolled, .h-top.solid { background: rgba(255, 248, 238, .96); box-shadow: 0 1px 0 var(--line); backdrop-filter: blur(10px); }
+.h-top.scrolled .h-logo img, .h-top.solid .h-logo img { filter: none; }
+.h-top.scrolled .h-menu-btn, .h-top.solid .h-menu-btn { color: var(--ink); background: #fff; border-color: var(--line); }
+
+/* menu: a panel from the right */
+.h-menu { margin: 0 0 0 auto; height: 100%; max-height: 100%; width: min(420px, 100%); max-width: 100%; padding: 0; border: 0; background: #fff; color: var(--ink); }
+.h-menu::backdrop { background: rgba(20, 20, 20, .45); }
+.h-menu-in { padding: max(16px, env(safe-area-inset-top)) 24px 32px; }
+.h-menu-head, .h-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; }
+.h-menu-head h2 { margin: 0; font-size: 20px; }
+.h-x, .h-back { width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; font: 300 32px/1 var(--font); color: var(--ink); cursor: pointer; }
+.h-x:hover, .h-back:hover { background: var(--sand); }
+.h-langs { display: flex; gap: 8px; margin: 8px 0 20px; flex-wrap: wrap; }
+.h-langs button { min-height: 44px; padding: 0 16px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font: 600 15px/1 var(--font); color: var(--ink); cursor: pointer; }
+.h-langs button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.h-links { display: grid; border-top: 1px solid var(--line); }
+.h-links a { display: flex; align-items: center; min-height: 56px; border-bottom: 1px solid var(--line); color: var(--ink); text-decoration: none; font-size: 19px; font-weight: 600; }
+.h-links a[hidden] { display: none; }
+.h-links-small { margin-top: 24px; } .h-links-small a { min-height: 48px; font-size: 16px; font-weight: 500; color: var(--muted); }
+
+
+/* ---------- partners page in the home page's style: a calm photo, centred words ---------- */
+.owners .o-hero { display: grid; place-items: center; min-height: min(86svh, 760px); padding: 110px 0 64px; text-align: center; }
+.owners .o-hero::after { background: linear-gradient(180deg, rgba(0, 0, 0, .45) 0%, rgba(0, 0, 0, .38) 45%, rgba(0, 0, 0, .55) 100%); }
+.owners .o-hero-in { display: block; max-width: 860px; }
+.owners .o-hero h1 { margin: 0 auto 18px; max-width: 18ch; font-size: clamp(30px, 6.6vw, 56px); font-weight: 700; line-height: 1.15; text-wrap: balance; text-shadow: 0 2px 24px rgba(0, 0, 0, .35); }
+.owners .o-hero .lead { margin: 0 auto 8px; max-width: 40ch; }
+.owners .o-hero .price-line { margin: 0 auto 26px; max-width: 46ch; }
+.owners .o-hero .acts { justify-content: center; }
+.owners .o-hero .acts .btn { flex: 0 1 auto; min-width: 220px; }
