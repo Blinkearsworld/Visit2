@@ -55,8 +55,10 @@ async def main():
                     await pg.goto(f'http://localhost:{PORT}/{url}', wait_until='load')
                     await pg.wait_for_timeout(700)
                     if name == 'admin':
-                        await pg.wait_for_selector('#pin', state='visible', timeout=8000)
-                        await pg.fill('#pin', '1234'); await pg.click('#gateBtn'); await pg.wait_for_timeout(900)
+                        # the browser preview opens the admin directly; a PIN screen only if one is shown
+                        await pg.wait_for_timeout(900)
+                        if await pg.is_visible('#pin'):
+                            await pg.fill('#pin', '1234'); await pg.click('#gateBtn'); await pg.wait_for_timeout(900)
                     await pg.add_style_tag(content='.demo{display:none!important}')
                     r = await pg.evaluate(OVERFLOW_JS)
                     path = f'{OUT}/{name}-{size}.png'

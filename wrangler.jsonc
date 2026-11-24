@@ -10,7 +10,7 @@
   // daily at 03:17 UTC: data retention (src/db/retention.js)
   "triggers": { "crons": ["17 3 * * *"] },
   "d1_databases": [
-    { "binding": "DB", "database_name": "visit2", "database_id": "00000000-0000-0000-0000-000000000000", "migrations_dir": "migrations" }
+    { "binding": "DB", "database_name": "visit2", "database_id": "4a62c23d-9361-4fff-b13c-9ca64a29d630", "migrations_dir": "migrations" }
   ],
   "vars": {
     // the platform's own host names; everything else is looked up in the domains table
