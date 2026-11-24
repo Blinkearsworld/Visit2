@@ -2,6 +2,8 @@
    Three languages; the choice is shared with the hotel sites (same storage key as js/i18n.js). */
 (() => {
   const D = window.V2DEMO, $ = s => document.querySelector(s);
+  // the guest catalogue: published hotels only. The owner's own demo site ("mine") stays private to them.
+  const pub = () => D.list().filter(h => !h.mine);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ---------- language ----------
@@ -87,11 +89,11 @@
   const town = c => (lang === 'ka' || !TOWN[c] ? c : TOWN[c][lang === 'en' ? 0 : 1]);
   // every town in the list plus any town an owner typed, alphabetically in the visitor's language
   const allTowns = () => {
-    const own = [...new Set(D.list().map(h => h.city).filter(c => !TOWN[c]))];
+    const own = [...new Set(pub().map(h => h.city).filter(c => !TOWN[c]))];
     return [...PLACES.map(p => p[0]), ...own].sort((a, b) => town(a).localeCompare(town(b), lang));
   };
   // popular places in order of popularity (the order in places.js)
-  const popular = () => [...new Set([...PLACES.filter(p => p[3]).map(p => p[0]), ...D.list().map(h => h.city)])];
+  const popular = () => [...new Set([...PLACES.filter(p => p[3]).map(p => p[0]), ...pub().map(h => h.city)])];
   const hname = h => (lang === 'ka' || !h.nameT ? h.name : h.nameT[lang] || h.name);
   const TYPE = { 'სტანდარტული ორადგილიანი': ['Standard double', 'Стандартный двухместный'], 'საოჯახო, 1 საძინებლით (4+1)': ['Family, 1 bedroom', 'Семейный, 1 спальня'], 'ლუქსი, 2 საძინებლით': ['Suite, 2 bedrooms', 'Люкс, 2 спальни'] };
   const tname = n => (lang === 'ka' || !TYPE[n] ? n : TYPE[n][lang === 'en' ? 0 : 1]);
@@ -140,7 +142,7 @@
     return 2 * R * Math.asin(Math.sqrt(Math.sin(dLa / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLn / 2) ** 2)); };
   const find = ({ city = '', from = '', to = '', g = 2, kind = '', center = null, r = 5 }) => {
     const dated = from && to && to > from;
-    return D.list().filter(h => !h.hidden && (!city || h.city === city) && (!kind || h.kind === kind))
+    return pub().filter(h => !h.hidden && (!city || h.city === city) && (!kind || h.kind === kind))
       .map(h => ({ h, o: offer(h, from, to, g), d: center && h.lat ? km(center, h) : null }))
       .filter(x => !center || (x.d != null && x.d <= r))
       .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) : 0) || (center ? a.d - b.d : 0) || (!!b.h.promo - !!a.h.promo) || (dated ? (a.o.best?.total || 0) - (b.o.best?.total || 0) : 0));
@@ -233,7 +235,7 @@
   // a few real hotels picked at random from the catalogue on every visit (different towns where possible)
   // Later: promoted hotels get these places first, always marked as an ad.
   function heroList() {
-    const all = D.list().filter(h => !h.hidden && h.cover);
+    const all = pub().filter(h => !h.hidden && h.cover);
     for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
     const seen = new Set(), pick = [];
     for (const h of all) if (!seen.has(h.city) && pick.length < 6) { seen.add(h.city); pick.push(h); }
@@ -278,7 +280,7 @@
   const DEST = ['ბაკურიანი', 'თელავი', 'ბათუმი', 'თბილისი', 'გუდაური'];
   function renderDest() {
     const el = $('#dest'); if (!el) return;
-    el.innerHTML = DEST.map(c => { const hs = D.list().filter(h => h.city === c && !h.hidden); if (!hs.length) return '';
+    el.innerHTML = DEST.map(c => { const hs = pub().filter(h => h.city === c && !h.hidden); if (!hs.length) return '';
       return `<button type="button" class="dest-tile" data-dest="${esc(c)}"><img src="img/h/${hs[0].cover}${c === DEST[0] ? '' : '-s'}.jpg" alt="" loading="lazy"><div><b>${esc(town(c))}</b><span>${t(hs.length === 1 ? 'nHotel1' : 'nHotels', { n: hs.length })}</span></div></button>`; }).join('');
   }
   if ($('#search')) {
