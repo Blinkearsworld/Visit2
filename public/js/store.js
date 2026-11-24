@@ -42,7 +42,7 @@ window.JIJI = (() => {
   const weekday = s => WD[toD(s).getUTCDay()];
 
   // the hotel's own seasons (from the server): [{id, name, from: 'MM-DD', to: 'MM-DD'}], first match wins
-  let seasonList = null, hotel = DEMO_H ? { name: DEMO_H.name, city: DEMO_H.city, slug: DEMO_H.slug, demo: true, mine: !!DEMO_H.mine } : { name: 'შენი სასტუმრო', city: 'ბაკურიანი', slug: 'demo', demo: true };
+  let seasonList = null, hotel = DEMO_H ? { name: DEMO_H.name, city: DEMO_H.city, slug: DEMO_H.slug, demo: true, mine: !!DEMO_H.mine, lat: DEMO_H.lat, lng: DEMO_H.lng } : { name: 'შენი სასტუმრო', city: 'ბაკურიანი', slug: 'demo', demo: true };
   const inRange = (md, a, b) => (a <= b ? md >= a && md <= b : md >= a || md <= b);
   const seasonOf = s => {
     if (seasonList && seasonList.length) { const md = s.slice(5); const f = seasonList.find(x => inRange(md, x.from, x.to)); return (f || seasonList[seasonList.length - 1]).id; }

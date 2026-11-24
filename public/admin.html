@@ -67,6 +67,11 @@ body.site .toast{bottom:130px}
 .gacts{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .btn.sm{min-height:38px;padding:0 12px;font-size:14px}
 .btn:disabled{opacity:.45;cursor:default}
+.near-find{display:flex;gap:8px}.near-find input{flex:1;min-width:0;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;font:inherit}
+.near-found{display:flex;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--mute)}.near-found:empty{display:none}
+.near-map{height:min(60vh,420px);border-radius:10px;border:1px solid var(--line);overflow:hidden;z-index:0}
+.near-pin span{display:block;width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--teal,#0B7A73);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+#nearList{display:grid;gap:2px;max-height:420px;overflow:auto}
 .chk{display:flex;gap:12px;align-items:center;min-height:44px;cursor:pointer}.chk input{width:22px;height:22px}
 .yt{margin-top:8px;max-width:260px;width:100%;border-radius:8px}
 .okt{color:var(--ok);font-weight:500}.bad{color:var(--no)}
@@ -466,6 +471,7 @@ body:has(#gate:not([hidden])) .v2h-btn{display:none}
 <button class="stab" role="tab" aria-selected="false" data-s="video">ვიდეო</button>
 <button class="stab" role="tab" aria-selected="false" data-s="contact">კონტაქტები</button>
 <button class="stab" role="tab" aria-selected="false" data-s="faq">ხშირი კითხვები</button>
+<button class="stab" role="tab" aria-selected="false" data-s="near">რუკა და რესტორნები</button>
 <button class="stab" role="tab" aria-selected="false" data-s="sections">სექციები</button>
 <button class="stab" role="tab" aria-selected="false" data-s="hist">ისტორია</button>
 </div>
@@ -475,6 +481,7 @@ body:has(#gate:not([hidden])) .v2h-btn{display:none}
 <section class="panel" id="s-video" role="tabpanel" hidden></section>
 <section class="panel" id="s-contact" role="tabpanel" hidden></section>
 <section class="panel" id="s-faq" role="tabpanel" hidden></section>
+<section class="panel" id="s-near" role="tabpanel" hidden></section>
 <section class="panel" id="s-sections" role="tabpanel" hidden></section>
 <section class="panel" id="s-hist" role="tabpanel" hidden></section>
 <div class="sbar" id="sBar"><span id="sState">ყველაფერი შენახულია</span><span class="sb"><button type="button" class="btn" id="sPrev" title="შეუნახავი ცვლილებების ნახვა საიტზე">ნახვა</button><button type="button" class="btn" id="sUndo" disabled>გაუქმება</button><button type="button" class="btn pri" id="sSave" disabled>შენახვა</button></span></div>
@@ -512,10 +519,10 @@ body:has(#gate:not([hidden])) .v2h-btn{display:none}
 </form>
 </dialog>
 
-<script src="site/hotels.js?v=20261123c"></script>
-<script src="js/i18n.js?v=20261123c"></script>
-<script src="js/store.js?v=20261123c"></script>
-<script src="js/content.js?v=20261123c"></script>
+<script src="site/hotels.js?v=20261124a"></script>
+<script src="js/i18n.js?v=20261124a"></script>
+<script src="js/store.js?v=20261124a"></script>
+<script src="js/content.js?v=20261124a"></script>
 <script>
 {
 const J=JIJI,$=id=>document.getElementById(id);
@@ -1053,9 +1060,9 @@ function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderS
 J.onChange(()=>{if(!$('app').hidden){renderAll();checkNew()}});
 }
 </script>
-<script src="js/admin-dates.js?v=20261123c"></script>
-<script src="js/admin-team.js?v=20261123c"></script>
-<script src="js/admin-site.js?v=20261123c"></script>
-<script src="js/admin-help.js?v=20261123c"></script>
+<script src="js/admin-dates.js?v=20261124a"></script>
+<script src="js/admin-team.js?v=20261124a"></script>
+<script src="js/admin-site.js?v=20261124a"></script>
+<script src="js/admin-help.js?v=20261124a"></script>
 </body>
 </html>

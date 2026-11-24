@@ -7,11 +7,15 @@ import { purgeHotel } from './db/retention.js';
 import { page, esc } from './lib/html.js';
 import { hotelApi } from './api.js';
 import { platformApi } from './platform.js';
+import { placesApi, geocodeApi } from './places.js';
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const host = normHost(url.hostname);
+    // restaurants near a hotel (public OpenStreetMap data), the same on every address: /api/places or /h/{slug}/api/places
+    if (/^(\/h\/[a-z0-9-]+)?\/api\/places$/.test(url.pathname) && request.method === 'GET') return placesApi(request, env, ctx);
+    if (/^(\/h\/[a-z0-9-]+)?\/api\/geocode$/.test(url.pathname) && request.method === 'GET') return geocodeApi(request, env, ctx);
     const platformHosts = String(env.PLATFORM_HOSTS || '').split(',').map(normHost).filter(Boolean);
 
     // preview address before the real domain exists: https://visit2.<account>.workers.dev/h/{slug}/...

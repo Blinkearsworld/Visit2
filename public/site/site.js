@@ -40,6 +40,8 @@
     foodDemo: ['დემო: ნამდვილ საიტზე აქ იქნება რესტორნის ტელეფონი, მისამართი, მენიუ და ფოტოები.', 'Demo: the real site shows the phone, address, menu and photos here.', 'Демо: на настоящем сайте здесь будут телефон, адрес, меню и фото.'],
     foodAllPlaces: ['ყველა რესტორანი და კაფე', 'All restaurants and cafés', 'Все рестораны и кафе'],
     foodKind: ['სამზარეულო', 'Cuisine', 'Кухня'], foodAny: ['ყველა', 'All', 'Все'], close: ['დახურვა', 'Close', 'Закрыть'],
+    foodOsm: ['რუკა და ადგილები: © OpenStreetMap-ის მონაწილეები.', 'Map and places: © OpenStreetMap contributors.', 'Карта и места: © участники OpenStreetMap.'],
+    hostTip: ['მასპინძელი გირჩევთ', 'Host’s tip', 'Совет хозяина'], mapLabel: ['რუკა: სასტუმრო და ახლომახლო ადგილები', 'Map: the hotel and places nearby', 'Карта: отель и места рядом'],
     foodNote: ['სია Visit2.ge-დანაა. „რეკომენდებული“ რესტორნის ფასიანი ადგილია.', 'List from Visit2.ge. “Recommended” is a paid spot.', 'Список от Visit2.ge. «Рекомендуем» — платное размещение.'],
     sampleName: ['შენი სასტუმრო', 'Your Hotel', 'Ваш отель'], sampleCity: ['ქალაქი', 'Town', 'Город'],
     sampleTag: ['აქ ერთი წინადადება შენს სასტუმროზე', 'One sentence about your place', 'Одно предложение о вашем отеле'],
@@ -167,8 +169,9 @@
       ${tel ? `<a class="btn btn-ghost" href="${tel}">${w('call')} ${esc(c.phone)}</a>` : ''}
       ${s.location?.map || c.map ? `<a class="btn btn-ghost" href="${esc(s.location?.map || c.map)}" target="_blank" rel="noopener">${w('map')}</a>` : ''}
     </div>
+    ${mapBlock()}
   </section>`,
-    food: () => foodSection(J.hotel || {}),
+    food: () => foodSection(),
     seasons: () => seasonsBlock(),
     facts: () => factsBlock(),
     compare: () => compareBlock(),
@@ -234,15 +237,54 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     wire();
   }
 
-  // places to eat nearby, from Visit2.ge (restaurants list themselves free; "recommended" is a paid, labelled spot)
-  function foodSection(h) {
-    const F = window.V2FOOD; if (!F) return '';
-    const all = F.all(h.city); if (!all.length) return '';
+  // ---------- places to eat nearby ----------
+  // Real places come from OpenStreetMap through our server (api/places), around the hotel's pin.
+  // The owner may hide a place and add their own tips, which come first ("the host recommends").
+  // Only where there is no server (the static preview) the invented demo list in food.js is shown.
+  let PL = null, plFor = '';               // places from the server for the current pin
+  const pin = () => {
+    const p = S().pin, h = J.hotel || {};
+    if (p && Number.isFinite(+p.lat) && Number.isFinite(+p.lng)) return { lat: +p.lat, lng: +p.lng };
+    return Number.isFinite(+h.lat) && h.lat != null ? { lat: +h.lat, lng: +h.lng } : null;
+  };
+  const metres = (a, b) => {
+    const r = Math.PI / 180, da = (b.lat - a.lat) * r, dl = (b.lng - a.lng) * r;
+    return Math.round(12742000 * Math.asin(Math.sqrt(Math.sin(da / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dl / 2) ** 2)));
+  };
+  // OpenStreetMap opening hours ("Mo-Su 10:00-23:00") in the guest's language
+  const hoursText = h => {
+    const L = { ka: ['ორშ', 'სამ', 'ოთხ', 'ხუთ', 'პარ', 'შაბ', 'კვი', 'ყოველდღე', 'დღე-ღამე'], en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Daily', 'Open 24 hours'], ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс', 'Ежедневно', 'Круглосуточно'] }[lang()] || [];
+    if (h.trim() === '24/7') return L[8];
+    return h.replace(/\bMo-Su\b/g, L[7]).replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su)\b/g, d => L[['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].indexOf(d)]).replace(/;\s*/g, '; ').replace(/\boff\b/g, '—');
+  };
+  const nameOf = n => (typeof n === 'string' ? n : (n[lang()] || n.def || n.ka || ''));
+  async function loadPlaces() {
+    const p = pin(); if (!p || sample) return;
+    const key = p.lat.toFixed(3) + ',' + p.lng.toFixed(3); if (plFor === key) return; plFor = key;
+    try {
+      const r = await fetch(`api/places?lat=${p.lat}&lng=${p.lng}`);
+      PL = r.ok ? ((await r.json()).places || []) : null;
+    } catch (e) { PL = null; }
+    if (PL) render();
+  }
+  // the list shown: host's tips, then real places (minus hidden), nearest first
+  function foodList() {
+    const f = S().food || {}, hide = new Set(f.hide || []), p = pin();
+    const own = (f.own || []).filter(x => pick(x.name)).map((x, i) => ({ id: 'own' + i, name: pick(x.name), kind: x.kind || 'restaurant', note: pick(x.note), own: true, m: null }));
+    if (PL) return [...own, ...PL.filter(x => !hide.has(x.id)).map(x => ({ ...x, name: nameOf(x.name), m: p ? metres(p, x) : x.m }))];
+    const F = window.V2FOOD;
+    if (!isDemo() || !F) return own;
+    return [...own, ...F.all((J.hotel || {}).city).map(x => ({ ...x, id: 'demo-' + x.name, demo: true }))];
+  }
+  const shortList = all => [...all].sort((a, b) => (b.own - a.own) || ((b.sponsored || 0) - (a.sponsored || 0)) || ((a.m ?? 0) - (b.m ?? 0))).slice(0, 4);
+
+  function foodSection() {
+    const all = foodList(); if (!all.length) return '';
     return `<section class="food" id="food">
   <h2>${caps(w('food'))}</h2>
-  <ul class="food-list">${F.near(h.city).map(foodItem).join('')}</ul>
+  <ul class="food-list">${shortList(all).map(foodItem).join('')}</ul>
   ${all.length > 4 ? `<button type="button" class="btn btn-line food-more" id="foodMore" aria-haspopup="dialog">${w('foodAll')} (${all.length})</button>` : ''}
-  <p class="food-note">${w('foodNote')}</p>
+  <p class="food-note">${PL ? w('foodOsm') : w('foodNote')}</p>
 </section>
 <dialog class="food-dlg place-dlg" id="placeDlg" aria-labelledby="placeH">
   <div class="food-dlg-head"><span></span><button type="button" class="food-x" data-close aria-label="${w('close')}">×</button></div>
@@ -255,28 +297,34 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
 </dialog>`;
   }
   const dist = m => (m < 1000 ? `${m} ${lang() === 'ka' ? 'მ' : lang() === 'ru' ? 'м' : 'm'}` : `${(m / 1000).toFixed(1)} ${lang() === 'ka' ? 'კმ' : lang() === 'ru' ? 'км' : 'km'}`);
-  const kindName = k => { const F = window.V2FOOD; return F.KIND[k][['ka', 'en', 'ru'].indexOf(lang())] || F.KIND[k][0]; };
-  const foodItem = r => `<li><button type="button" class="food-item${r.sponsored ? ' rec' : ''}" data-food="${esc(r.name)}">
-    ${r.sponsored ? `<span class="food-badge">${w('recommended')}</span>` : ''}
+  const kindName = k => { const K = window.V2FOOD?.KIND || {}; const n = K[k] || K.restaurant || ['']; return n[['ka', 'en', 'ru'].indexOf(lang())] || n[0]; };
+  const foodItem = r => `<li><button type="button" class="food-item${r.own || r.sponsored ? ' rec' : ''}" data-food="${esc(r.id)}">
+    ${r.own ? `<span class="food-badge">${w('hostTip')}</span>` : r.sponsored ? `<span class="food-badge">${w('recommended')}</span>` : ''}
     <b>${esc(r.name)}</b>
-    <span class="food-meta">${esc(kindName(r.kind))} · ${dist(r.m)} · ${'₾'.repeat(r.price)}</span>
+    <span class="food-meta">${[kindName(r.kind), r.m != null ? dist(r.m) : '', r.price ? '₾'.repeat(r.price) : ''].filter(Boolean).map(esc).join(' · ')}</span>
   </button></li>`;
-  // one place: its card (on the live site the restaurant fills in phone, address, menu and photos)
-  function openPlace(name) {
-    const F = window.V2FOOD, city = (J.hotel || {}).city, r = F.all(city).find(x => x.name === name); if (!r) return;
-    const d = $('#placeDlg');
-    d.querySelector('.place-body').innerHTML = `${r.sponsored ? `<span class="food-badge">${w('recommended')}</span>` : ''}
+  // one place: its card with what OpenStreetMap knows (hours, phone, website) and a map link
+  function openPlace(id) {
+    const r = foodList().find(x => x.id === id); if (!r) return;
+    const city = (J.hotel || {}).city || '', d = $('#placeDlg');
+    const where = r.lat != null ? `${r.lat},${r.lng}` : `${r.name} ${city}`;
+    d.querySelector('.place-body').innerHTML = `${r.own ? `<span class="food-badge">${w('hostTip')}</span>` : r.sponsored ? `<span class="food-badge">${w('recommended')}</span>` : ''}
       <h2 id="placeH">${esc(r.name)}</h2>
-      <p class="food-meta">${esc(kindName(r.kind))} · ${'₾'.repeat(r.price)}</p>
-      <ul class="place-facts"><li>📍 ${dist(r.m)} · ${w('foodWalk').replace('{n}', Math.max(1, Math.round(r.m / 80)))}</li><li>🕙 ${w('foodHours')}</li></ul>
-      <a class="btn btn-accent" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name + ' ' + city)}" target="_blank" rel="noopener">${w('foodMap')}</a>
-      `;
+      <p class="food-meta">${esc([kindName(r.kind), r.cuisine && !/georgian/i.test(r.cuisine) ? r.cuisine : '', r.price ? '₾'.repeat(r.price) : ''].filter(Boolean).join(' · '))}</p>
+      ${r.note ? `<p>${esc(r.note)}</p>` : ''}
+      <ul class="place-facts">
+        ${r.m != null ? `<li>📍 ${dist(r.m)} · ${w('foodWalk').replace('{n}', Math.max(1, Math.round(r.m / 80)))}</li>` : ''}
+        ${r.hours ? `<li>🕙 ${esc(hoursText(r.hours))}</li>` : r.demo ? `<li>🕙 ${w('foodHours')}</li>` : ''}
+        ${r.phone ? `<li>📞 <a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}">${esc(r.phone)}</a></li>` : ''}
+        ${r.web ? `<li>🌐 <a href="${esc(r.web)}" target="_blank" rel="noopener nofollow">${esc(r.web.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '').slice(0, 40))}</a></li>` : ''}
+      </ul>
+      <a class="btn btn-accent" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(where)}" target="_blank" rel="noopener">${w('foodMap')}</a>`;
     if ($('#foodDlg').open) $('#foodDlg').close();
     d.showModal();
   }
   // the full list: every place nearby, nearest first, with a filter by kind
   function openFood() {
-    const F = window.V2FOOD, all = F.all((J.hotel || {}).city), dlg = $('#foodDlg');
+    const all = foodList(), dlg = $('#foodDlg');
     const kinds = [...new Set(all.map(r => r.kind))];
     let cur = '';
     const draw = () => {
@@ -288,6 +336,32 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     dlg.showModal();
   }
 
+  // ---------- the map (OpenStreetMap through Leaflet, loaded only when the map comes near the screen) ----------
+  let leaflet = null;
+  const loadLeaflet = () => leaflet || (leaflet = new Promise((ok, bad) => {
+    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'vendor/leaflet/leaflet.css'; document.head.append(css);
+    const s = document.createElement('script'); s.src = 'vendor/leaflet/leaflet.js'; s.onload = () => ok(window.L); s.onerror = bad; document.head.append(s);
+  }));
+  const mapBlock = () => (pin() && !sample ? `<div class="v2map" id="v2map" role="region" aria-label="${esc(w('mapLabel'))}"></div>` : '');
+  function drawMap() {
+    const el = $('#v2map'), p = pin(); if (!el || !p) return;
+    const go = () => loadLeaflet().then(L => {
+      if (!el.isConnected) return;
+      const touch = matchMedia('(pointer: coarse)').matches;
+      const m = L.map(el, { scrollWheelZoom: false, dragging: !touch, tap: false, zoomControl: true, attributionControl: true }).setView([p.lat, p.lng], 15);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(m);
+      m.attributionControl.setPrefix(false);
+      const home = L.divIcon({ className: 'v2pin', html: '<span></span>', iconSize: [30, 30], iconAnchor: [15, 30] });
+      L.marker([p.lat, p.lng], { icon: home, title: (J.hotel || {}).name || '', keyboard: false }).addTo(m);
+      const near = foodList().filter(x => x.lat != null).slice(0, 25);
+      near.forEach(x => L.circleMarker([x.lat, x.lng], { radius: 7, weight: 2, color: '#fff', fillColor: accent(), fillOpacity: 1 })
+        .addTo(m).bindTooltip(esc(x.name)).on('click', () => openPlace(x.id)));
+      if (near.length) m.fitBounds(L.latLngBounds([[p.lat, p.lng], ...near.slice(0, 8).map(x => [x.lat, x.lng])]).pad(0.15), { maxZoom: 16 });
+    }).catch(() => { el.hidden = true; });
+    if (!('IntersectionObserver' in window)) return go();
+    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); go(); } }, { rootMargin: '400px' });
+    io.observe(el);
+  }
   function roomCard(k) {
     const t = J.types[k], s = S().rooms?.[k] || {}, ph = (s.photos || []).slice(0, 2);
     return `<article class="room" data-type="${esc(k)}">
@@ -410,6 +484,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     document.querySelectorAll('button[data-theme]').forEach(b => b.addEventListener('click', () => { params.delete('theme'); saveLocal({ theme: b.dataset.theme, accent: '' }); render(); }));
     document.querySelectorAll('button[data-accent]').forEach(b => b.addEventListener('click', () => { saveLocal({ accent: b.dataset.accent }); render(); }));
     summary();
+    drawMap();
   }
 
   async function send(e) {
@@ -432,6 +507,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     render();
     if (I) I.onChange(() => render());
     J.onChange(() => summary());
+    loadPlaces();
     if (window.JC && window.JC.onChange) window.JC.onChange(() => render());
   });
 })();

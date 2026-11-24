@@ -136,6 +136,11 @@ main > section > * { max-width: var(--max); margin-left: auto; margin-right: aut
 /* location and footer */
 .where p { font-size: 19px; max-width: 60ch; }
 .where-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.v2map { height: clamp(260px, 52vw, 420px); margin-top: 22px; border-radius: var(--radius); border: 1px solid var(--line); overflow: hidden; background: color-mix(in srgb, var(--ink) 6%, var(--bg)); z-index: 0; text-align: left; }
+.v2map .leaflet-control-attribution { font-size: 11px; }
+.v2map .leaflet-control-zoom a { width: 36px; height: 36px; line-height: 36px; }
+.v2pin span { display: block; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--accent); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+.place-facts a { color: inherit; }
 .foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding: 28px var(--pad) 110px; border-top: 1px solid var(--line); color: var(--muted); font-size: 15px; }
 .foot a { text-decoration: none; }
 

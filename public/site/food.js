@@ -7,6 +7,7 @@ window.V2FOOD = (() => {
     georgian: ['ქართული სამზარეულო', 'Georgian cuisine', 'Грузинская кухня'], cafe: ['კაფე', 'Café', 'Кафе'],
     pizza: ['პიცერია', 'Pizzeria', 'Пиццерия'], bakery: ['საცხობი', 'Bakery', 'Пекарня'], wine: ['ღვინის ბარი', 'Wine bar', 'Винный бар'],
     fish: ['თევზის რესტორანი', 'Fish restaurant', 'Рыбный ресторан'], grill: ['მწვადი და მაყალი', 'Grill', 'Шашлычная'],
+    restaurant: ['რესტორანი', 'Restaurant', 'Ресторан'], bar: ['ბარი', 'Bar', 'Бар'], fast: ['სწრაფი კვება', 'Fast food', 'Фастфуд'],
   };
   // per demo town: name, kind, metres from the hotel, price level 1–3, sponsored
   const R = {

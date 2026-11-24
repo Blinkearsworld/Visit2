@@ -384,6 +384,111 @@
     };
   }
 
+  // ---------- map and places nearby: the hotel's pin, which restaurants guests see, and the host's own tips ----------
+  const KINDS = [['restaurant', 'რესტორანი'], ['georgian', 'ქართული სამზარეულო'], ['cafe', 'კაფე'], ['bakery', 'საცხობი'], ['wine', 'ღვინის ბარი'], ['bar', 'ბარი'], ['fish', 'თევზის რესტორანი'], ['grill', 'მწვადი'], ['pizza', 'პიცერია'], ['fast', 'სწრაფი კვება']];
+  const kindKa = k => (KINDS.find(x => x[0] === k) || KINDS[0])[1];
+  let nearPlaces = null, nearFor = '', nearMap = null, nearMarker = null, nearMsg = '';
+  const site = () => (D.site = D.site || {});
+  const food = () => (site().food = site().food || {});
+  const tidyFood = () => {
+    const f = D.site?.food; if (!f) return;
+    if (f.hide && !f.hide.length) delete f.hide;
+    if (f.own && !f.own.length) delete f.own;
+    if (!Object.keys(f).length) delete D.site.food;
+    if (D.site && !Object.keys(D.site).length) delete D.site;
+  };
+  const loadL = () => window.L ? Promise.resolve(window.L) : new Promise((ok, bad) => {
+    const c = document.createElement('link'); c.rel = 'stylesheet'; c.href = 'vendor/leaflet/leaflet.css'; document.head.append(c);
+    const s = document.createElement('script'); s.src = 'vendor/leaflet/leaflet.js'; s.onload = () => ok(window.L); s.onerror = bad; document.head.append(s);
+  });
+  async function fetchNear() {
+    const p = D.site?.pin; if (!p) { nearPlaces = null; return; }
+    const key = (+p.lat).toFixed(3) + ',' + (+p.lng).toFixed(3); if (key === nearFor && nearPlaces) return;
+    nearFor = key; nearPlaces = null; nearMsg = 'ადგილებს ვეძებთ…'; drawNearList();
+    try { const r = await fetch(`api/places?lat=${p.lat}&lng=${p.lng}`); if (!r.ok) throw 0; nearPlaces = (await r.json()).places || []; nearMsg = ''; }
+    catch (e) { nearMsg = 'ადგილების სია ახლა ვერ ჩაიტვირთა. სცადეთ ცოტა ხანში.'; nearFor = ''; }
+    drawNearList();
+  }
+  function setPin(lat, lng) {
+    site().pin = { lat: +(+lat).toFixed(6), lng: +(+lng).toFixed(6) };
+    if (nearMarker) nearMarker.setLatLng([lat, lng]);
+    $('nearPinState').textContent = '✓ ადგილი მონიშნულია. არ დაგავიწყდეთ „შენახვა“.';
+    dirty(); fetchNear();
+  }
+  function drawNear() {
+    const p = $('s-near'); if (!p) return;
+    const pin = D.site?.pin;
+    p.innerHTML = `<p class="sub">რუკაზე მონიშნეთ, სად არის თქვენი სასტუმრო. საიტზე სტუმრები დაინახავენ რუკას და ახლომახლო რესტორნებსა და კაფეებს. სია OpenStreetMap-იდან მოდის, თავად ახლდება.</p>
+      <div class="card2">
+        <div class="fh"><b>1. სასტუმროს ადგილი</b></div>
+        <form class="near-find" id="nearFind"><input id="nearQ" type="search" placeholder="ქალაქი ან მისამართი, მაგ.: ბაკური, დიდველის გზა" aria-label="ქალაქი ან მისამართი"><button class="btn" type="submit">მოძებნა</button></form>
+        <div class="near-found" id="nearFound"></div>
+        <div class="near-map" id="nearMap"></div>
+        <p class="hint" id="nearPinState">${pin ? '✓ ადგილი მონიშნულია. საჭიროების შემთხვევაში რუკაზე დააჭირეთ სწორ ადგილს.' : 'მოძებნეთ ქალაქი, მერე რუკაზე დააჭირეთ ზუსტად თქვენს სახლს.'}</p>
+      </div>
+      <div class="card2"><div class="fh"><b>2. რომელი ადგილები ჩანდეს საიტზე</b></div><div id="nearList"></div></div>
+      <div class="card2"><div class="fh"><b>3. თქვენი რჩევები</b></div><p class="hint">საყვარელი ადგილი, რომელიც სიაში არ არის? დაამატეთ. საიტზე პირველი გამოჩნდება, წარწერით „მასპინძელი გირჩევთ“.</p><div id="nearOwn"></div>
+        <div class="gacts"><button type="button" class="btn" id="nearAdd">+ რჩევის დამატება</button></div></div>`;
+    drawNearList(); drawOwn();
+    $('nearAdd').addEventListener('click', () => { const f = food(); f.own = f.own || []; f.own.push({ name: { ka: '', en: '', ru: '' }, kind: 'restaurant', note: { ka: '', en: '', ru: '' } }); dirty(); drawOwn(); const l = $('nearOwn').querySelectorAll('.card2'); l[l.length - 1]?.querySelector('input')?.focus(); });
+    $('nearFind').addEventListener('submit', async e => {
+      e.preventDefault(); const q = $('nearQ').value.trim(); if (!q) return;
+      const out = $('nearFound'); out.textContent = 'ვეძებთ…';
+      try {
+        const r = await fetch('api/geocode?q=' + encodeURIComponent(q)); const d = await r.json();
+        if (!d.found?.length) { out.textContent = 'ვერ ვიპოვეთ. სცადეთ მხოლოდ ქალაქის სახელი.'; return; }
+        out.innerHTML = d.found.map((x, i) => `<button type="button" class="btn sm" data-g="${i}">${esc(x.name)}</button>`).join('');
+        out.onclick = ev => { const b = ev.target.closest('[data-g]'); if (!b) return; const x = d.found[+b.dataset.g]; nearMap?.setView([x.lat, x.lng], 16); out.textContent = 'ახლა რუკაზე დააჭირეთ ზუსტად თქვენს სახლს.'; };
+      } catch (err) { out.textContent = 'ძებნა ახლა ვერ მოხერხდა. რუკაზე თავად იპოვეთ ადგილი.'; }
+    });
+    loadL().then(L => {
+      const el = $('nearMap'); if (!el) return;
+      if (nearMap) { nearMap.remove(); nearMap = null; nearMarker = null; }
+      nearMap = L.map(el, { scrollWheelZoom: false }).setView(pin ? [pin.lat, pin.lng] : [42.2, 43.5], pin ? 16 : 7);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(nearMap);
+      nearMap.attributionControl.setPrefix(false);
+      const icon = L.divIcon({ className: 'near-pin', html: '<span></span>', iconSize: [30, 30], iconAnchor: [15, 30] });
+      nearMarker = L.marker(pin ? [pin.lat, pin.lng] : [0, 0], { icon, draggable: true });
+      if (pin) nearMarker.addTo(nearMap);
+      nearMarker.on('dragend', () => { const ll = nearMarker.getLatLng(); setPin(ll.lat, ll.lng); });
+      nearMap.on('click', ev => { if (!nearMap.hasLayer(nearMarker)) nearMarker.addTo(nearMap); setPin(ev.latlng.lat, ev.latlng.lng); });
+    }).catch(() => { $('nearMap').innerHTML = '<div class="empty">რუკა ვერ ჩაიტვირთა. შეამოწმეთ ინტერნეტი.</div>'; });
+    fetchNear();
+  }
+  function drawNearList() {
+    const el = $('nearList'); if (!el) return;
+    if (!D.site?.pin) { el.innerHTML = '<p class="hint">ჯერ რუკაზე მონიშნეთ სასტუმრო.</p>'; return; }
+    if (!nearPlaces) { el.innerHTML = `<p class="hint">${esc(nearMsg || 'ადგილებს ვეძებთ…')}</p>`; return; }
+    if (!nearPlaces.length) { el.innerHTML = '<p class="hint">1,5 კმ-ში რესტორანი ან კაფე ვერ ვიპოვეთ. თქვენი რჩევები ქვემოთ დაამატეთ.</p>'; return; }
+    const hide = new Set(D.site?.food?.hide || []);
+    el.innerHTML = `<p class="hint">მონიშნული ადგილები ჩანს საიტზე. მოხსენით ნიშანი, თუ ადგილს არ ურჩევთ სტუმრებს.</p>${nearPlaces.map(x =>
+      `<label class="chk"><input type="checkbox" data-pid="${esc(x.id)}"${hide.has(x.id) ? '' : ' checked'}><span>${esc(x.name.ka || x.name.def)} <span class="hint">· ${esc(kindKa(x.kind))} · ${x.m < 1000 ? x.m + ' მ' : (x.m / 1000).toFixed(1) + ' კმ'}</span></span></label>`).join('')}`;
+    el.onchange = e => {
+      const i = e.target.closest('[data-pid]'); if (!i) return;
+      const f = food(), h = new Set(f.hide || []);
+      if (i.checked) h.delete(i.dataset.pid); else h.add(i.dataset.pid);
+      f.hide = [...h]; tidyFood(); dirty();
+    };
+  }
+  function drawOwn() {
+    const el = $('nearOwn'); if (!el) return;
+    const list = D.site?.food?.own || [];
+    el.innerHTML = list.map((x, i) => `<div class="card2" data-i="${i}"><div class="fh"><i class="cn">რჩევა ${i + 1}</i><span class="ctl"><button type="button" class="btn sm nob" data-rm aria-label="წაშლა">✕</button></span></div>
+      <div class="fld" data-part="name"><b>სახელი</b>${langFields(x.name || {}, { short: true })}</div>
+      <label class="fld"><b>რა ადგილია</b><select data-kind>${KINDS.map(([k, n]) => `<option value="${k}"${k === x.kind ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
+      <div class="fld" data-part="note"><b>რას ურჩევთ (არასავალდებულო)</b>${langFields(x.note || {}, { short: true })}</div></div>`).join('');
+    el.oninput = el.onchange = e => {
+      const c = e.target.closest('[data-i]'); if (!c) return; const o = D.site.food.own[+c.dataset.i];
+      if (e.target.dataset.kind != null) o.kind = e.target.value;
+      else if (e.target.dataset.l) { const part = e.target.closest('[data-part]').dataset.part; o[part] = { ...(o[part] || {}), [e.target.dataset.l]: e.target.value }; }
+      dirty();
+    };
+    el.onclick = e => {
+      const b = e.target.closest('[data-rm]'); if (!b) return; if (!confirm('წავშალოთ ეს რჩევა?')) return;
+      food().own.splice(+b.closest('[data-i]').dataset.i, 1); tidyFood(); dirty(); drawOwn();
+    };
+  }
+
   const when = s => { const d = new Date(s); if (isNaN(d)) return ''; const p = n => String(n).padStart(2, '0'); return JIJI.fmt(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`) + (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : '') + ', ' + p(d.getHours()) + ':' + p(d.getMinutes()); };
   function drawHistory() {
     const p = $('s-hist');
@@ -399,7 +504,7 @@
     }));
   }
 
-  function drawAll() { drawTexts(); drawRooms(); drawVideo(); drawContact(); drawFaq(); drawSections(); drawHistory(); }
+  function drawAll() { drawTexts(); drawRooms(); drawVideo(); drawContact(); drawFaq(); drawSections(); drawNear(); drawHistory(); }
 
   // ---------- save, undo, preview ----------
   async function save() {
@@ -450,7 +555,11 @@
   }
 
   const stabs = [...document.querySelectorAll('.stab')];
-  stabs.forEach(t => t.addEventListener('click', () => stabs.forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); $('s-' + x.dataset.s).hidden = !on; })));
+  stabs.forEach(t => t.addEventListener('click', () => {
+    stabs.forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); $('s-' + x.dataset.s).hidden = !on; });
+    // the map was drawn while its tab was hidden: let it measure itself now
+    if (t.dataset.s === 'near' && nearMap) setTimeout(() => { nearMap.invalidateSize(); const p = D.site?.pin; if (p) nearMap.setView([p.lat, p.lng], Math.max(nearMap.getZoom(), 15)); }, 0);
+  }));
   $('sSave').addEventListener('click', save);
   $('sUndo').addEventListener('click', undo);
   $('sPrev').addEventListener('click', preview);
