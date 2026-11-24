@@ -365,9 +365,11 @@
     if (!list.includes(eatTown)) eatTown = list.includes(st().city) ? st().city : list[0];
     $('#eatTowns').innerHTML = list.map(c => `<button type="button" class="h-chip" data-eat="${esc(c)}" aria-pressed="${c === eatTown}">${esc(shortTown(c))}</button>`).join('');
     const ads = (window.V2ADS?.inTown(eatTown) || []).map(x => ({ ...x, m: window.V2ADS.metres({ lat: EAT_C[eatTown]?.[0] ?? x.lat, lng: EAT_C[eatTown]?.[1] ?? x.lng }, x) }));
-    $('#eatRow').innerHTML = ads.map(x => `<a class="h-eat h-eat-ad" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.name.ka + ', ' + shortTown(eatTown))}" target="_blank" rel="noopener">
+    $('#eatAds').hidden = !ads.length;
+    $('#eatAds').innerHTML = ads.map(x => `<a class="h-eat h-eat-ad" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.name.ka + ', ' + shortTown(eatTown))}" target="_blank" rel="noopener">
       <img src="${esc(x.photo)}" alt="" loading="lazy"><span class="h-eat-badge">${h('adBadge')}</span>
-      <span class="h-eat-k">${esc(eatKind(x.kind))}</span><b>${esc(x.name[F.lang] || x.name.ka)}</b><span>${esc(x.note[F.lang] || x.note.ka)}</span></a>`).join('') + towns[eatTown].slice(0, 10).map(x => `<a class="h-eat" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((x.name.def || '') + ', ' + F.town(eatTown).replace(/\s*\(.*\)\s*$/, '') + ', Georgia')}" target="_blank" rel="noopener">
+      <span class="h-eat-k">${esc(eatKind(x.kind))}</span><b>${esc(x.name[F.lang] || x.name.ka)}</b><span>${esc(x.note[F.lang] || x.note.ka)}</span></a>`).join('');
+    $('#eatRow').innerHTML = towns[eatTown].slice(0, 10).map(x => `<a class="h-eat" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((x.name.def || '') + ', ' + F.town(eatTown).replace(/\s*\(.*\)\s*$/, '') + ', Georgia')}" target="_blank" rel="noopener">
       <span class="h-eat-k">${esc(eatKind(x.kind))}</span><b>${esc(x.name[F.lang] || x.name.def)}</b><span>${esc(h('fromCentre', { m: dist(x.m) }))}</span></a>`).join('');
   }
   $('#eatTowns').addEventListener('click', e => { const b = e.target.closest('[data-eat]'); if (!b) return; eatTown = b.dataset.eat; renderEat(); });

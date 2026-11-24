@@ -314,8 +314,9 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     const all = foodList(); if (!all.length) return '';
     return `<section class="food" id="food">
   <h2>${caps(w('food'))}</h2>
-  <ul class="food-list">${shortList(all).map(foodItem).join('')}</ul>
-  ${all.length > 4 ? `<button type="button" class="btn btn-line food-more" id="foodMore" aria-haspopup="dialog">${w('foodAll')} (${all.length})</button>` : ''}
+  ${all.some(r => r.photo) ? `<ul class="food-list food-ads">${all.filter(r => r.photo).map(foodItem).join('')}</ul>` : ''}
+  <ul class="food-list">${shortList(all.filter(r => !r.photo)).map(foodItem).join('')}</ul>
+  ${all.filter(r => !r.photo).length > 4 ? `<button type="button" class="btn btn-line food-more" id="foodMore" aria-haspopup="dialog">${w('foodAll')} (${all.filter(r => !r.photo).length})</button>` : ''}
   <p class="food-note">${Array.isArray(S().food?.places) || PL ? w('foodOsm') : w('foodNote')}</p>
 </section>
 <dialog class="food-dlg place-dlg" id="placeDlg" aria-labelledby="placeH">

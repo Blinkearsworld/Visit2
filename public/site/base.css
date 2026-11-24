@@ -186,11 +186,10 @@ main > section:nth-of-type(even):not(.hero) { background: var(--soft); }
 .food-item.rec { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); }
 .food-badge { justify-self: start; margin-bottom: 4px; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--ink); font-size: 13px; font-weight: 700; }
 .food-item:hover { border-color: var(--ink); }
-.food-list > li.ad { grid-column: 1 / -1; }
+.food-ads { grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); margin-bottom: 16px !important; }
 .food-item.has-ph { grid-template-columns: minmax(0, 1fr); padding: 0 0 14px; overflow: hidden; }
 .food-item.has-ph > :not(img) { margin-left: 16px; margin-right: 16px; }
 .food-item.has-ph img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; margin-bottom: 8px; }
-@media (min-width: 640px) { .food-item.has-ph { grid-template-columns: 240px minmax(0, 1fr); align-content: center; column-gap: 20px; padding: 0; } .food-item.has-ph img { grid-row: 1 / span 4; height: 100%; min-height: 150px; aspect-ratio: auto; margin: 0; } .food-item.has-ph > :not(img) { grid-column: 2; margin: 0 16px 0 0; } }
 .place-ph { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; }
 .place-body { padding: 0 20px 22px; display: grid; gap: 10px; justify-items: start; }
 .place-body h2 { margin: 0; font-size: 26px; }
@@ -247,3 +246,6 @@ main > section:nth-of-type(even):not(.hero) { background: var(--soft); }
   min-height: 48px; padding: 0 18px; border-radius: 999px; background: #1F1A17; color: #fff; font: 700 15px/1 "Noto Sans Georgian", system-ui, sans-serif; text-decoration: none;
   box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .5); }
 .v2-back:hover { background: #0B7A73; }
+/* paid places look the same everywhere: the badge on the photo, like on Visit2.ge */
+.food-item.has-ph .food-badge { position: absolute; top: 10px; left: 10px; margin: 0 !important; background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
+.food-item.has-ph { box-shadow: none; }
