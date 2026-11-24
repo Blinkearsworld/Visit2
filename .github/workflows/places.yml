@@ -23,7 +23,7 @@ jobs:
       - name: Places to eat in Georgia from OpenStreetMap (Geofabrik daily file)
         run: |
           sudo apt-get update -q && sudo apt-get install -y -q osmium-tool
-          curl -fsSL -o /tmp/georgia.osm.pbf https://download.geofabrik.de/asia/georgia-latest.osm.pbf
+          curl -fsSL -o /tmp/georgia.osm.pbf https://download.geofabrik.de/europe/georgia-latest.osm.pbf
           osmium tags-filter /tmp/georgia.osm.pbf nwr/amenity=restaurant,cafe,bar,pub,fast_food nwr/shop=bakery,pastry -o /tmp/food.osm.pbf
           osmium export /tmp/food.osm.pbf --add-unique-id=type_id -f geojsonseq -o /tmp/food.geojsonseq
       - run: node scripts/fetch-places.mjs /tmp/food.geojsonseq
