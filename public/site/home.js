@@ -22,7 +22,9 @@
     arrive: ['ჩამოსვლა', 'Arriving', 'Заезд'], leave: ['წასვლა', 'Leaving', 'Выезд'], nights: ['{n} ღამე', '{n} nights', 'Ночей: {n}'], night1: ['1 ღამე', '1 night', '1 ночь'],
     pickArrive: ['აირჩიე ჩამოსვლის დღე', 'Pick the day you arrive', 'Выберите день заезда'], pickLeave: ['ახლა აირჩიე წასვლის დღე', 'Now pick the day you leave', 'Теперь выберите день выезда'],
     clear: ['გასუფთავება', 'Clear', 'Сбросить'], save: ['შენახვა', 'Save', 'Сохранить'],
-    adults: ['უფროსები და 10 წლიდან', 'Adults and 10+', 'Взрослые и от 10 лет'], kids: ['ბავშვები 10 წლამდე', 'Children under 10', 'Дети до 10 лет'],
+    adults: ['უფროსები', 'Adults', 'Взрослые'], adultsAge: ['10 წლიდან', 'Ages 10 or above', 'От 10 лет'], kids: ['ბავშვები', 'Children', 'Дети'], kidsAge: ['10 წლამდე', 'Under 10', 'До 10 лет'],
+    pets: ['შინაური ცხოველი', 'Pets', 'Домашние животные'], petsSub: ['ვაჩვენებთ სასტუმროებს, სადაც ცხოველი შეიძლება', 'We show places where pets are welcome', 'Покажем места, где можно с животными'],
+    pet1: ['ცხოველით', 'with a pet', 'с животным'], petsN: ['{n} ცხოველით', 'with {n} pets', 'с животными: {n}'],
     guestsN: ['{n} სტუმარი', '{n} guests', 'Гостей: {n}'], guest1: ['1 სტუმარი', '1 guest', '1 гость'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], kid1: ['1 ბავშვი', '1 child', '1 ребёнок'],
     all: ['ყველა', 'All', 'Все'], seeAll: ['ყველას ნახვა', 'See all', 'Смотреть все'],
     rowKind: { mountain: ['მთაში', 'In the mountains', 'В горах'], wine: ['ღვინის მხარეში', 'In wine country', 'В винном крае'], sea: ['ზღვაზე', 'By the sea', 'У моря'], city: ['ქალაქში', 'In the city', 'В городе'], nature: ['ბუნებაში', 'In nature', 'На природе'] },
@@ -55,14 +57,14 @@
 
   // ---------- the search state (a hidden form, so the chatbot can fill it too) ----------
   const Q = $('#q');
-  const st = () => ({ city: Q.city.value, from: Q.from.value, to: Q.to.value, g: Math.max(1, +Q.g.value || 2), kids: Math.max(0, +Q.kids.value || 0) });
+  const st = () => ({ city: Q.city.value, from: Q.from.value, to: Q.to.value, g: Math.max(1, +Q.g.value || 2), kids: Math.max(0, +Q.kids.value || 0), pets: Math.max(0, +Q.pets.value || 0) });
   const dated = s => s.from && s.to && s.to > s.from;
   const range = s => {
     if (!dated(s)) return '';
     const a = F.fmt(s.from), b = F.fmt(s.to), [da, ma] = a.split(' '), [db, mb] = b.split(' ');
     return ma === mb ? `${da}–${db} ${mb}` : `${a} – ${b}`;
   };
-  const guests = s => [s.g === 1 ? h('guest1') : h('guestsN', { n: s.g }), s.kids ? (s.kids === 1 ? h('kid1') : h('kidsN', { n: s.kids })) : ''].filter(Boolean).join(', ');
+  const guests = s => [s.g === 1 ? h('guest1') : h('guestsN', { n: s.g }), s.kids ? (s.kids === 1 ? h('kid1') : h('kidsN', { n: s.kids })) : '', s.pets ? (s.pets === 1 ? h('pet1') : h('petsN', { n: s.pets })) : ''].filter(Boolean).join(', ');
   function summary() {
     const s = st();
     $('#vWhere').textContent = s.city ? F.town(s.city) : h('whereQ');
@@ -120,7 +122,7 @@
     if (v === 'main') summary();
     if (v === 'where') { $('#townFind').value = ''; drawTowns(); setTimeout(() => matchMedia('(pointer: fine)').matches && $('#townFind').focus(), 50); }
     if (v === 'when') { const s = st(); calFrom = s.from; calTo = s.to; drawCal(); }
-    if (v === 'who') { const s = st(); $('#nG').value = s.g; $('#nK').value = s.kids; }
+    if (v === 'who') { const s = st(); $('#nG').value = s.g; $('#nK').value = s.kids; $('#nP').value = s.pets; }
     sheet.querySelector('.h-sheet-in').scrollTop = 0;
   }
   document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => openSheet(b.dataset.open)));
@@ -195,10 +197,10 @@
   // who: adults (and children from 10) and children under 10
   $('[data-view="who"]').addEventListener('click', e => {
     const b = e.target.closest('[data-n]'); if (!b) return;
-    const out = b.dataset.n === 'g' ? $('#nG') : $('#nK'), min = b.dataset.n === 'g' ? 1 : 0, max = b.dataset.n === 'g' ? 16 : 10;
+    const n = b.dataset.n, out = { g: $('#nG'), kids: $('#nK'), pets: $('#nP') }[n], min = n === 'g' ? 1 : 0, max = { g: 16, kids: 10, pets: 5 }[n];
     out.value = Math.min(max, Math.max(min, +out.value + +b.dataset.d));
   });
-  $('#whoSave').addEventListener('click', () => { Q.g.value = $('#nG').value; Q.kids.value = $('#nK').value; summary(); show('main'); });
+  $('#whoSave').addEventListener('click', () => { Q.g.value = $('#nG').value; Q.kids.value = $('#nK').value; Q.pets.value = $('#nP').value; summary(); renderRows(); show('main'); });
 
   // ---------- saved hotels (♥), kept in this browser ----------
   const SKEY = 'v2-saved';
@@ -214,6 +216,9 @@
     renderRows();
     document.querySelectorAll(`#resCards [data-save="${CSS.escape(b.dataset.save)}"]`).forEach(x => { const on = i < 0; x.setAttribute('aria-pressed', String(on)); x.setAttribute('aria-label', on ? h('unsave') : h('saveIt')); });
   });
+
+  // with a pet, only places that welcome pets (the owner ticks "pets" among the amenities)
+  const petsOk = (x, s) => !s.pets || (x.site?.amenities || []).includes('pets');
 
   // ---------- one hotel card ----------
   function card(x, o, s) {
@@ -246,7 +251,7 @@
     <div class="h-row-head wrap"><div><h2>${esc(title)}</h2>${sub ? `<p>${esc(sub)}</p>` : ''}</div>${more ? `<button type="button" class="h-more" ${more} aria-label="${esc(h('seeAll') + ': ' + title)}"><span aria-hidden="true">→</span></button>` : ''}</div>
     <div class="h-row">${items}</div></section>`;
   function renderRows() {
-    const s = st(), all = F.find({ g: s.g + s.kids }).filter(r => !curKind || r.h.kind === curKind);
+    const s = st(), all = F.find({ g: s.g + s.kids }).filter(r => (!curKind || r.h.kind === curKind) && petsOk(r.h, s));
     const by = new Map(all.map(r => [r.h.slug, r]));
     let html = '';
     const sv = saved().map(x => by.get(x) || F.find({ g: 2 }).find(r => r.h.slug === x)).filter(Boolean);
@@ -277,7 +282,7 @@
   let center = null, radius = 5, map = null, layer = null;
   const RADII = [1, 3, 5, 10, 25];
   function showResults(scroll) {
-    const s = st(), rows = F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, kind: curKind, center, r: radius });
+    const s = st(), rows = F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, kind: curKind, center, r: radius }).filter(r => petsOk(r.h, s));
     $('#results').hidden = false;
     $('#resTitle').textContent = center ? h('within', { r: radius }) : s.city ? F.town(s.city) : curKind ? F.kindName(curKind) : h('allStays');
     $('#resNote').textContent = dated(s) ? `${range(s)} · ${guests(s)} · ${h('freeN', { n: rows.filter(r => r.o.best).length })}` : h('pickDates');
@@ -286,7 +291,7 @@
     if (scroll) $('#results').scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth' });
   }
   $('#resClear').addEventListener('click', () => {
-    Q.city.value = Q.from.value = Q.to.value = ''; Q.g.value = 2; Q.kids.value = 0; curKind = ''; center = null;
+    Q.city.value = Q.from.value = Q.to.value = ''; Q.g.value = 2; Q.kids.value = 0; Q.pets.value = 0; curKind = ''; center = null;
     $('#results').hidden = true; $('#mapBox').hidden = true; $('#mapBtn').setAttribute('aria-expanded', 'false');
     summary(); renderChips(); renderRows();
     $('.h-hero').scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth' });

@@ -74,6 +74,8 @@
 .h-sheet-foot { position: sticky; bottom: 0; display: flex; gap: 12px; justify-content: flex-end; padding: 12px 0 max(4px, env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--line); }
 .h-sheet-foot .btn { min-height: 52px; flex: 1; max-width: 240px; }
 .h-step { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 76px; border-bottom: 1px solid var(--line); font-size: 18px; font-weight: 600; }
+.h-step b { display: block; font-size: 18px; }
+.h-step small { display: block; font-size: 15px; font-weight: 400; color: var(--muted); }
 .h-stepper { display: flex; align-items: center; gap: 14px; }
 .h-stepper button { width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font: 400 24px/1 var(--font); color: var(--ink); cursor: pointer; }
 .h-stepper button:hover { border-color: var(--ink); }
