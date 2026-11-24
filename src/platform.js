@@ -1,12 +1,16 @@
 // API of the platform itself (visit2.ge, not a hotel).
 //   POST /api/signup  { name, city, email, password, theme, agree } → { ok, slug, site, admin }
 //   GET /api/catalog?from&to&g  real hotels for the guests' search (public facts only)
-//   /api/ops/*        Visit2's own admin: login, logout, state (hotels, to-do), task (save), task-del
+//   /api/ops/*        Visit2's own admin: login, logout, state (hotels, to-do, notices), task, task-del,
+//                     hotel (one hotel), hotel-action (status, trial, services, payment, password, enter, delete), notice, notice-del
 import { json, readJson } from './lib/http.js';
 import { signUp, signUpsFrom, noteSignUp, SIGNUP_LIMIT } from './db/signup.js';
 import { ROOT_DOMAIN } from './db/tenants.js';
 import { tooManyFails, noteFail, clearFails } from './db/users.js';
-import { opsLogin, opsCookie, opsClear, opsUser, allHotels, autoTasks, listTasks, saveTask, deleteTask } from './db/ops.js';
+import { opsLogin, opsCookie, opsClear, opsUser, allHotels, autoTasks, listTasks, saveTask, deleteTask,
+  hotelDetail, setStatus, extendTrial, setAddons, addPayment, deletePayment, resetOwnerPassword, helpUntil, deleteHotel, listNotices, saveNotice, deleteNotice, ADDONS, BASE_PRICE, PAUSE_PRICE } from './db/ops.js';
+import { tenantBySlug } from './db/tenants.js';
+import { supportToken } from './db/users.js';
 import { today, addDays } from './lib/time.js';
 import { catalog } from './db/catalog.js';
 
@@ -52,18 +56,20 @@ async function opsApi(request, env, url, preview) {
   if (p === 'logout' && m === 'POST') return json({ ok: true }, 200, { 'set-cookie': opsClear() });
   const me = await opsUser(db, request, secret);
   if (!me) return json({ ok: false, login: true }, 401);
+  const siteOf = h => (preview ? `${url.origin}/h/${h.slug}/` : `https://${h.slug}.${ROOT_DOMAIN}/`);
   if (p === 'state' && m === 'GET') {
     const hotels = await allHotels(db), d = today();
     await autoTasks(db, hotels, d);
-    const site = h => (preview ? `${url.origin}/h/${h.slug}/` : `https://${h.slug}.${ROOT_DOMAIN}/`);
     return json({
+      prices: { base: BASE_PRICE, pause: PAUSE_PRICE, addons: ADDONS },
+      notices: await listNotices(db),
       me: { name: me.name, email: me.email },
       stats: {
         hotels: hotels.length,
         newWeek: hotels.filter(h => h.created && h.created.slice(0, 10) >= addDays(d, -7)).length,
         trialEnding: hotels.filter(h => h.status === 'trial' && h.trialEnds && h.trialEnds >= d && h.trialEnds <= addDays(d, 7)).length,
       },
-      hotels: hotels.map(h => ({ ...h, site: site(h) })),
+      hotels: hotels.map(h => ({ ...h, site: siteOf(h) })),
       tasks: await listTasks(db),
     });
   }
@@ -71,6 +77,38 @@ async function opsApi(request, env, url, preview) {
     try { return json({ ok: true, id: await saveTask(db, await readJson(request) || {}) }); }
     catch (e) { return json({ ok: false, msg: e.message }, 400); }
   }
+  if (p === 'hotel' && m === 'GET') {
+    const t = await tenantBySlug(db, url.searchParams.get('slug') || '');
+    if (!t) return json({ ok: false, msg: 'ასეთი სასტუმრო არ არის' }, 404);
+    const d = await hotelDetail(db, t);
+    return json({ ok: true, hotel: { ...d, site: undefined, siteInfo: d.site, url: siteOf(t) } });
+  }
+  if (p === 'hotel-action' && m === 'POST') {
+    const b = (await readJson(request)) || {};
+    const t = await tenantBySlug(db, String(b.slug || ''));
+    if (!t) return json({ ok: false, msg: 'ასეთი სასტუმრო არ არის' }, 404);
+    try {
+      switch (b.do) {
+        case 'status': await setStatus(db, t, me, b.status, b.pausedUntil); break;
+        case 'trial': return json({ ok: true, until: await extendTrial(db, t, me, b.days) });
+        case 'addons': await setAddons(db, t, me, b.addons); break;
+        case 'pay': await addPayment(db, t, me, b); break;
+        case 'pay-del': await deletePayment(db, t, me, String(b.id || '')); break;
+        case 'password': return json({ ok: true, password: await resetOwnerPassword(db, t, me) });
+        case 'enter': {
+          if (!(await helpUntil(db, t))) return json({ ok: false, msg: 'სასტუმროს მფლობელს დახმარება ჯერ არ დაუშვია. სთხოვე, ადმინში „დახმარების დაშვებას“ დააჭიროს.' }, 403);
+          return json({ ok: true, url: siteOf(t) + 'api/support-enter?k=' + encodeURIComponent(await supportToken(secret, t, me)) });
+        }
+        case 'delete': await deleteHotel(db, t, b.confirm); break;
+        default: return json({ ok: false, msg: 'უცნობი მოქმედება' }, 400);
+      }
+      return json({ ok: true });
+    } catch (e) { return json({ ok: false, msg: e.message }, 400); }
+  }
+  if (p === 'notice' && m === 'POST') {
+    try { await saveNotice(db, (await readJson(request)) || {}); return json({ ok: true }); } catch (e) { return json({ ok: false, msg: e.message }, 400); }
+  }
+  if (p === 'notice-del' && m === 'POST') { const b = (await readJson(request)) || {}; await deleteNotice(db, b.id); return json({ ok: true }); }
   if (p === 'task-del' && m === 'POST') { const b = await readJson(request) || {}; if (b.id) await deleteTask(db, String(b.id)); return json({ ok: true }); }
   return json({ error: 'not found' }, 404);
 }

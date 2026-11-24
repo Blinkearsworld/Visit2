@@ -80,9 +80,27 @@ export async function sessionUser(db, t, request, secret) {
   if (parts.length !== 4) return null;
   const [id, ver, exp, sig] = parts;
   if (!(+exp > Date.now()) || !same(sig, await hmac(secret, `${t.id}|${id}.${ver}.${exp}`))) return null;
-  const u = await member(db, t, id);
+  const u = (await member(db, t, id)) || (await supportMember(db, t, id));
   if (!u || String(u.ver) !== ver) return null; // removed, switched off or password changed
   return u;
+}
+// Visit2 staff inside a hotel's admin: only while the hotel's owner allows it (support_access), with full rights,
+// under the name "Visit2 · …", so every change shows in the hotel's journal as ours
+async function supportMember(db, t, userId) {
+  const r = await db.prepare('SELECT u.id, u.name, u.email, u.ver, u.platform, a.until FROM users u JOIN support_access a ON a.tenant_id = ? WHERE u.id = ? AND u.platform = 1')
+    .bind(t.id, userId).first();
+  if (!r || !(r.until > Date.now())) return null;
+  return { id: r.id, name: 'Visit2 · ' + r.name, email: r.email, ver: r.ver, owner: true, perms: ALL.slice(), support: true };
+}
+// a one-time sign-in link from Visit2's admin, valid for two minutes
+export async function supportToken(secret, t, u) {
+  const body = `${t.id}.${u.id}.${Date.now() + 120e3}`;
+  return `${body}.${await hmac(secret, 'support|' + body)}`;
+}
+export async function supportSignIn(db, t, secret, token) {
+  const [tid, uid, exp, sig] = String(token || '').split('.');
+  if (tid !== t.id || !(+exp > Date.now()) || !sig || !same(sig, await hmac(secret, `support|${tid}.${uid}.${exp}`))) return null;
+  return supportMember(db, t, uid);
 }
 
 // ---------- failed sign-ins: at most 10 per address in 15 minutes ----------

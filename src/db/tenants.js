@@ -16,10 +16,13 @@ export const normHost = h => String(h || '').trim().toLowerCase().replace(/:\d+$
 const rowToTenant = r => r && ({
   id: r.id, slug: r.slug, name: r.name, city: r.city, status: r.status, plan: r.plan,
   trialEnds: r.trial_ends, pausedUntil: r.paused_until, created: r.created,
+  paidUntil: r.paid_until || null, addons: (() => { try { return JSON.parse(r.addons || '[]'); } catch (e) { return []; } })(),
 });
 
 // ---------- lookup with a short in-memory cache (one Worker instance serves many requests) ----------
 const CACHE_MS = 60e3;
+// after Visit2's admin changes a hotel (status, services), forget it here so this instance sees the change at once
+export const forgetTenants = () => cache.clear();
 const cache = new Map(); // host -> { t, at }
 export const clearTenantCache = () => cache.clear();
 

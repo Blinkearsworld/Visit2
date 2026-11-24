@@ -6,8 +6,9 @@ import { loadState, createRequest } from './db/hotel.js';
 import { getContent, listVersions, getVersion, saveContent, putMedia, getMedia, MAX_MEDIA } from './db/content.js';
 import { adminAction } from './db/actions.js';
 import { getSetting } from './db/settings.js';
+import { grantHelp, helpUntil, listNotices } from './db/ops.js';
 import {
-  checkLogin, makeCookie, clearCookie, sessionUser, tooManyFails, noteFail, clearFails, logAct, bookingLog, journal,
+  checkLogin, makeCookie, supportSignIn, clearCookie, sessionUser, tooManyFails, noteFail, clearFails, logAct, bookingLog, journal,
   can, teamList, addMember, updateStaff, setStaffPassword, removeStaff, renameMe, PERMS,
 } from './db/users.js';
 
@@ -53,6 +54,13 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
     return json({ ok: true, name: u.name }, 200, { 'set-cookie': await makeCookie(secret, t, u, url.protocol === 'https:', base) });
   }
   if (p === '/api/logout' && m === 'POST') return json({ ok: true }, 200, { 'set-cookie': clearCookie(base) });
+  // Visit2's admin opens this hotel's admin (the owner allowed help): a two-minute link → the admin cookie
+  if (p === '/api/support-enter' && m === 'GET') {
+    const u = secret ? await supportSignIn(db, t, secret, url.searchParams.get('k')) : null;
+    if (!u) return new Response('ბმულს ვადა გაუვიდა ან დახმარება დაშვებული არ არის.', { status: 403, headers: { 'content-type': 'text/plain; charset=utf-8' } });
+    await logAct(db, t, u, 'login', 'visit2', 'Visit2 შევიდა დახმარებისთვის');
+    return new Response(null, { status: 303, headers: { location: base.replace(/\/?$/, '/') + 'admin', 'set-cookie': await makeCookie(secret, t, u, url.protocol === 'https:', base) } });
+  }
 
   // ---------- admin ----------
   if (!p.startsWith('/api/admin/')) return json({ error: 'not found' }, 404);
@@ -62,14 +70,21 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
 
   if (route === 'state' && m === 'GET') {
     const st = await loadState(db, t, { full: true });
-    const me = { id: u.id, name: u.name, email: u.email, owner: u.owner, perms: u.perms };
-    const hotel = { name: t.name, city: t.city, slug: t.slug, status: t.status, trialEnds: t.trialEnds };
+    const me = { id: u.id, name: u.name, email: u.email, owner: u.owner, perms: u.perms, support: !!u.support };
+    const hotel = { name: t.name, city: t.city, slug: t.slug, status: t.status, trialEnds: t.trialEnds, helpUntil: await helpUntil(db, t), notices: await listNotices(db, { current: true }) };
     if (!can(u, 'book') && !can(u, 'money')) {
       // site-only staff: room list and prices for the site editor, no guests
       Object.assign(st, { bookings: [], payments: [], guestNotes: {}, guestBdays: {} });
       return json({ ...st, me, hotel, actlog: [] });
     }
     return json({ ...st, me, hotel, actlog: await bookingLog(db, t) });
+  }
+  if (route === 'help' && m === 'POST') {
+    if (!u.owner || u.support) return json({ ok: false, msg: 'დახმარებას მხოლოდ მფლობელი უშვებს' }, 403);
+    const b = (await readJson(request)) || {};
+    const until = await grantHelp(db, t, u.name, b.hours);
+    await logAct(db, t, u, 'help', 'visit2', until ? `დახმარება დაშვებულია ${b.hours} საათით` : 'დახმარება გაუქმდა');
+    return json({ ok: true, until });
   }
   if (route === 'rev' && m === 'GET') return json({ rev: (await getSetting(db, t, 'rev')) || '0' });
   if (route === 'action' && m === 'POST') {
