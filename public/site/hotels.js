@@ -11,8 +11,27 @@ window.V2DEMO = (() => {
   };
   const types = k => Object.fromEntries(Object.entries(BASE).map(([id, t]) => [id, { name: t.name, rates: scale(t.rates, k) }]));
   const ROOMS = [{ id: '1', type: 'std' }, { id: '2', type: 'std' }, { id: '3', type: 'family' }, { id: '4', type: 'family' }, { id: '5', type: 'suite' }];
-  const P = 'img/demo/';
-  const roomsPh = { std: { photos: [P + 'room-std.jpg', P + 'room-std2.jpg'] }, family: { photos: [P + 'room-family.jpg', P + 'room-family2.jpg'] }, suite: { photos: [P + 'room-suite.jpg', P + 'room-suite2.jpg'] } };
+  // Room photos per hotel, matched to its style (village, old town, vineyard, forest, sea, lake, mountains, snow)
+  const RP = (std, family, suite) => ({ std: { photos: std.map(n => 'img/rooms/' + n + '.jpg') }, family: { photos: family.map(n => 'img/rooms/' + n + '.jpg') }, suite: { photos: suite.map(n => 'img/rooms/' + n + '.jpg') } });
+  const ROOMS_OF = {
+    mta: RP(['chalet-twin', 'snow-double'], ['snow-twin'], ['snow-double', 'mountain-double']),
+    gudauri: RP(['snow-double'], ['snow-twin', 'chalet-twin'], ['mountain-double']),
+    alpine: RP(['snow-double', 'mountain-double'], ['snow-twin'], ['mountain-twin']),
+    kazbegi: RP(['mountain-double'], ['mountain-twin'], ['snow-double']),
+    svaneti: RP(['mountain-double'], ['mountain-twin', 'chalet-twin'], ['snow-double']),
+    nino: RP(['village-double'], ['village-twin'], ['village-family']),
+    racha: RP(['village-family'], ['village-twin'], ['village-double']),
+    dzveli: RP(['tbilisi-double'], ['village-twin'], ['village-family']),
+    kutaisi: RP(['tbilisi-double'], ['village-family'], ['village-double']),
+    kotejebi: RP(['aframe-double'], ['aframe-twin'], ['aframe-double', 'aframe-twin']),
+    alazani: RP(['vault-double'], ['vault-twin'], ['vault-suite']),
+    qvevri: RP(['vault-double'], ['stone-twin'], ['stone-suite']),
+    terasa: RP(['vault-suite', 'vault-double'], ['stone-twin', 'vault-twin'], ['stone-suite']),
+    zghva: RP(['sea-double'], ['sea-twin'], ['sea-suite']),
+    gonio: RP(['sea-suite'], ['sea-twin'], ['sea-double']),
+    tba: RP(['lake-double', 'lake-double2'], ['lake-twin', 'lake-twin2'], ['lake-suite']),
+  };
+  const roomsPh = RP(['lake-double', 'lake-double2'], ['lake-twin', 'lake-twin2'], ['lake-suite']);
 
   // kind: what guests look for on Visit2.ge (mountain, sea, wine, city, nature)
   const I = n => 'img/h/' + n + '.jpg';
@@ -20,7 +39,7 @@ window.V2DEMO = (() => {
   const H = (slug, name, nameEn, nameRu, city, kind, theme, accent, k, photos, tag, about, amenities, loc, extra = {}) => ({
     slug, name, nameT: { en: nameEn, ru: nameRu }, city, kind, theme, accent, types: types(k), cover: photos[0], ...extra,
     site: { hero: { img: I(photos[0]), tagline: tag }, about: { img: I(photos[1] || photos[0]), text: about },
-      amenities, gallery: photos.slice(1).map(I), rooms: roomsPh, location: { text: loc, map: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(city) } },
+      amenities, gallery: photos.slice(1).map(I), rooms: ROOMS_OF[slug] || roomsPh, location: { text: loc, map: 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(city) } },
   });
   const HOTELS = [
     H('mta', 'მთის სახლი', 'Mountain House', 'Горный дом', 'ბაკურიანი', 'mountain', 'opal', '#0E857D', 1, ['bakuriani-chalet', 'ski-spa', 'gudauri-lodge'],

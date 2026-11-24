@@ -87,9 +87,9 @@
     amenities: ['wifi', 'parking', 'kitchen', 'fireplace', 'garden', 'pool', 'ski', 'pets'],
     gallery: ['img/demo/lounge.jpg', 'img/demo/fire.jpg', 'img/demo/garden.jpg', 'img/demo/pool.jpg', 'img/demo/games.jpg', 'img/demo/pergola.jpg'],
     rooms: {
-      std: { photos: ['img/demo/room-std.jpg', 'img/demo/room-std2.jpg'], text: { ka: 'მყუდრო ნომერი ორისთვის, აივნით ტყეზე.', en: 'A cosy room for two with a forest-view balcony.', ru: 'Уютный номер для двоих с балконом на лес.' } },
-      family: { photos: ['img/demo/room-family.jpg', 'img/demo/room-family2.jpg'], text: { ka: 'საძინებელი და მისაღები სამზარეულოთი. ოჯახისთვის ხუთამდე სტუმარი.', en: 'Bedroom plus living room with kitchenette. Up to five guests.', ru: 'Спальня и гостиная с кухней. До пяти гостей.' } },
-      suite: { photos: ['img/demo/room-suite.jpg', 'img/demo/room-suite2.jpg'], text: { ka: 'ორი საძინებელი, დიდი მისაღები და ორი აივანი. ორი ოჯახისთვის.', en: 'Two bedrooms, a large living room and two balconies.', ru: 'Две спальни, большая гостиная и два балкона.' } },
+      std: { photos: ['img/rooms/lake-double.jpg', 'img/rooms/lake-double2.jpg'], text: { ka: 'მყუდრო ნომერი ორისთვის, აივნით ტყეზე.', en: 'A cosy room for two with a forest-view balcony.', ru: 'Уютный номер для двоих с балконом на лес.' } },
+      family: { photos: ['img/rooms/lake-twin.jpg', 'img/rooms/lake-twin2.jpg'], text: { ka: 'საძინებელი და მისაღები სამზარეულოთი. ოჯახისთვის ხუთამდე სტუმარი.', en: 'Bedroom plus living room with kitchenette. Up to five guests.', ru: 'Спальня и гостиная с кухней. До пяти гостей.' } },
+      suite: { photos: ['img/rooms/lake-suite.jpg'], text: { ka: 'ორი საძინებელი, დიდი მისაღები და ორი აივანი. ორი ოჯახისთვის.', en: 'Two bedrooms, a large living room and two balconies.', ru: 'Две спальни, большая гостиная и два балкона.' } },
     },
     location: { text: { ka: 'ტყის ქუჩა 12. ცენტრამდე 10 წუთი ფეხით, საბაგირომდე 400 მ.', en: '12 Forest St. 10 minutes on foot to the centre, 400 m to the lifts.', ru: 'Лесная ул. 12. До центра 10 минут пешком, до подъёмника 400 м.' }, map: 'https://www.google.com/maps/search/?api=1&query=Bakuriani' },
   };
