@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Visit2.ge · დიზაინის სამი მიმართულება</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&family=Noto+Serif+Georgian:wght@500;700&display=swap">
+<style>
+  :root {
+    --teal: #0E857D; --teal-dark: #0B7A73; --warm: #FFF8EE; --ink: #1F1A17; --muted: #5E5650; --line: #E7DED2;
+    --sans: 'Noto Sans Georgian', system-ui, sans-serif; --serif: 'Noto Serif Georgian', Georgia, serif;
+    --pad: 20px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--warm); color: var(--ink); font: 400 17px/1.6 var(--sans); }
+  img { display: block; max-width: 100%; }
+  a { color: var(--teal-dark); }
+  :focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
+
+  .intro { max-width: 1180px; margin: 0 auto; padding: 32px var(--pad) 8px; }
+  .intro img { height: 30px; width: auto; margin-bottom: 28px; }
+  .intro h1 { margin: 0 0 12px; font-size: clamp(30px, 7vw, 52px); line-height: 1.12; font-weight: 800; max-width: 18ch; }
+  .intro p { margin: 0 0 10px; max-width: 62ch; color: var(--muted); }
+
+  .dir { max-width: 1180px; margin: 0 auto; padding: 44px var(--pad); border-top: 1px solid var(--line); }
+  .dir-head { display: grid; gap: 6px 32px; margin-bottom: 24px; }
+  .dir-head .num { font-weight: 800; color: var(--teal-dark); font-size: 15px; }
+  .dir-head h2 { margin: 0; font-size: clamp(26px, 5vw, 38px); line-height: 1.15; font-weight: 800; }
+  .dir-head p { margin: 0; max-width: 60ch; }
+  .facts { display: grid; gap: 14px; margin: 18px 0 26px; padding: 0; list-style: none; }
+  .facts li { display: grid; gap: 4px; }
+  .facts b { font-size: 14px; color: var(--muted); font-weight: 600; }
+  .sw { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sw span { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 12px 4px 4px; border-radius: 999px; background: #fff; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .sw i { width: 28px; height: 28px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+
+  .mocks { display: grid; gap: 24px; align-items: start; }
+  .mock { margin: 0; }
+  .mock figcaption { margin-top: 10px; font-size: 14px; color: var(--muted); }
+  .frame { position: relative; overflow: hidden; background: #fff; }
+  .frame-d { border-radius: 14px; box-shadow: 0 0 0 1px var(--line), 0 18px 40px -24px rgba(31,26,23,.35); aspect-ratio: 1200 / 760; }
+  .frame-p { box-sizing: content-box; width: 244px; max-width: 100%; margin: 0 auto; border-radius: 34px; border: 8px solid #1F1A17; aspect-ratio: 390 / 820; }
+  .stage { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .stage-d { width: 1200px; height: 760px; }
+  .stage-p { width: 390px; height: 820px; }
+
+  @media (min-width: 900px) {
+    .dir-head { grid-template-columns: 1fr 1fr; align-items: end; }
+    .dir-head .num { grid-column: 1 / -1; }
+    .facts { grid-template-columns: repeat(3, 1fr); }
+    .mocks { grid-template-columns: 1fr 260px; }
+  }
+
+  .choose { max-width: 1180px; margin: 0 auto; padding: 40px var(--pad) 64px; border-top: 1px solid var(--line); }
+  .choose h2 { margin: 0 0 8px; font-size: 26px; }
+  .choose p { margin: 0 0 8px; max-width: 62ch; }
+
+  /* ================= shared mock bits ================= */
+  .m { font-family: var(--sans); color: var(--ink); position: relative; height: 100%; overflow: hidden; }
+  .m-top { display: flex; align-items: center; gap: 22px; padding: 22px 48px; font-size: 15px; font-weight: 600; }
+  .m-top .logo { height: 28px; width: auto; }
+  .m-top .sp { flex: 1; }
+  .m-top .lang { font-size: 13px; letter-spacing: .02em; opacity: .8; }
+  .m-btn { display: inline-flex; align-items: center; justify-content: center; height: 54px; padding: 0 28px; border-radius: 999px; background: var(--teal-dark); color: #fff; font-weight: 700; font-size: 17px; }
+  .field { display: grid; gap: 2px; padding: 0 22px; }
+  .field small { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .field span { font-size: 17px; font-weight: 600; }
+  .card { border-radius: 16px; overflow: hidden; background: #fff; }
+  .card img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+  .card div { padding: 12px 14px 14px; }
+  .card b { display: block; font-size: 16px; line-height: 1.3; }
+  .card em { font-style: normal; font-size: 13px; color: var(--muted); }
+  .card .pr { display: block; margin-top: 6px; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+
+  /* ================= 1. Window ================= */
+  .w1 .hero { position: absolute; inset: 0 0 auto; height: 600px; }
+  .w1 .hero img { width: 100%; height: 100%; object-fit: cover; }
+  .w1 .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,16,14,.42) 0%, rgba(20,16,14,0) 30%, rgba(20,16,14,0) 52%, rgba(20,16,14,.62) 100%); }
+  .w1 .m-top { position: relative; z-index: 2; color: #fff; }
+  .w1 .m-top .logo { filter: brightness(0) invert(1); }
+  .w1 .place { position: absolute; z-index: 2; left: 48px; bottom: 236px; color: #fff; }
+  .w1 .place small { display: block; font-size: 16px; font-weight: 600; opacity: .9; margin-bottom: 4px; }
+  .w1 .place strong { display: block; font-size: 132px; line-height: 1; font-weight: 900; letter-spacing: -.02em; }
+  .w1 .dots { position: absolute; z-index: 2; right: 48px; bottom: 250px; display: flex; gap: 8px; }
+  .w1 .dots i { width: 34px; height: 3px; background: rgba(255,255,255,.45); border-radius: 2px; }
+  .w1 .dots i:first-child { background: #fff; }
+  .w1 .bar { position: absolute; z-index: 3; left: 48px; right: 48px; top: 560px; display: flex; align-items: center; height: 80px; padding: 0 12px 0 6px; border-radius: 999px; background: #fff; box-shadow: 0 18px 40px -18px rgba(31,26,23,.45); }
+  .w1 .bar .field { flex: 1; border-right: 1px solid var(--line); }
+  .w1 .bar .field:nth-of-type(3) { border: 0; }
+  .w1 .below { position: absolute; left: 0; right: 0; top: 600px; bottom: 0; background: var(--warm); padding: 72px 48px 0; }
+  .w1 .below h3 { margin: 0 0 14px; font-size: 22px; }
+  .w1 .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  /* phone */
+  .w1p .hero { height: 560px; }
+  .w1p .m-top { padding: 18px 20px; }
+  .w1p .place { left: 20px; bottom: 392px; }
+  .w1p .place strong { font-size: 60px; }
+  .w1p .dots { left: 20px; right: auto; bottom: 360px; }
+  .w1p .dots i { width: 22px; }
+  .w1p .bar { left: 16px; right: 16px; top: 470px; height: auto; flex-direction: column; align-items: stretch; gap: 0; padding: 10px; border-radius: 22px; }
+  .w1p .bar .field { border-right: 0; border-bottom: 1px solid var(--line); padding: 10px 12px; }
+  .w1p .bar .m-btn { margin-top: 10px; }
+  .w1p .below { top: 760px; padding: 0 20px; }
+
+  /* ================= 2. Map ================= */
+  .w2 { background: #fff; }
+  .w2 .m-top { border-bottom: 1px solid #EEF0EF; }
+  .w2 .grid { display: grid; grid-template-columns: 380px 1fr; gap: 40px; padding: 40px 48px 0; }
+  .w2 h3 { margin: 0 0 8px; font-size: 40px; line-height: 1.1; font-weight: 800; }
+  .w2 .lead { margin: 0 0 24px; color: var(--muted); font-size: 16px; }
+  .w2 .stack { display: grid; gap: 10px; }
+  .w2 .stack .field { padding: 12px 16px; border-radius: 14px; background: #F4F7F6; }
+  .w2 .stack .m-btn { margin-top: 6px; border-radius: 14px; }
+  .w2 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .w2 .chips span { padding: 6px 12px; border-radius: 999px; background: #F4F7F6; font-size: 13px; font-weight: 600; }
+  .w2 .map { position: relative; }
+  .w2 .map svg { width: 100%; height: auto; }
+  .w2 .pop { position: absolute; width: 190px; padding: 8px; border-radius: 14px; background: #fff; box-shadow: 0 14px 30px -12px rgba(31,26,23,.35); font-size: 13px; }
+  .w2 .pop img { width: 100%; height: 78px; object-fit: cover; border-radius: 9px; margin-bottom: 6px; }
+  .w2 .pop b { display: block; font-size: 14px; }
+  .w2 .list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 22px 48px; }
+  .w2 .list .card { box-shadow: 0 0 0 1px #EEF0EF; }
+  .w2 .list .card img { aspect-ratio: 4 / 3; }
+  /* phone */
+  .w2p .m-top { padding: 16px 20px; }
+  .w2p .grid { grid-template-columns: 1fr; gap: 6px; padding: 18px 20px 0; }
+  .w2p h3 { font-size: 30px; }
+  .w2p .lead { margin-bottom: 10px; }
+  .w2p .map { order: -1; margin: 0 -8px; }
+  .w2p .pop { width: 128px; padding: 6px; font-size: 11px; }
+  .w2p .pop b { font-size: 12px; }
+  .w2p .pop img { height: 52px; }
+  .w2p .list { grid-template-columns: 1fr 1fr; padding: 18px 20px; }
+
+  /* ================= 3. Postcards ================= */
+  .w3 { background: #0F2E2B; color: #F5EFE6; }
+  .w3 .m-top { color: #F5EFE6; }
+  .w3 .m-top .logo { filter: brightness(0) invert(1); opacity: .95; }
+  .w3 .grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 24px; padding: 30px 48px 0; align-items: center; }
+  .w3 h3 { margin: 0 0 14px; font: 700 54px/1.12 var(--serif); }
+  .w3 .lead { margin: 0 0 26px; font-size: 17px; color: #C9D6D2; max-width: 30ch; }
+  .w3 .search { display: grid; grid-template-columns: 1.3fr 1fr .7fr; gap: 0; padding: 8px; border-radius: 18px; background: #F5EFE6; color: var(--ink); }
+  .w3 .search .field { padding: 8px 14px; border-right: 1px solid #DCD3C6; }
+  .w3 .search .field:nth-of-type(3) { border: 0; }
+  .w3 .search .m-btn { grid-column: 1 / -1; margin-top: 8px; border-radius: 12px; background: var(--teal); }
+  .w3 .deck { position: relative; height: 520px; }
+  .w3 .pc { position: absolute; width: 300px; padding: 12px 12px 16px; background: #FBF8F2; color: var(--ink); border-radius: 6px; box-shadow: 0 24px 40px -20px rgba(0,0,0,.6); }
+  .w3 .pc img { width: 100%; aspect-ratio: 4 / 3.4; object-fit: cover; border-radius: 3px; }
+  .w3 .pc p { margin: 10px 2px 0; font: 500 16px/1.3 var(--serif); }
+  .w3 .pc small { display: block; margin: 2px 2px 0; font-size: 13px; color: var(--muted); }
+  .w3 .stamp { position: absolute; right: -14px; top: -14px; width: 78px; height: 78px; border-radius: 50%; border: 2px dashed #7FD4CB; display: grid; place-items: center; text-align: center; font-size: 11px; font-weight: 800; line-height: 1.15; color: #0F2E2B; background: #BFE9E3; transform: rotate(12deg); }
+  .w3 .pc1 { left: 10px; top: 40px; transform: rotate(-6deg); }
+  .w3 .pc2 { left: 200px; top: 10px; transform: rotate(4deg); z-index: 2; }
+  .w3 .pc3 { left: 120px; top: 220px; transform: rotate(-1.5deg); z-index: 3; }
+  /* phone */
+  .w3p .m-top { padding: 16px 20px; }
+  .w3p .grid { grid-template-columns: 1fr; padding: 12px 20px; gap: 0; }
+  .w3p h3 { font-size: 34px; }
+  .w3p .lead { margin-bottom: 14px; }
+  .w3p .deck { order: -1; height: 330px; margin-bottom: 6px; }
+  .w3p .pc { width: 220px; padding: 9px 9px 12px; }
+  .w3p .pc p { font-size: 14px; }
+  .w3p .pc1 { left: 0; top: 30px; }
+  .w3p .pc2 { left: 120px; top: 6px; }
+  .w3p .pc3 { display: none; }
+  .w3p .stamp { width: 62px; height: 62px; font-size: 9px; }
+  .w3p .search { grid-template-columns: 1fr 1fr; }
+  .w3p .search .field:first-of-type { grid-column: 1 / -1; border-right: 0; border-bottom: 1px solid #DCD3C6; padding-bottom: 10px; margin-bottom: 4px; }
+  .w3p .search .field:nth-of-type(3) { display: none; }
+  .w3p .search .field:nth-of-type(2) { grid-column: 1 / -1; border-right: 0; }
+</style>
+</head>
+<body>
+
+<header class="intro">
+  <img src="../img/brand/visit2.svg" alt="Visit2.ge" width="62" height="34">
+  <h1>მთავარი გვერდის სამი მიმართულება</h1>
+  <p>სამივე სტუმრისთვისაა: სად, როდის, ვინ და ძებნა. განსხვავდება ის, რა ხვდება თვალში პირველად. ფერები ჩვენი ბრენდისაა: ფირუზი, თეთრი, თბილი ფონი და მუქი ტექსტი.</p>
+  <p>ეს ესკიზებია და არა საბოლოო გვერდი. შეგიძლია აირჩიო ერთი ან შეურიო, მაგალითად „პირველის ფოტო და მეორის რუკა“.</p>
+</header>
+
+<!-- 1 -->
+<section class="dir" aria-labelledby="d1">
+  <div class="dir-head">
+    <span class="num">მიმართულება 1</span>
+    <h2 id="d1">ფანჯარა</h2>
+    <p>ეკრანი საქართველოს ფოტოა, თითქოს ფანჯარაში იყურები. ქალაქის სახელი უზარმაზარი ასოებით ფოტოსთან ერთად იცვლება. ძებნა ერთი თეთრი ზოლია ფოტოს ქვედა კიდეზე.</p>
+  </div>
+  <ul class="facts">
+    <li><b>რა ამახსოვრდება</b>უზარმაზარი „სიღნაღი“ ცოცხალ ფოტოზე</li>
+    <li><b>ფერები</b><span class="sw"><span><i style="background:#1F1A17"></i>#1F1A17</span><span><i style="background:#fff"></i>#FFFFFF</span><span><i style="background:#0B7A73"></i>#0B7A73</span><span><i style="background:#FFF8EE"></i>#FFF8EE</span></span></li>
+    <li><b>შრიფტი</b>Noto Sans Georgian: 900 ქალაქის სახელად, 400 ტექსტად</li>
+  </ul>
+  <div class="mocks">
+    <figure class="mock"><div class="frame frame-d"><div class="stage stage-d">
+      <div class="m w1">
+        <div class="hero"><img src="../img/h/sighnaghi-terrace.jpg" alt=""></div>
+        <div class="m-top"><img class="logo" src="../img/brand/visit2.svg" alt=""><span class="sp"></span><span>პარტნიორებს</span><span class="lang">KA · EN · RU</span></div>
+        <div class="place"><small>კახეთი · 42 სასტუმრო</small><strong>სიღნაღი</strong></div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="bar"><div class="field"><small>სად</small><span>სიღნაღი</span></div><div class="field"><small>როდის</small><span>12–15 მარტი</span></div><div class="field"><small>ვინ</small><span>2 სტუმარი</span></div><span class="m-btn">ძებნა</span></div>
+        <div class="below"><h3>სიღნაღში ახლა თავისუფალია</h3><div class="row">
+          <div class="card"><img src="../img/h/kakheti-villa-s.jpg" alt=""><div><b>ალაზნის ვილა</b><em>თელავი</em><span class="pr">180₾ ღამე</span></div></div>
+          <div class="card"><img src="../img/h/marani-yard-s.jpg" alt=""><div><b>მარნის ეზო</b><em>სიღნაღი</em><span class="pr">140₾ ღამე</span></div></div>
+          <div class="card"><img src="../img/h/qvevri-pods-s.jpg" alt=""><div><b>ქვევრის სახლები</b><em>ყვარელი</em><span class="pr">120₾ ღამე</span></div></div>
+          <div class="card"><img src="../img/h/stone-pool-s.jpg" alt=""><div><b>ქვის აუზი</b><em>სიღნაღი</em><span class="pr">260₾ ღამე</span></div></div>
+          <div class="card"><img src="../img/h/blue-house-s.jpg" alt=""><div><b>ლურჯი სახლი</b><em>სიღნაღი</em><span class="pr">95₾ ღამე</span></div></div>
+        </div></div>
+      </div>
+    </div></div><figcaption>კომპიუტერი</figcaption></figure>
+    <figure class="mock"><div class="frame frame-p"><div class="stage stage-p">
+      <div class="m w1 w1p">
+        <div class="hero"><img src="../img/h/bakuriani-chalet-s.jpg" alt=""></div>
+        <div class="m-top"><img class="logo" src="../img/brand/visit2.svg" alt=""><span class="sp"></span><span>პარტნიორებს</span></div>
+        <div class="place"><small>ზამთარი · 31 სასტუმრო</small><strong>ბაკურიანი</strong></div>
+        <div class="dots"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="bar"><div class="field"><small>სად</small><span>ბაკურიანი</span></div><div class="field"><small>როდის</small><span>2–6 იანვარი</span></div><div class="field"><small>ვინ</small><span>4 სტუმარი</span></div><span class="m-btn">ძებნა</span></div>
+      </div>
+    </div></div><figcaption>ტელეფონი</figcaption></figure>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="dir" aria-labelledby="d2">
+  <div class="dir-head">
+    <span class="num">მიმართულება 2</span>
+    <h2 id="d2">რუკა</h2>
+    <p>მთავარ ადგილას საქართველოს რუკაა. ქალაქის წერტილი მით უფრო დიდია, რაც მეტი სასტუმროა იქ. შეხებისას ჩნდება პატარა ბარათი ფოტოთი. სუფთა, თეთრი და ძალიან გასაგები.</p>
+  </div>
+  <ul class="facts">
+    <li><b>რა ამახსოვრდება</b>საქართველოს ფორმა ფირუზისფერი წერტილებით</li>
+    <li><b>ფერები</b><span class="sw"><span><i style="background:#fff"></i>#FFFFFF</span><span><i style="background:#0E857D"></i>#0E857D</span><span><i style="background:#E3F1EF"></i>#E3F1EF</span><span><i style="background:#1F1A17"></i>#1F1A17</span></span></li>
+    <li><b>შრიფტი</b>Noto Sans Georgian: 800 სათაურად, 600 ველებში, ციფრები ერთი სიგანით</li>
+  </ul>
+  <div class="mocks">
+    <figure class="mock"><div class="frame frame-d"><div class="stage stage-d">
+      <div class="m w2">
+        <div class="m-top"><img class="logo" src="../img/brand/visit2.svg" alt=""><span class="sp"></span><span>პარტნიორებს</span><span class="lang">KA · EN · RU</span></div>
+        <div class="grid">
+          <div>
+            <h3>სად წავიდეთ?</h3>
+            <p class="lead">აირჩიე რუკაზე ან ჩაწერე. ფასს სასტუმრო თავად აწესებს.</p>
+            <div class="stack"><div class="field"><small>სად</small><span>ბორჯომი</span></div><div class="field"><small>როდის</small><span>20–23 აპრილი</span></div><div class="field"><small>ვინ</small><span>2 სტუმარი</span></div><span class="m-btn">ძებნა</span></div>
+            <div class="chips"><span>მთა</span><span>ზღვა</span><span>ღვინო</span><span>ქალაქი</span><span>ბუნება</span></div>
+          </div>
+          <div class="map" data-map="big"></div>
+        </div>
+        <div class="list">
+          <div class="card"><img src="../img/h/imereti-garden-s.jpg" alt=""><div><b>ბაღის სახლი</b><em>ბორჯომი · 2 კმ</em><span class="pr">110₾ ღამე</span></div></div>
+          <div class="card"><img src="../img/h/a-frame-s.jpg" alt=""><div><b>ტყის A-ფრეიმი</b><em>ბორჯომი · 5 კმ</em><span class="pr">150₾ ღამე</span></div></div>
+          <div class="card"><img src="../img/h/barrel-cabins-s.jpg" alt=""><div><b>კასრის კოტეჯები</b><em>ბაკურიანი · 28 კმ</em><span class="pr">90₾ ღამე</span></div></div>
+          <div class="card"><img src="../img/h/lake-hotel-s.jpg" alt=""><div><b>ტბის სასტუმრო</b><em>ბორჯომი · 9 კმ</em><span class="pr">200₾ ღამე</span></div></div>
+        </div>
+      </div>
+    </div></div><figcaption>კომპიუტერი</figcaption></figure>
+    <figure class="mock"><div class="frame frame-p"><div class="stage stage-p">
+      <div class="m w2 w2p">
+        <div class="m-top"><img class="logo" src="../img/brand/visit2.svg" alt=""><span class="sp"></span><span>პარტნიორებს</span></div>
+        <div class="grid">
+          <div class="map" data-map="small"></div>
+          <div>
+            <h3>სად წავიდეთ?</h3>
+            <p class="lead">აირჩიე რუკაზე ან ჩაწერე.</p>
+            <div class="stack"><div class="field"><small>სად</small><span>ბორჯომი</span></div><div class="field"><small>როდის · ვინ</small><span>20–23 აპრ · 2</span></div><span class="m-btn">ძებნა</span></div>
+          </div>
+        </div>
+        <div class="list">
+          <div class="card"><img src="../img/h/imereti-garden-s.jpg" alt=""><div><b>ბაღის სახლი</b><span class="pr">110₾</span></div></div>
+          <div class="card"><img src="../img/h/a-frame-s.jpg" alt=""><div><b>A-ფრეიმი</b><span class="pr">150₾</span></div></div>
+        </div>
+      </div>
+    </div></div><figcaption>ტელეფონი</figcaption></figure>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="dir" aria-labelledby="d3">
+  <div class="dir-head">
+    <span class="num">მიმართულება 3</span>
+    <h2 id="d3">ღია ბარათები</h2>
+    <p>საღამოს ფერი და მოგზაურობის ღია ბარათები. თითოს ფირუზისფერი შტამპი აქვს ქალაქის სახელით. სათაური მშვიდი, სერიფიანი შრიფტით. ყველაზე თბილი და „ადამიანური“ ვარიანტია.</p>
+  </div>
+  <ul class="facts">
+    <li><b>რა ამახსოვრდება</b>ერთმანეთზე დადებული ბარათები შტამპებით</li>
+    <li><b>ფერები</b><span class="sw"><span><i style="background:#0F2E2B"></i>#0F2E2B</span><span><i style="background:#F5EFE6"></i>#F5EFE6</span><span><i style="background:#0E857D"></i>#0E857D</span><span><i style="background:#BFE9E3"></i>#BFE9E3</span></span></li>
+    <li><b>შრიფტი</b>Noto Serif Georgian სათაურებად, Noto Sans Georgian ტექსტად</li>
+  </ul>
+  <div class="mocks">
+    <figure class="mock"><div class="frame frame-d"><div class="stage stage-d">
+      <div class="m w3">
+        <div class="m-top"><img class="logo" src="../img/brand/visit2.svg" alt=""><span class="sp"></span><span>პარტნიორებს</span><span class="lang">KA · EN · RU</span></div>
+        <div class="grid">
+          <div>
+            <h3>შენი მოგზაურობა საქართველოში აქედან იწყება</h3>
+            <p class="lead">პატარა სასტუმროები და ბინები, პირდაპირ მასპინძლისგან.</p>
+            <div class="search"><div class="field"><small>სად</small><span>მესტია</span></div><div class="field"><small>როდის</small><span>5–9 ივლისი</span></div><div class="field"><small>ვინ</small><span>3</span></div><span class="m-btn">ძებნა</span></div>
+          </div>
+          <div class="deck">
+            <div class="pc pc1"><img src="../img/h/mestia-house-s.jpg" alt=""><p>სვანური სახლი</p><small>მესტია · 130₾ ღამე</small><span class="stamp">მესტია</span></div>
+            <div class="pc pc2"><img src="../img/h/sea-deck-s.jpg" alt=""><p>ზღვის ტერასა</p><small>ბათუმი · 160₾ ღამე</small><span class="stamp">ბათუმი</span></div>
+            <div class="pc pc3"><img src="../img/h/tbilisi-yard-s.jpg" alt=""><p>ძველი ეზო</p><small>თბილისი · 120₾ ღამე</small><span class="stamp">თბილისი</span></div>
+          </div>
+        </div>
+      </div>
+    </div></div><figcaption>კომპიუტერი</figcaption></figure>
+    <figure class="mock"><div class="frame frame-p"><div class="stage stage-p">
+      <div class="m w3 w3p">
+        <div class="m-top"><img class="logo" src="../img/brand/visit2.svg" alt=""><span class="sp"></span><span>პარტნიორებს</span></div>
+        <div class="grid">
+          <div class="deck">
+            <div class="pc pc1"><img src="../img/h/mestia-house-s.jpg" alt=""><p>სვანური სახლი</p><span class="stamp">მესტია</span></div>
+            <div class="pc pc2"><img src="../img/h/sea-deck-s.jpg" alt=""><p>ზღვის ტერასა</p><span class="stamp">ბათუმი</span></div>
+          </div>
+          <div>
+            <h3>შენი მოგზაურობა აქედან იწყება</h3>
+            <div class="search"><div class="field"><small>სად</small><span>მესტია</span></div><div class="field"><small>როდის</small><span>5–9 ივლ</span></div><div class="field"><small>ვინ</small><span>3</span></div><span class="m-btn">ძებნა</span></div>
+          </div>
+        </div>
+      </div>
+    </div></div><figcaption>ტელეფონი</figcaption></figure>
+  </div>
+</section>
+
+<section class="choose">
+  <h2>როგორ ავირჩიოთ</h2>
+  <p>მითხარი ნომერი ან რა მოგეწონა თითოეულიდან. არჩეულ მიმართულებას ნამდვილ გვერდად ავაწყობ, ყველა ფუნქციით: ძებნა, რუკა, რადიუსი, ფილტრები, სამი ენა. მერე ამავე ხასიათით ავაწყობ პარტნიორების გვერდსაც და ადმინსაც.</p>
+</section>
+
+<script>
+  // Simplified outline of Georgia (lng, lat) and a few towns with hotel counts (demo numbers).
+  const BORDER = [[40.0,43.38],[40.9,43.35],[41.6,43.22],[42.5,43.2],[43.0,43.05],[43.6,42.86],[44.2,42.73],[44.6,42.74],[45.1,42.58],[45.65,42.22],[46.05,42.03],[46.45,41.9],[46.72,41.62],[46.55,41.3],[46.1,41.17],[45.55,41.13],[45.05,41.3],[44.55,41.2],[43.9,41.17],[43.45,41.12],[42.85,41.5],[42.5,41.44],[41.95,41.5],[41.55,41.52],[41.65,41.9],[41.62,42.2],[41.45,42.42],[41.2,42.68],[40.95,42.95],[40.55,43.12]];
+  const TOWNS = [['თბილისი',44.79,41.72,38],['ბათუმი',41.64,41.64,30],['ქუთაისი',42.70,42.27,14],['ბაკურიანი',43.53,41.75,31],['ბორჯომი',43.39,41.84,18],['გუდაური',44.48,42.48,22],['ყაზბეგი',44.64,42.66,12],['მესტია',42.73,43.05,15],['სიღნაღი',45.92,41.62,20],['თელავი',45.47,41.92,16]];
+  const X = lng => (lng - 39.8) * 74, Y = lat => (43.55 - lat) * 100;
+  const svg = small => {
+    const d = 'M' + BORDER.map(([a, b]) => X(a).toFixed(1) + ' ' + Y(b).toFixed(1)).join('L') + 'Z';
+    const dots = TOWNS.map(([n, a, b, c], i) => {
+      const r = 3 + Math.sqrt(c) * (small ? .9 : 1.1), hot = n === 'ბორჯომი';
+      const left = n === 'ბაკურიანი' || n === 'ბათუმი', label = !small || hot || c > 25 ? `<text text-anchor="${left ? 'end' : 'start'}" x="${(left ? X(a) - r - 4 : X(a) + r + 4).toFixed(1)}" y="${(Y(b) + 4).toFixed(1)}" font-size="${small ? 13 : 12}" font-weight="${hot ? 800 : 600}" fill="#1F1A17">${n}</text>` : '';
+      return `<circle cx="${X(a).toFixed(1)}" cy="${Y(b).toFixed(1)}" r="${r.toFixed(1)}" fill="${hot ? '#0B7A73' : '#0E857D'}" fill-opacity="${hot ? 1 : .55}"${hot ? ' stroke="#fff" stroke-width="3"' : ''}/>` + label;
+    }).join('');
+    return `<svg viewBox="0 0 530 255" role="img" aria-label="საქართველოს რუკა"><path d="${d}" fill="#E3F1EF" stroke="#BFDCD8" stroke-width="1.5" stroke-linejoin="round"/>${dots}</svg>`;
+  };
+  document.querySelectorAll('[data-map]').forEach(el => {
+    const small = el.dataset.map === 'small';
+    el.innerHTML = svg(small) + `<div class="pop" style="left:${small ? 54 : 70}%;top:${small ? -2 : -14}%"><img src="../img/h/imereti-garden-s.jpg" alt=""><b>ბორჯომი</b>18 სასტუმრო · 90₾-დან</div>`;
+  });
+  // Fit each fixed-size mock into its frame.
+  const fit = () => document.querySelectorAll('.frame').forEach(f => {
+    const s = f.querySelector('.stage'); s.style.transform = `scale(${f.clientWidth / s.offsetWidth})`;
+  });
+  addEventListener('resize', fit); fit();
+  document.fonts && document.fonts.ready.then(fit);
+</script>
+</body>
+</html>
