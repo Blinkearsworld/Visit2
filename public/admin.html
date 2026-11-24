@@ -317,6 +317,7 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:var(--teal)!impor
 .bar .in>div:last-child{display:flex;align-items:center;gap:6px;flex:none;white-space:nowrap}
 .bar .out{margin-left:6px}
 @media(max-width:640px){.bar .v2logo{height:22px}.bar b{font-size:16px;padding-left:10px}.bar .in{gap:8px;padding:0 12px}.bar .out{padding:0 10px}}
+body:has(#gate:not([hidden])) .v2h-btn{display:none}
 </style>
 </head>
 <body>
@@ -1055,5 +1056,6 @@ J.onChange(()=>{if(!$('app').hidden){renderAll();checkNew()}});
 <script src="js/admin-dates.js?v=20261123c"></script>
 <script src="js/admin-team.js?v=20261123c"></script>
 <script src="js/admin-site.js?v=20261123c"></script>
+<script src="js/admin-help.js?v=20261123c"></script>
 </body>
 </html>
