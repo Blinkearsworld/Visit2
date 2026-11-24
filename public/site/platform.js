@@ -148,6 +148,9 @@
   // this build's stamp (from our own script tag), so a hotel page never comes from an old browser copy
   const BUILD = ((document.querySelector('script[src*="site/platform.js"]') || {}).src || '').split('?v=')[1] || '';
   const link = (h, q) => `hotel.html?h=${encodeURIComponent(h.slug)}${q.from && q.to ? `&from=${q.from}&to=${q.to}&g=${q.g}` : ''}${BUILD ? '&v=' + BUILD : ''}`;
+  // header: solid once the page scrolls, so the logo (home) and links stay readable everywhere
+  const top = document.querySelector('.p-top');
+  if (top) { const on = () => top.classList.toggle('scrolled', scrollY > 30); addEventListener('scroll', on, { passive: true }); on(); }
   window.V2FIND = { find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t };
 
   // the town list: popular places first, in order of popularity, then every place alphabetically

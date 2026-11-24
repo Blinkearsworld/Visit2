@@ -346,3 +346,12 @@ p { margin: 0 0 1em; }
 .gets li:last-child { border-bottom: 0; }
 .gets .soon { background: var(--warm); }
 @media (min-width: 641px) { .gets ul { grid-template-columns: 1fr 1fr; column-gap: 40px; } .gets li:nth-last-child(2) { border-bottom: 0; } }
+
+/* header stays on screen: logo = home. Over a photo it is see-through until the page scrolls. */
+.p-top { position: sticky; top: 0; transition: background .25s, box-shadow .25s; }
+.p-top.on-photo { position: fixed; }
+.p-top.scrolled { background: rgba(255, 248, 238, .96); backdrop-filter: blur(10px); box-shadow: 0 0 0 100vmax rgba(255, 248, 238, .96), 0 10px 20px -14px rgba(31, 26, 23, .45); clip-path: inset(0 -100vmax -30px); }
+.p-top.on-photo.scrolled .p-logo img { filter: none; }
+.p-top.on-photo.scrolled .p-link { color: var(--ink); text-shadow: none; }
+.p-top.on-photo.scrolled .p-langs button { color: var(--muted); }
+.p-top.on-photo.scrolled .p-langs button[aria-pressed="true"] { color: var(--ink); text-decoration-color: var(--teal); }

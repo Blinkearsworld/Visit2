@@ -170,7 +170,7 @@
   ${foodSection(J.hotel || {})}
 </main>
 <footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span><a href="https://visit2.ge" rel="noopener">Visit2.ge · ${w('directly')}</a></footer>
-${isDemo() ? demoPanel() : ''}`;
+${isDemo() && !sample ? demoPanel() : ''}${isDemo() ? backLink() : ''}`;
     if (wasOpen) { const d = document.querySelector('.demo'); if (d) d.open = true; }
     wire();
   }
@@ -268,6 +268,12 @@ ${isDemo() ? demoPanel() : ''}`;
     <p class="msg wide" id="msg" role="status"></p>
   </form>
 </section>`;
+  }
+  // one clear button back to Visit2.ge: a template sample goes back to the templates, a hotel to the hotel list
+  function backLink() {
+    const to = sample ? `owners.html?v=${V}#templates` : `index.html?v=${V}`;
+    const txt = sample ? { ka: 'შაბლონებზე დაბრუნება', en: 'Back to templates', ru: 'Назад к шаблонам' } : { ka: 'ყველა სასტუმრო', en: 'All places to stay', ru: 'Все места' };
+    return `<a class="v2-back" href="${to}"><span aria-hidden="true">←</span> ${esc(txt[lang()] || txt.en)}</a>`;
   }
   function demoPanel() {
     const mine = J.hotel && J.hotel.mine;
