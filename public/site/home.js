@@ -22,7 +22,8 @@
     arrive: ['ჩამოსვლა', 'Arriving', 'Заезд'], leave: ['წასვლა', 'Leaving', 'Выезд'], nights: ['{n} ღამე', '{n} nights', 'Ночей: {n}'], night1: ['1 ღამე', '1 night', '1 ночь'],
     pickArrive: ['აირჩიე ჩამოსვლის დღე', 'Pick the day you arrive', 'Выберите день заезда'], pickLeave: ['ახლა აირჩიე წასვლის დღე', 'Now pick the day you leave', 'Теперь выберите день выезда'],
     clear: ['გასუფთავება', 'Clear', 'Сбросить'], save: ['შენახვა', 'Save', 'Сохранить'],
-    adults: ['უფროსები', 'Adults', 'Взрослые'], adultsAge: ['10 წლიდან', 'Ages 10 or above', 'От 10 лет'], kids: ['ბავშვები', 'Children', 'Дети'], kidsAge: ['10 წლამდე', 'Under 10', 'До 10 лет'],
+    adults: ['უფროსები', 'Adults', 'Взрослые'], adultsAge: ['13 წლიდან', 'Ages 13 or above', 'От 13 лет'], kids: ['ბავშვები', 'Children', 'Дети'], kidsAge: ['2–12 წლის', 'Ages 2–12', 'От 2 до 12 лет'],
+    babies: ['ჩვილები', 'Infants', 'Младенцы'], babiesAge: ['2 წლამდე', 'Under 2', 'До 2 лет'], baby1: ['1 ჩვილი', '1 infant', '1 младенец'], babiesN: ['{n} ჩვილი', '{n} infants', 'младенцев: {n}'],
     pets: ['შინაური ცხოველი', 'Pets', 'Домашние животные'], petsSub: ['ვაჩვენებთ სასტუმროებს, სადაც ცხოველი შეიძლება', 'We show places where pets are welcome', 'Покажем места, где можно с животными'],
     pet1: ['ცხოველით', 'with a pet', 'с животным'], petsN: ['{n} ცხოველით', 'with {n} pets', 'с животными: {n}'],
     guestsN: ['{n} სტუმარი', '{n} guests', 'Гостей: {n}'], guest1: ['1 სტუმარი', '1 guest', '1 гость'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], kid1: ['1 ბავშვი', '1 child', '1 ребёнок'],
@@ -57,14 +58,14 @@
 
   // ---------- the search state (a hidden form, so the chatbot can fill it too) ----------
   const Q = $('#q');
-  const st = () => ({ city: Q.city.value, from: Q.from.value, to: Q.to.value, g: Math.max(1, +Q.g.value || 2), kids: Math.max(0, +Q.kids.value || 0), pets: Math.max(0, +Q.pets.value || 0) });
+  const st = () => ({ city: Q.city.value, from: Q.from.value, to: Q.to.value, g: Math.max(1, +Q.g.value || 2), kids: Math.max(0, +Q.kids.value || 0), babies: Math.max(0, +Q.babies.value || 0), pets: Math.max(0, +Q.pets.value || 0) });
   const dated = s => s.from && s.to && s.to > s.from;
   const range = s => {
     if (!dated(s)) return '';
     const a = F.fmt(s.from), b = F.fmt(s.to), [da, ma] = a.split(' '), [db, mb] = b.split(' ');
     return ma === mb ? `${da}–${db} ${mb}` : `${a} – ${b}`;
   };
-  const guests = s => [s.g === 1 ? h('guest1') : h('guestsN', { n: s.g }), s.kids ? (s.kids === 1 ? h('kid1') : h('kidsN', { n: s.kids })) : '', s.pets ? (s.pets === 1 ? h('pet1') : h('petsN', { n: s.pets })) : ''].filter(Boolean).join(', ');
+  const guests = s => [s.g === 1 ? h('guest1') : h('guestsN', { n: s.g }), s.kids ? (s.kids === 1 ? h('kid1') : h('kidsN', { n: s.kids })) : '', s.babies ? (s.babies === 1 ? h('baby1') : h('babiesN', { n: s.babies })) : '', s.pets ? (s.pets === 1 ? h('pet1') : h('petsN', { n: s.pets })) : ''].filter(Boolean).join(', ');
   function summary() {
     const s = st();
     $('#vWhere').textContent = s.city ? F.town(s.city) : h('whereQ');
@@ -122,7 +123,7 @@
     if (v === 'main') summary();
     if (v === 'where') { $('#townFind').value = ''; drawTowns(); setTimeout(() => matchMedia('(pointer: fine)').matches && $('#townFind').focus(), 50); }
     if (v === 'when') { const s = st(); calFrom = s.from; calTo = s.to; drawCal(); }
-    if (v === 'who') { const s = st(); $('#nG').value = s.g; $('#nK').value = s.kids; $('#nP').value = s.pets; }
+    if (v === 'who') { const s = st(); $('#nG').value = s.g; $('#nK').value = s.kids; $('#nB').value = s.babies; $('#nP').value = s.pets; }
     sheet.querySelector('.h-sheet-in').scrollTop = 0;
   }
   document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => openSheet(b.dataset.open)));
@@ -194,13 +195,13 @@
     show(flow ? 'who' : 'main');
   });
 
-  // who: adults (and children from 10) and children under 10
+  // who: adults (13+), children (2–12), infants (under 2, they need no bed of their own, so they are not counted for rooms), pets
   $('[data-view="who"]').addEventListener('click', e => {
     const b = e.target.closest('[data-n]'); if (!b) return;
-    const n = b.dataset.n, out = { g: $('#nG'), kids: $('#nK'), pets: $('#nP') }[n], min = n === 'g' ? 1 : 0, max = { g: 16, kids: 10, pets: 5 }[n];
+    const n = b.dataset.n, out = { g: $('#nG'), kids: $('#nK'), babies: $('#nB'), pets: $('#nP') }[n], min = n === 'g' ? 1 : 0, max = { g: 16, kids: 10, babies: 5, pets: 5 }[n];
     out.value = Math.min(max, Math.max(min, +out.value + +b.dataset.d));
   });
-  $('#whoSave').addEventListener('click', () => { Q.g.value = $('#nG').value; Q.kids.value = $('#nK').value; Q.pets.value = $('#nP').value; summary(); renderRows(); show('main'); });
+  $('#whoSave').addEventListener('click', () => { Q.g.value = $('#nG').value; Q.kids.value = $('#nK').value; Q.babies.value = $('#nB').value; Q.pets.value = $('#nP').value; summary(); renderRows(); show('main'); });
 
   // ---------- saved hotels (♥), kept in this browser ----------
   const SKEY = 'v2-saved';
@@ -291,7 +292,7 @@
     if (scroll) $('#results').scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth' });
   }
   $('#resClear').addEventListener('click', () => {
-    Q.city.value = Q.from.value = Q.to.value = ''; Q.g.value = 2; Q.kids.value = 0; Q.pets.value = 0; curKind = ''; center = null;
+    Q.city.value = Q.from.value = Q.to.value = ''; Q.g.value = 2; Q.kids.value = 0; Q.babies.value = 0; Q.pets.value = 0; curKind = ''; center = null;
     $('#results').hidden = true; $('#mapBox').hidden = true; $('#mapBtn').setAttribute('aria-expanded', 'false');
     summary(); renderChips(); renderRows();
     $('.h-hero').scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth' });
