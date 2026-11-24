@@ -22,20 +22,19 @@
     <img class="hero-bg" id="heroA" src="img/h/sighnaghi-terrace.jpg" alt="" fetchpriority="high">
     <img class="hero-bg hero-next" id="heroB" alt="">
     <div class="hero-in">
-      <p class="slogan" lang="en">Your Visit2 Georgia starts here</p>
-      <h1 data-t="gH1">იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ</h1>
+      <h1 class="sr-only" data-t="gH1">იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ</h1>
     </div>
     <div class="town" id="town" aria-live="off">
       <div class="town-txt">
-        <span class="town-meta" id="townMeta"></span>
+        <a class="town-meta" id="townMeta" href="#"></a>
         <button type="button" class="town-name" id="townName"></button>
       </div>
-      <div class="town-nav" id="townNav"><button type="button" data-step="-1" aria-label="Previous place">‹</button><span id="townCount"></span><button type="button" data-step="1" aria-label="Next place">›</button></div>
+      <div class="town-dots" id="townDots" role="group" aria-label="Places"></div>
     </div>
     <form class="search" id="search">
       <label class="s-where"><span data-t="city">ქალაქი ან კურორტი</span><select name="city" id="city"><option value="" data-t="all">ყველა</option></select></label>
-      <label><span data-t="in">შესვლა</span><input type="date" name="from"></label>
-      <label><span data-t="out">გასვლა</span><input type="date" name="to"></label>
+      <label class="s-date"><span data-t="in">შესვლა</span><input type="date" name="from"></label>
+      <label class="s-date"><span data-t="out">გასვლა</span><input type="date" name="to"></label>
       <label class="s-who"><span data-t="guests">სტუმარი</span><select name="g"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
       <button class="btn btn-teal" type="submit" data-t="search">ძებნა</button>
     </form>

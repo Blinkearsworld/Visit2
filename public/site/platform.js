@@ -39,7 +39,7 @@
     fAgree: ['ვეთანხმები <a href="terms.html" target="_blank">მომსახურების პირობებს</a>, მათ შორის სტუმრების მონაცემების დამუშავების შეთანხმებას, და <a href="privacy.html" target="_blank">კონფიდენციალურობის პოლიტიკას</a>', 'I agree to the <a href="terms.html" target="_blank">terms of service</a>, including the guest data processing agreement, and the <a href="privacy.html" target="_blank">privacy policy</a>', 'Я принимаю <a href="terms.html" target="_blank">условия обслуживания</a>, включая соглашение об обработке данных гостей, и <a href="privacy.html" target="_blank">политику конфиденциальности</a>'],
     needAgree: ['გასაგრძელებლად დაეთანხმე პირობებს', 'Please accept the terms to continue', 'Чтобы продолжить, примите условия'],
     destH: ['სად წავიდეთ', 'Where to go', 'Куда поехать'], howH: ['როგორ მუშაობს', 'How it works', 'Как это работает'],
-    nHotels: ['{n} სასტუმრო', '{n} places to stay', 'Мест: {n}'], nHotel1: ['1 სასტუმრო', '1 place to stay', '1 место'],
+    addDate: ['აირჩიე', 'Add date', 'Выбрать'], nHotels: ['{n} სასტუმრო', '{n} places to stay', 'Мест: {n}'], nHotel1: ['1 სასტუმრო', '1 place to stay', '1 место'],
     hotels: ['სასტუმროები', 'Hotels', 'Отели'], pickDates: ['აირჩიე თარიღები, რომ ნახო თავისუფალი ნომრები და ფასი', 'Choose dates to see free rooms and the price', 'Выберите даты, чтобы увидеть свободные номера и цену'],
     free: ['თავისუფალი', 'available', 'свободно'], nightsW: ['ღამე', 'nights', 'ноч.'], guestsW: ['სტუმარი', 'guests', 'гост.'], perNight: ['ღამე', 'night', 'ночь'],
     fromP: ['{p} ₾-დან', 'from {p} ₾', 'от {p} ₾'], tagFree: ['✓ თავისუფალია ამ თარიღებზე', '✓ Available on these dates', '✓ Свободно на эти даты'],
@@ -227,15 +227,20 @@
   // It starts on a random town and moves on every few seconds; the dots let a guest pick one.
   let heroTowns = [], heroAt = -1, heroTimer = 0, heroHold = 0;
   const still = matchMedia('(prefers-reduced-motion: reduce)');
+  // a few real hotels picked at random from the catalogue on every visit (different towns where possible)
+  // Later: promoted hotels get these places first, always marked as an ad.
   function heroList() {
-    const by = new Map();
-    for (const h of D.list()) if (!h.hidden && h.cover) { const x = by.get(h.city) || { c: h.city, n: 0, covers: [] }; x.n++; x.covers.push(h.cover); by.set(h.city, x); }
-    return [...by.values()];
+    const all = D.list().filter(h => !h.hidden && h.cover);
+    for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
+    const seen = new Set(), pick = [];
+    for (const h of all) if (!seen.has(h.city) && pick.length < 6) { seen.add(h.city); pick.push(h); }
+    for (const h of all) if (pick.length < 6 && !pick.includes(h)) pick.push(h);
+    return pick;
   }
   function heroShow(i, user) {
     if (!heroTowns.length) return;
     heroAt = (i + heroTowns.length) % heroTowns.length;
-    const x = heroTowns[heroAt], img = `img/h/${x.covers[Math.floor(Math.random() * x.covers.length)]}.jpg`;
+    const x = heroTowns[heroAt], img = `img/h/${x.cover}.jpg`;
     const a = $('#heroA'), b = $('#heroB'), front = a.classList.contains('hero-next') ? b : a, back = front === a ? b : a;
     const swap = () => { back.classList.remove('hero-next'); front.classList.add('hero-next'); };
     if (front.getAttribute('src') !== img) { back.onload = swap; back.src = img; if (back.complete && back.naturalWidth) swap(); }
@@ -244,11 +249,11 @@
   }
   function heroText() {
     const x = heroTowns[heroAt]; if (!x) return;
-    const nm = town(x.c), el = $('#townName'), n = t(x.n === 1 ? 'nHotel1' : 'nHotels', { n: x.n });
-    el.textContent = nm; el.dataset.city = x.c;
-    el.setAttribute('aria-label', `${nm}: ${n}`);
-    $('#townMeta').textContent = n;
-    $('#townCount').textContent = `${heroAt + 1} / ${heroTowns.length}`;
+    // the town in big letters (without the bracketed part, e.g. "(Kazbegi)"); the hotel itself on the small line
+    const nm = town(x.city).replace(/\s*\(.*\)\s*$/, ''), el = $('#townName');
+    el.textContent = nm; el.dataset.city = x.city;
+    const meta = $('#townMeta'); meta.textContent = (x.kind ? kindName(x.kind) + ' · ' : '') + hname(x); meta.href = link(x, {});
+    $('#townDots').innerHTML = heroTowns.map((y, j) => `<button type="button" data-hero="${j}" aria-label="${esc(hname(y))}"${j === heroAt ? ' aria-current="true"' : ''}><i></i></button>`).join('');
     heroFit();
   }
   // shrink the town name until it fits on one line (long names like Stepantsminda)
@@ -298,7 +303,14 @@
       navigator.geolocation.getCurrentPosition(p => setCenter({ lat: p.coords.latitude, lng: p.coords.longitude }), () => { $('#mapHint').textContent = t('noLoc'); }, { timeout: 10000 });
     });
     $('#kinds').addEventListener('click', e => { const b = e.target.closest('[data-kind]'); if (!b) return; curKind = curKind === b.dataset.kind ? '' : b.dataset.kind; search(); });
-    $('#townNav').addEventListener('click', e => { const b = e.target.closest('[data-step]'); if (b) heroShow(heroAt + +b.dataset.step, true); });
+    $('#townDots').addEventListener('click', e => { const b = e.target.closest('[data-hero]'); if (b) heroShow(+b.dataset.hero, true); });
+    // swipe the photo left or right on a phone
+    let sx = null;
+    $('.hero').addEventListener('touchstart', e => { sx = e.target.closest('#search') ? null : e.touches[0].clientX; }, { passive: true });
+    $('.hero').addEventListener('touchend', e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx; sx = null; if (Math.abs(dx) > 50) heroShow(heroAt + (dx < 0 ? 1 : -1), true); });
+    // an empty date field shows a hint instead of a blank box (iPhone shows nothing)
+    const dateHint = () => f.querySelectorAll('.s-date').forEach(l => { l.dataset.ph = t('addDate'); l.classList.toggle('empty', !l.querySelector('input').value); });
+    f.addEventListener('input', dateHint); f.addEventListener('change', dateHint); dateHint();
     addEventListener('resize', () => heroFit());
     document.fonts && document.fonts.ready.then(() => heroFit());
     $('#townName').addEventListener('click', e => { f.city.value = e.currentTarget.dataset.city; curKind = ''; search(); $('#results').scrollIntoView({ behavior: 'smooth' }); });
