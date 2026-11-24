@@ -485,10 +485,16 @@
     el.innerHTML = list.map((x, i) => `<div class="card2" data-i="${i}"><div class="fh"><i class="cn">რჩევა ${i + 1}</i><span class="ctl"><button type="button" class="btn sm nob" data-rm aria-label="წაშლა">✕</button></span></div>
       <div class="fld" data-part="name"><b>სახელი</b>${langFields(x.name || {}, { short: true })}</div>
       <label class="fld"><b>რა ადგილია</b><select data-kind>${KINDS.map(([k, n]) => `<option value="${k}"${k === x.kind ? ' selected' : ''}>${n}</option>`).join('')}</select></label>
-      <div class="fld" data-part="note"><b>რას ურჩევთ (არასავალდებულო)</b>${langFields(x.note || {}, { short: true })}</div></div>`).join('');
+      <div class="fld" data-part="note"><b>რას ურჩევთ (არასავალდებულო)</b>${langFields(x.note || {}, { short: true })}</div>
+      <div class="grid2 near-links">
+        <label class="fld"><b>ბმული Google Maps-ზე</b><input data-f="map" type="url" inputmode="url" placeholder="https://maps.app.goo.gl/…" value="${esc(x.map || '')}"><span class="hint">Google Maps-ში ადგილი გახსენით, „Share“ და ბმული აქ ჩასვით.</span></label>
+        <label class="fld"><b>საიტი ან Instagram</b><input data-f="web" type="url" inputmode="url" placeholder="https://" value="${esc(x.web || '')}"></label>
+        <label class="fld"><b>ტელეფონი</b><input data-f="phone" type="tel" placeholder="+995 …" value="${esc(x.phone || '')}"></label>
+      </div></div>`).join('');
     el.oninput = el.onchange = e => {
       const c = e.target.closest('[data-i]'); if (!c) return; const o = D.site.food.own[+c.dataset.i];
       if (e.target.dataset.kind != null) o.kind = e.target.value;
+      else if (e.target.dataset.f) { const v = e.target.value.trim(); if (v) o[e.target.dataset.f] = v; else delete o[e.target.dataset.f]; }
       else if (e.target.dataset.l) { const part = e.target.closest('[data-part]').dataset.part; o[part] = { ...(o[part] || {}), [e.target.dataset.l]: e.target.value }; }
       dirty();
     };

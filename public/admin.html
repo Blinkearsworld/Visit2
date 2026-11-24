@@ -71,6 +71,7 @@ body.site .toast{bottom:130px}
 .near-found{display:flex;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--mute)}.near-found:empty{display:none}
 .near-map{height:min(60vh,420px);border-radius:10px;border:1px solid var(--line);overflow:hidden;z-index:0}
 .near-pin span{display:block;width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--teal,#0B7A73);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.near-links{display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr))}.near-links input{width:100%;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff}@media(max-width:760px){.near-links{grid-template-columns:minmax(0,1fr)}}
 #nearList{display:grid;gap:2px;max-height:420px;overflow:auto}
 .chk{display:flex;gap:12px;align-items:center;min-height:44px;cursor:pointer}.chk input{width:22px;height:22px}
 .yt{margin-top:8px;max-width:260px;width:100%;border-radius:8px}
@@ -519,10 +520,10 @@ body:has(#gate:not([hidden])) .v2h-btn{display:none}
 </form>
 </dialog>
 
-<script src="site/hotels.js?v=20261124i"></script>
-<script src="js/i18n.js?v=20261124i"></script>
-<script src="js/store.js?v=20261124i"></script>
-<script src="js/content.js?v=20261124i"></script>
+<script src="site/hotels.js?v=20261124j"></script>
+<script src="js/i18n.js?v=20261124j"></script>
+<script src="js/store.js?v=20261124j"></script>
+<script src="js/content.js?v=20261124j"></script>
 <script>
 {
 const J=JIJI,$=id=>document.getElementById(id);
@@ -1060,10 +1061,10 @@ function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderS
 J.onChange(()=>{if(!$('app').hidden){renderAll();checkNew()}});
 }
 </script>
-<script src="js/admin-dates.js?v=20261124i"></script>
-<script src="js/admin-team.js?v=20261124i"></script>
-<script src="js/osm.js?v=20261124i"></script>
-<script src="js/admin-site.js?v=20261124i"></script>
-<script src="js/admin-help.js?v=20261124i"></script>
+<script src="js/admin-dates.js?v=20261124j"></script>
+<script src="js/admin-team.js?v=20261124j"></script>
+<script src="js/osm.js?v=20261124j"></script>
+<script src="js/admin-site.js?v=20261124j"></script>
+<script src="js/admin-help.js?v=20261124j"></script>
 </body>
 </html>

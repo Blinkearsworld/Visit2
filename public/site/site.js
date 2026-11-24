@@ -276,7 +276,8 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   // the list shown: host's tips, then real places (minus hidden), nearest first
   function foodList() {
     const f = S().food || {}, hide = new Set(f.hide || []), p = pin();
-    const own = (f.own || []).filter(x => pick(x.name)).map((x, i) => ({ id: 'own' + i, name: pick(x.name), kind: x.kind || 'restaurant', note: pick(x.note), own: true, m: null }));
+    const own = (f.own || []).filter(x => pick(x.name)).map((x, i) => ({ id: 'own' + i, name: pick(x.name), kind: x.kind || 'restaurant', note: pick(x.note), own: true, m: null,
+      phone: x.phone || '', web: /^https?:\/\//i.test(x.web || '') ? x.web : '', mapUrl: /^https:\/\/(www\.)?(google\.[a-z.]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.)/i.test(x.map || '') ? x.map : '' }));
     const real = Array.isArray(f.places) ? f.places : PL;
     if (real) return [...own, ...real.filter(x => !hide.has(x.id)).map(x => ({ ...x, name: nameOf(x.name), m: p ? metres(p, x) : x.m }))];
     // invented names only in the offline preview (GitHub Pages, local testing); on visit2.ge only real places
@@ -326,7 +327,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
         ${r.phone ? `<li>📞 <a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}">${esc(r.phone)}</a></li>` : ''}
         ${r.web ? `<li>🌐 <a href="${esc(r.web)}" target="_blank" rel="noopener nofollow">${esc(r.web.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '').slice(0, 40))}</a></li>` : ''}
       </ul>
-      <a class="btn btn-accent" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(where)}" target="_blank" rel="noopener">${w('foodMap')}</a>`;
+      <a class="btn btn-accent" href="${esc(r.mapUrl || 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(where))}" target="_blank" rel="noopener">${w('foodMap')}</a>`;
     if ($('#foodDlg').open) $('#foodDlg').close();
     d.showModal();
   }
