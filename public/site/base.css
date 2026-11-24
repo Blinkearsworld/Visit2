@@ -177,3 +177,33 @@ main > section > * { max-width: var(--max); margin-left: auto; margin-right: aut
   box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .5); }
 .v2-back:hover { background: #0B7A73; }
 .v2-back:focus-visible { outline: 3px solid #0E857D; outline-offset: 3px; }
+
+/* ---- template blocks: season prices, quick facts, room comparison ---- */
+.seasons, .facts, .compare { padding: 48px var(--pad, 20px); max-width: 1100px; margin: 0 auto; }
+.season-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }
+.season-tabs button { min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid currentColor; background: transparent; color: inherit; font: inherit; font-weight: 600; cursor: pointer; opacity: .75; }
+.season-tabs button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; opacity: 1; }
+.season-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.season-list li { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 14px 0; border-bottom: 1px solid rgba(127, 127, 127, .25); }
+.season-list li span { min-width: 0; overflow-wrap: anywhere; }
+.season-list li b { flex: none; font-size: 18px; font-variant-numeric: tabular-nums; }
+.facts ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; text-align: center; }
+.facts li { display: grid; gap: 2px; padding: 16px 6px; border-radius: 14px; background: rgba(127, 127, 127, .08); }
+.facts b { font-size: clamp(22px, 6vw, 34px); line-height: 1.1; color: var(--accent); font-variant-numeric: tabular-nums; }
+.facts span { font-size: 13px; opacity: .8; overflow-wrap: anywhere; }
+.cmp { display: grid; gap: 12px; margin-top: 14px; }
+.rooms.compare .cmp-row { text-align: left; background: rgba(127, 127, 127, .08); }
+.cmp-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; padding: 16px; border-radius: 14px; background: rgba(127, 127, 127, .08); }
+.cmp-row h3 { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+.cmp-cap, .cmp-row .room-avail { grid-column: 1; margin: 0; font-size: 14px; opacity: .85; }
+.cmp-price { grid-column: 2; grid-row: 1 / span 2; margin: 0; font-weight: 800; font-size: 18px; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.cmp-price span { font-weight: 500; font-size: 13px; opacity: .75; }
+.cmp-row .btn { grid-column: 1 / -1; justify-self: start; margin-top: 6px; }
+.rooms.compare h2 { text-align: inherit; }
+.cmp-row.picked { outline: 2px solid var(--accent); }
+@media (min-width: 1025px) {
+  .cmp { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .cmp-row { grid-template-columns: 1fr; align-content: start; }
+  .cmp-price { grid-column: 1; grid-row: auto; text-align: left; }
+}
+.cmp-row .room-avail:empty { display: none; }

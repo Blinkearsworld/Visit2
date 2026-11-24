@@ -58,6 +58,7 @@
     sent: ['მოთხოვნა გაიგზავნა. სასტუმრო მალე დაგიკავშირდებათ.', 'Request sent. The hotel will contact you soon.', 'Запрос отправлен. Отель скоро свяжется с вами.'],
     needName: ['ჩაწერეთ სახელი და ტელეფონი', 'Enter your name and phone', 'Укажите имя и телефон'], err: ['ვერ გაიგზავნა. სცადეთ ხელახლა ან დაგვირეკეთ.', 'Could not send. Try again or call us.', 'Не удалось отправить. Попробуйте ещё раз или позвоните.'],
     call: ['დარეკვა', 'Call', 'Позвонить'], map: ['რუკაზე ნახვა', 'Open map', 'На карте'], estimate: ['საორიენტაციო ფასი', 'Estimated price', 'Ориентировочная цена'],
+    seasonsH: ['ფასები სეზონების მიხედვით', 'Prices by season', 'Цены по сезонам'],
     template: ['შაბლონი', 'Template', 'Шаблон'], colour: ['ფერი', 'Colour', 'Цвет'], demo: ['დემო: მონაცემები მხოლოდ ამ ბრაუზერშია', 'Demo: data stays in this browser', 'Демо: данные только в этом браузере'],
     admin: ['ადმინი', 'Admin', 'Админ'], directly: ['პირდაპირ, საკომისიოს გარეშე', 'Book direct, no commission', 'Напрямую, без комиссии'],
   };
@@ -124,6 +125,89 @@
   const typeIds = () => Object.keys(J.types).filter(k => roomsOf(k).length);
   const img = (src, alt = '', cls = '') => src ? `<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async">` : `<div class="ph ${cls}" aria-hidden="true"></div>`;
 
+
+  // ---------- template layouts ----------
+  // Each template has its own order of sections and some blocks only it uses. Colour and font stay the owner's choice.
+  const LAYOUT = {
+    opal: ['hero', 'bookBar', 'seasons', 'about', 'amen', 'rooms', 'gallery', 'book', 'where', 'food'],   // seasonal: winter/summer prices up front
+    cobalt: ['hero', 'bookBar', 'facts', 'rooms', 'gallery', 'about', 'amen', 'book', 'where', 'food'],   // seaside: quick facts, rooms early
+    umber: ['hero', 'facts', 'where', 'rooms', 'book', 'about', 'amen', 'gallery', 'food'],                // apartments: address and map first
+    lilac: ['hero', 'about', 'gallery', 'rooms', 'amen', 'book', 'where', 'food'],                         // wine: story and photos
+    jade: ['hero', 'about', 'amen', 'rooms', 'gallery', 'book', 'where', 'food'],                          // family: the host and what is included
+    indigo: ['hero', 'bookBar', 'compare', 'gallery', 'about', 'amen', 'book', 'where', 'food'],           // boutique: room comparison
+    amber: ['hero', 'bookBar', 'compare', 'amen', 'about', 'gallery', 'book', 'where', 'food'],            // hostel: prices side by side
+    onyx: ['hero', 'amen', 'about', 'gallery', 'rooms', 'book', 'where', 'food'],                          // cottage: the place first
+    ivory: ['hero', 'about', 'rooms', 'gallery', 'amen', 'book', 'where', 'food'],                         // old-town house
+    alba: ['hero', 'about', 'rooms', 'book', 'where', 'food'],                                             // minimal: only what matters
+  };
+  const LAYOUT_OF = th => LAYOUT[th] || LAYOUT.opal;
+  const BLOCK = {
+    hero: (s, h) => `<section class="hero">
+    <div class="hero-media">${img(s.hero?.img, h.name)}</div>
+    <div class="hero-text">
+      ${h.city ? `<p class="hero-city">${esc(h.city)}</p>` : ''}
+      <h1 class="hero-name">${esc(caps(h.name || ''))}</h1>
+      <p class="hero-tag">${esc(pick(s.hero?.tagline))}</p>
+    </div>
+  </section>`,
+    bookBar: () => bookBar(),
+    about: s => `<section class="about" id="about">
+    <div class="about-media">${img(s.about?.img)}</div>
+    <div class="about-text"><h2>${caps(w('about'))}</h2><p>${esc(pick(s.about?.text))}</p></div>
+  </section>`,
+    amen: s => ((s.amenities || []).length ? `<section class="amen"><h2>${caps(w('amen'))}</h2><ul>${s.amenities.map(k => `<li><span aria-hidden="true">${AMEN[k]?.[0] || '•'}</span>${esc(amenText(k))}</li>`).join('')}</ul></section>` : ''),
+    rooms: () => `<section class="rooms" id="rooms"><h2>${caps(w('rooms'))}</h2><div class="room-list">${typeIds().map(roomCard).join('')}</div></section>`,
+    gallery: s => ((s.gallery || []).length ? `<section class="gallery"><h2>${caps(w('gallery'))}</h2><div class="grid">${s.gallery.map(g => img(g)).join('')}</div></section>` : ''),
+    // the date bar is the only date picker: layouts without it near the top get it right above the request form
+    book: () => (LAYOUT_OF(theme()).includes('bookBar') ? '' : bookBar()) + bookForm(),
+    where: (s, h, c, tel) => `<section class="where" id="where">
+    <h2>${caps(w('where'))}</h2>
+    <p>${esc(pick(s.location?.text) || c.addrText || h.city || '')}</p>
+    <div class="where-actions">
+      ${tel ? `<a class="btn btn-ghost" href="${tel}">${w('call')} ${esc(c.phone)}</a>` : ''}
+      ${s.location?.map || c.map ? `<a class="btn btn-ghost" href="${esc(s.location?.map || c.map)}" target="_blank" rel="noopener">${w('map')}</a>` : ''}
+    </div>
+  </section>`,
+    food: () => foodSection(J.hotel || {}),
+    seasons: () => seasonsBlock(),
+    facts: () => factsBlock(),
+    compare: () => compareBlock(),
+  };
+  // prices by season, one season at a time (switch on top), for the cheapest version of each room type
+  let seasonShown = '';
+  function seasonsBlock() {
+    const ids = Object.keys(J.SEASONS), now = J.siteSeason ? J.siteSeason() : '';
+    if (!ids.length) return '';
+    if (!ids.includes(seasonShown)) seasonShown = ids.includes(now) ? now : ids[0];
+    const price = k => { const r = J.types[k].rates; const p = r.map(x => x.price?.[seasonShown]).filter(v => v > 0); return p.length ? Math.min(...p) : null; };
+    return `<section class="seasons" id="seasons"><h2>${caps(w('seasonsH'))}</h2>
+    <div class="season-tabs" role="group" aria-label="${esc(w('seasonsH'))}">${ids.map(id => `<button type="button" data-season="${esc(id)}" aria-pressed="${id === seasonShown}">${esc(J.SEASONS[id])}</button>`).join('')}</div>
+    <ul class="season-list">${typeIds().map(k => { const p = price(k); return `<li><span>${esc(typeName(J.types[k].name))}</span><b>${p ? (lang() === 'ka' ? `${p} ₾${w('from')}` : `${w('from')} ${p} ₾`) : '—'}</b></li>`; }).join('')}</ul>
+  </section>`;
+  }
+  // a strip of plain numbers: rooms, guests, price from
+  function factsBlock() {
+    const ks = typeIds(); if (!ks.length) return '';
+    const rooms = ks.reduce((n, k) => n + roomsOf(k).length, 0), cap = Math.max(...ks.map(k => J.types[k].cap || 0)), from = Math.min(...ks.map(minPrice));
+    return `<section class="facts"><ul>
+    <li><b>${rooms}</b><span>${lang() === 'ka' ? 'ნომერი' : lang() === 'ru' ? 'номеров' : 'rooms'}</span></li>
+    <li><b>${cap}</b><span>${w('upTo')}</span></li>
+    <li><b>${from} ₾</b><span>${w('from').trim() || 'from'} / ${w('perNight')}</span></li>
+  </ul></section>`;
+  }
+  // room types side by side; rows are .room so availability and "choose" work as with cards
+  function compareBlock() {
+    return `<section class="rooms compare" id="rooms"><h2>${caps(w('rooms'))}</h2>
+    <div class="cmp">${typeIds().map(k => { const t = J.types[k]; return `<article class="room cmp-row" data-type="${esc(k)}">
+      <h3>${esc(typeName(t.name))}</h3>
+      <p class="cmp-cap">${t.cap} ${w('upTo')}</p>
+      <p class="cmp-price">${lang() === 'ka' ? `${minPrice(k)} ₾${w('from')}` : `${w('from')} ${minPrice(k)} ₾`} <span>/ ${w('perNight')}</span></p>
+      <p class="room-avail" aria-live="polite"></p>
+      <button type="button" class="btn btn-line" data-pick="${esc(k)}">${w('choose')}</button>
+    </article>`; }).join('')}</div>
+  </section>`;
+  }
+
   function render() {
     // a template sample (?sample=1) shows placeholder words instead of a real hotel's name and texts
     const s = sample ? { ...S(), hero: { ...S().hero, tagline: w('sampleTag') }, about: { ...S().about, text: w('sampleAbout') }, location: { ...S().location, text: w('sampleAddr') } } : S();
@@ -142,32 +226,7 @@
   <a class="btn btn-accent top-book" href="#book"><span class="long">${w('book')}</span><span class="short">${w('bookShort')}</span></a>
 </header>
 <main id="top">
-  <section class="hero">
-    <div class="hero-media">${img(s.hero?.img, h.name)}</div>
-    <div class="hero-text">
-      ${h.city ? `<p class="hero-city">${esc(h.city)}</p>` : ''}
-      <h1 class="hero-name">${esc(caps(h.name || ''))}</h1>
-      <p class="hero-tag">${esc(pick(s.hero?.tagline))}</p>
-    </div>
-  </section>
-  ${bookBar()}
-  <section class="about" id="about">
-    <div class="about-media">${img(s.about?.img)}</div>
-    <div class="about-text"><h2>${caps(w('about'))}</h2><p>${esc(pick(s.about?.text))}</p></div>
-  </section>
-  ${(s.amenities || []).length ? `<section class="amen"><h2>${caps(w('amen'))}</h2><ul>${s.amenities.map(k => `<li><span aria-hidden="true">${AMEN[k]?.[0] || '•'}</span>${esc(amenText(k))}</li>`).join('')}</ul></section>` : ''}
-  <section class="rooms" id="rooms"><h2>${caps(w('rooms'))}</h2><div class="room-list">${typeIds().map(roomCard).join('')}</div></section>
-  ${(s.gallery || []).length ? `<section class="gallery"><h2>${caps(w('gallery'))}</h2><div class="grid">${s.gallery.map(g => img(g)).join('')}</div></section>` : ''}
-  ${bookForm()}
-  <section class="where" id="where">
-    <h2>${caps(w('where'))}</h2>
-    <p>${esc(pick(s.location?.text) || c.addrText || h.city || '')}</p>
-    <div class="where-actions">
-      ${tel ? `<a class="btn btn-ghost" href="${tel}">${w('call')} ${esc(c.phone)}</a>` : ''}
-      ${s.location?.map || c.map ? `<a class="btn btn-ghost" href="${esc(s.location?.map || c.map)}" target="_blank" rel="noopener">${w('map')}</a>` : ''}
-    </div>
-  </section>
-  ${foodSection(J.hotel || {})}
+  ${LAYOUT_OF(th).map(k => (BLOCK[k] ? BLOCK[k](s, h, c, tel) : '')).join('\n  ')}
 </main>
 <footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span><a href="https://visit2.ge" rel="noopener">Visit2.ge · ${w('directly')}</a></footer>
 ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ? backLink() : ''}`;
@@ -346,6 +405,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
       $('#foodX').addEventListener('click', () => $('#foodDlg').close());
       $('#foodDlg').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
     }
+    document.querySelectorAll('button[data-season]').forEach(b => b.addEventListener('click', () => { seasonShown = b.dataset.season; render(); }));
     document.querySelectorAll('button[data-lang]').forEach(b => b.addEventListener('click', () => { I.set(b.dataset.lang); }));
     document.querySelectorAll('button[data-theme]').forEach(b => b.addEventListener('click', () => { params.delete('theme'); saveLocal({ theme: b.dataset.theme, accent: '' }); render(); }));
     document.querySelectorAll('button[data-accent]').forEach(b => b.addEventListener('click', () => { saveLocal({ accent: b.dataset.accent }); render(); }));
