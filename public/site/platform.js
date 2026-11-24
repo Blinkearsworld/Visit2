@@ -159,7 +159,7 @@
   // header: solid once the page scrolls, so the logo (home) and links stay readable everywhere
   const top = document.querySelector('.p-top');
   if (top) { const on = () => top.classList.toggle('scrolled', scrollY > 30); addEventListener('scroll', on, { passive: true }); on(); }
-  window.V2FIND = { find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t };
+  window.V2FIND = { find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t, pub, nights, kindName: k => kindName(k), get lang() { return lang; } };
 
   // the town list: popular places first, in order of popularity, then every place alphabetically
   function fillTowns() {
@@ -300,7 +300,7 @@
   const eatName = n => n[lang] || n.def;
   const eatDist = m => (m < 1000 ? m + (lang === 'ka' ? ' მ' : lang === 'ru' ? ' м' : ' m') : (m / 1000).toFixed(1) + (lang === 'ka' ? ' კმ' : lang === 'ru' ? ' км' : ' km'));
   function renderEat() {
-    if (!$('#eat')) return;
+    if (!$('#eatList')) return;
     const towns = eatTowns(); if (!towns.length || eatDown) { $('#eat').hidden = true; return; }
     const sel = $('#search')?.city.value;
     if (!eatTown || !towns.includes(eatTown)) eatTown = towns.includes(sel) ? sel : towns[0];
@@ -327,7 +327,7 @@
     if (eatData[c].length) try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), places: eatData[c] })); } catch (e) { /* full */ }
     renderEat();
   }
-  if ($('#eat')) {
+  if ($('#eatList')) {
     renderEat();
     $('#eatTowns').addEventListener('click', e => { const b = e.target.closest('[data-eat]'); if (!b) return; eatTown = b.dataset.eat; renderEat(); if (eatSeen) loadEat(eatTown); });
     const go = () => { if (eatSeen) return; eatSeen = true; renderEat(); loadEat(eatTown); };

@@ -125,8 +125,8 @@
     if (!rows.length) { say(esc(m('gNone'))); choose([{ t: m('gOther'), f: gWhen }, { t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]); return; }
     say(esc(m('gFound', { d: `${F.fmt(q.from)} – ${F.fmt(q.to)}`, g: q.g })) + rows.map(({ h, o }) =>
       `<a class="vc-hot" href="${F.link(h, q)}"><b>${esc(F.hname(h))}</b>${esc(F.town(h.city))} · ${o.best.total} ₾ · ${o.n} ${m('gNights')}</a>`).join(''));
-    const f = document.getElementById('search');
-    choose([...(f ? [{ t: m('gAll'), f: () => {
+    const f = document.getElementById('search'), home = window.V2HOME;
+    choose([...(home ? [{ t: m('gAll'), f: () => home.show(q) }] : f ? [{ t: m('gAll'), f: () => {
       f.city.value = q.city; f.from.value = q.from; f.to.value = q.to; f.g.value = String(q.g);
       f.dispatchEvent(new Event('change')); document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
     } }] : []), { t: m('gOther'), f: gWhen }, { t: m('back'), f: start }]);

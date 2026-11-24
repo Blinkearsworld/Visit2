@@ -316,7 +316,8 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   function openPlace(id) {
     const r = foodList().find(x => x.id === id); if (!r) return;
     const city = (J.hotel || {}).city || '', d = $('#placeDlg');
-    const where = r.lat != null ? `${r.lat},${r.lng}` : `${r.name} ${city}`;
+    // a Google Maps search by name and town opens the place's own Google page (reviews, photos, links); free, no Google key
+    const where = `${r.name}, ${city.replace(/\s*\(.*\)\s*$/, '')}, Georgia`;
     d.querySelector('.place-body').innerHTML = `${r.own ? `<span class="food-badge">${w('hostTip')}</span>` : r.sponsored ? `<span class="food-badge">${w('recommended')}</span>` : ''}
       <h2 id="placeH">${esc(r.name)}</h2>
       <p class="food-meta">${esc([kindName(r.kind), r.cuisine && !/georgian/i.test(r.cuisine) ? r.cuisine : '', r.price ? '₾'.repeat(r.price) : ''].filter(Boolean).join(' · '))}</p>
