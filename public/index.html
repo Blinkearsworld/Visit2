@@ -7,10 +7,9 @@
 <meta name="description" content="იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ სასტუმროსთან. ნამდვილი თავისუფალი ნომრები, საკომისიოს გარეშე.">
 <link rel="icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&family=Noto+Serif:wght@500;700&family=Noto+Serif+Georgian:wght@500;700&display=swap">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="site/platform.css?v=20261123c">
-<link rel="preload" as="image" href="img/h/sighnaghi-terrace.jpg">
 </head>
 <body data-chat="guests" class="home">
 <header class="p-top on-photo">
@@ -20,11 +19,13 @@
 </header>
 <main>
   <section class="hero">
-    <img class="hero-bg" src="img/h/sighnaghi-terrace.jpg" alt="" fetchpriority="high">
+    <div class="hero-grid">
     <div class="hero-in">
       <p class="slogan" lang="en">Your Visit2 Georgia starts here</p>
       <h1 data-t="gH1">იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ</h1>
       <p class="lead" data-t="gLead">ფასს სასტუმრო თავად აწესებს, შუამავალი არ არის. თავისუფალი ნომრები ნამდვილია: სასტუმროები ჯავშნებს Visit2.ge-ზე მართავენ.</p>
+    </div>
+    <div class="deck" id="deck"></div>
     </div>
     <form class="search" id="search">
       <label class="s-where"><span data-t="city">ქალაქი ან კურორტი</span><select name="city" id="city"><option value="" data-t="all">ყველა</option></select></label>

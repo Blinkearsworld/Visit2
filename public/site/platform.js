@@ -175,7 +175,7 @@
     }).join('') || `<p class="empty">${t(q.center ? 'mapNone' : 'none')}</p>`;
     drawMap(rows, q);
     document.querySelectorAll('#cities button').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.city === q.city)); b.textContent = town(b.dataset.city); });
-    renderKinds(); renderDest();
+    renderKinds(); renderDest(); renderDeck();
   }
   // ---------- map search: tap a point, pick a radius ----------
   let map = null, mapCenter = null, radius = 5, layer = null;
@@ -223,12 +223,19 @@
     const el = $('#kinds'); if (!el) return;
     el.innerHTML = Object.keys(D.KINDS).map(k => `<button type="button" class="kind" data-kind="${k}" aria-pressed="${k === curKind}"><img src="img/h/${KIND_PH[k]}-s.jpg" alt="" loading="lazy">${esc(kindName(k))}</button>`).join('');
   }
+  // hero postcards: three hotels from three different towns, each with a town stamp
+  function renderDeck() {
+    const el = $('#deck'); if (!el) return;
+    const seen = new Set(), pick = [];
+    for (const r of find({ city: '', from: '', to: '', g: 2, kind: '' })) { if (r.h.cover && !seen.has(r.h.city) && pick.length < 3) { seen.add(r.h.city); pick.push(r); } }
+    el.innerHTML = pick.map(({ h, o }, i) => `<a class="pc pc${i + 1}" href="${link(h, {})}"><img src="img/h/${h.cover}-s.jpg" alt="" ${i ? 'loading="lazy"' : 'fetchpriority="high"'}><span class="pc-name">${esc(hname(h))}</span><span class="pc-meta">${esc(t('fromP', { p: o.minFrom }))} / ${esc(t('perNight'))}</span><span class="stamp" aria-hidden="true">${esc(town(h.city))}</span></a>`).join('');
+  }
   // places to go: towns with hotels, the first one large
   const DEST = ['ბაკურიანი', 'თელავი', 'ბათუმი', 'თბილისი', 'გუდაური'];
   function renderDest() {
     const el = $('#dest'); if (!el) return;
     el.innerHTML = DEST.map(c => { const hs = D.list().filter(h => h.city === c && !h.hidden); if (!hs.length) return '';
-      return `<button type="button" class="dest-tile" data-dest="${esc(c)}"><img src="img/h/${hs[0].cover}${c === DEST[0] ? '' : '-s'}.jpg" alt="" loading="lazy"><div><b>${esc(town(c))}</b><span>${t(hs.length === 1 ? 'nHotel1' : 'nHotels', { n: hs.length })}</span></div></button>`; }).join('');
+      return `<button type="button" class="dest-tile" data-dest="${esc(c)}"><img src="img/h/${hs[0].cover}-s.jpg" alt="" loading="lazy"><div><b>${esc(town(c))}</b><span>${t(hs.length === 1 ? 'nHotel1' : 'nHotels', { n: hs.length })}</span></div><span class="stamp" aria-hidden="true">${esc(town(c))}</span></button>`; }).join('');
   }
   if ($('#search')) {
     const f = $('#search');
