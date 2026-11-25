@@ -113,6 +113,11 @@ window.V2DEMO = (() => {
   const KINDS_OF = { dzveli: ['history', 'city'], kutaisi: ['history', 'city'], terasa: ['history', 'wine'], alazani: ['wine', 'food'], qvevri: ['wine', 'food'],
     racha: ['nature', 'food'], svaneti: ['mountain', 'history'], kazbegi: ['mountain', 'nature'] };
   HOTELS.forEach(h => { h.kinds = KINDS_OF[h.slug] || [h.kind]; });
+  // one demo hotel takes instant bookings, so the whole flow (form and chat) can be tried
+  Object.assign(HOTELS[0], { instant: true });
+  HOTELS[0].site.instant = { on: true,
+    cancel: T3('უფასო გაუქმება შესვლამდე 3 დღით ადრე.', 'Free cancellation up to 3 days before arrival.', 'Бесплатная отмена за 3 дня до заезда.'),
+    prepay: T3('გადახდა ადგილზე, შესვლისას.', 'Pay at the hotel on arrival.', 'Оплата на месте при заезде.') };
 
   // only for scripts/check-layout.py: the longest name and town we expect, never listed
   const STRESS = { slug: 'test-long', hidden: true, name: 'საოჯახო სასტუმრო „დიდი მთის ძველი სახლი“', city: 'სტეფანწმინდა (ყაზბეგი)', theme: 'kva', accent: '#0E857D', types: types(1.4), site: HOTELS[0].site, kind: 'mountain', cover: 'bakuriani-chalet', lat: 42.66, lng: 44.64 };

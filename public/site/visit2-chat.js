@@ -9,12 +9,17 @@
     open: ['კითხვა გაქვს?', 'Questions?', 'Есть вопрос?'], title: ['Visit2.ge ასისტენტი', 'Visit2.ge assistant', 'Ассистент Visit2.ge'], close: ['დახურვა', 'Close', 'Закрыть'],
     send: ['გაგზავნა', 'Send', 'Отправить'], typeHere: ['ჩაწერე აქ', 'Type here', 'Напишите здесь'], back: ['↩ თავიდან', '↩ Start over', '↩ Сначала'],
     // guests
-    gHi: ['გამარჯობა! Visit2.ge-ს ასისტენტი ვარ. სასტუმროს მოძებნაში დაგეხმარები.', 'Hi! I am the Visit2.ge assistant. I can help you find a place to stay.', 'Здравствуйте! Я ассистент Visit2.ge. Помогу найти жильё.'],
+    gHi: ['გამარჯობა! Visit2.ge-ს ასისტენტი ვარ. სასტუმროს მოძებნაში დაგეხმარები. თუ სასტუმრო უკვე იცი, მისი სახელი ჩაწერე.', 'Hi! I am the Visit2.ge assistant. I can help you find a place to stay. If you already know the hotel, type its name.', 'Здравствуйте! Я ассистент Visit2.ge. Помогу найти жильё. Если вы уже знаете отель, напишите его название.'],
     gFind: ['🔎 სასტუმროს პოვნა', '🔎 Find a hotel', '🔎 Найти отель'], gHow: ['როგორ ვჯავშნი?', 'How do I book?', 'Как забронировать?'],
     gPay: ['როგორ ვიხდი?', 'How do I pay?', 'Как оплатить?'], gOwner: ['სასტუმრო მაქვს', 'I own a hotel', 'У меня отель'],
     gWhere: ['სად გინდა დასვენება?', 'Where would you like to stay?', 'Где хотите остановиться?'], gAny: ['სულ ერთია', 'Anywhere', 'Неважно'],
     gNoTown: ['ეს ადგილი ვერ ვიპოვე. აირჩიე ღილაკით ან სხვანაირად ჩაწერე.', 'I could not find that place. Pick a button or try another spelling.', 'Не нашёл такое место. Выберите кнопку или напишите иначе.'],
-    gWhere2: ['ან ჩაწერე ქალაქის სახელი', 'or type a town', 'или напишите город'],
+    gWhere2: ['ან ჩაწერე ქალაქის ან სასტუმროს სახელი', 'or type a town or a hotel name', 'или напишите город или название отеля'],
+    gNoTownHotel: ['ასეთი ადგილი ან სასტუმრო ვერ ვიპოვე. აირჩიე ღილაკით ან სხვანაირად ჩაწერე.', 'I could not find that place or hotel. Pick a button or try another spelling.', 'Не нашёл такое место или отель. Выберите кнопку или напишите иначе.'],
+    gHotelIs: ['ვიპოვე: {h}, {c}. რა თარიღებზე გინდა?', 'Found it: {h}, {c}. Which dates?', 'Нашёл: {h}, {c}. На какие даты?'],
+    gWhichHotel: ['რომელი სასტუმრო?', 'Which hotel?', 'Какой отель?'],
+    gOpenHotel: ['სასტუმროს გვერდი', 'Hotel page', 'Страница отеля'],
+    gHotelBusy: ['{h}: ამ თარიღებზე თავისუფალი ნომერი არ ჩანს. სცადე სხვა თარიღი ან ნახე სასტუმროს გვერდი.', '{h}: no free room on these dates. Try other dates or see the hotel page.', '{h}: на эти даты свободных номеров нет. Попробуйте другие даты или страницу отеля.'],
     gWhen: ['როდის?', 'When?', 'Когда?'], gThisWk: ['ამ შაბათ-კვირას', 'This weekend', 'В эти выходные'], gNextWk: ['შემდეგ შაბათ-კვირას', 'Next weekend', 'В следующие выходные'],
     gOther: ['სხვა თარიღი', 'Other dates', 'Другие даты'], gAskDates: ['ჩაწერე თარიღები ასე: 15.01–18.01', 'Type the dates like this: 15.01–18.01', 'Напишите даты так: 15.01–18.01'],
     gBadDates: ['ვერ გავიგე. ჩაწერე ასე: 15.01–18.01', 'I did not get that. Type like: 15.01–18.01', 'Не понял. Напишите так: 15.01–18.01'],
@@ -83,13 +88,38 @@
   $('vcIn').addEventListener('submit', e => {
     e.preventDefault(); const v = $('vcText').value.trim(); if (!v) return;
     $('vcText').value = ''; say(esc(v), true);
-    if (onText) onText(v); else start();
+    if (onText) onText(v); else if (mode === 'owners') start(); else typed(v);
   });
   const openChat = () => { $('vc').hidden = false; $('vcFab').hidden = true; if (!started) { started = true; start(); } };
   $('vcFab').addEventListener('click', openChat);
   $('vcX').addEventListener('click', () => { $('vc').hidden = true; $('vcFab').hidden = false; $('vcFab').focus(); });
 
   // ---------- guests ----------
+  // a hotel by (part of) its name, in any of its languages; the server's catalogue is asked once
+  const norm = x => String(x || '').toLowerCase().replace(/[„“"'«»]/g, '').replace(/\s+/g, ' ').trim();
+  async function hotelsNamed(v) {
+    const k = norm(v); if (k.length < 3) return [];
+    try { await F.loadReal({}); } catch (e) { /* the samples still answer */ }
+    return F.pub().filter(h => !h.hidden && !h.mine && [h.name, ...Object.values(h.nameT || {})].some(n => norm(n).includes(k)));
+  }
+  function pickHotel(list) {
+    if (list.length === 1) return hotelChosen(list[0]);
+    say(esc(m('gWhichHotel')));
+    choose([...list.slice(0, 6).map(h => ({ t: `${F.hname(h)} · ${F.town(h.city)}`, f: () => hotelChosen(h) })), { t: m('back'), f: start }]);
+  }
+  function hotelChosen(h) {
+    q.hotel = h; q.city = '';
+    say(esc(m('gHotelIs', { h: F.hname(h), c: F.town(h.city) })));
+    gWhen();
+  }
+  // typed text: a hotel's name first, then a town
+  async function typed(v) {
+    const hs = await hotelsNamed(v);
+    if (hs.length) { onText = null; return pickHotel(hs); }
+    const k = norm(v), hit = F.allTowns().find(c => [c, F.town(c)].some(n => norm(n).startsWith(k) || norm(n).includes(k)));
+    if (!hit) { ask(m('gNoTownHotel'), typed); return; }
+    say(esc(F.town(hit))); q.city = hit; q.hotel = null; onText = null; gWhen();
+  }
   const q = { city: '', from: '', to: '', g: 2, kids: 0, babies: 0, rooms: 1 };
   const weekend = k => { const t0 = F.today(), d = new Date(t0 + 'T00:00:00Z'), add = (6 - d.getUTCDay() + 7) % 7 + 7 * k; const fri = F.addDays(t0, Math.max(0, add - 1)); return [fri, F.addDays(fri, 2)]; };
   function gStart() {
@@ -100,12 +130,8 @@
   const gMore = () => choose([{ t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]);
   function gWhere() {
     say(esc(m('gWhere')) + '<br><small>' + esc(m('gWhere2')) + '</small>');
-    choose([...F.cities().slice(0, 10).map(c => ({ t: F.town(c), f: () => { q.city = c; gWhen(); } })), { t: m('gAny'), f: () => { q.city = ''; gWhen(); } }]);
-    onText = v => {
-      const k = v.trim().toLowerCase(), hit = F.allTowns().find(c => [c, F.town(c)].some(n => n.toLowerCase().startsWith(k) || n.toLowerCase().includes(k)));
-      if (!hit) { ask(m('gNoTown'), onText); return; }
-      say(esc(F.town(hit))); q.city = hit; onText = null; gWhen();
-    };
+    choose([...F.cities().slice(0, 10).map(c => ({ t: F.town(c), f: () => { q.city = c; q.hotel = null; gWhen(); } })), { t: m('gAny'), f: () => { q.city = ''; q.hotel = null; gWhen(); } }]);
+    q.hotel = null; onText = typed;
   }
   function gWhen() {
     say(esc(m('gWhen')));
@@ -147,6 +173,14 @@
     say(esc(m('gLooking'))); choose([]);
     try { await F.loadReal(q); } catch (e) { /* the samples still answer */ }
     const who = `${F.fmt(q.from)} – ${F.fmt(q.to)}`;
+    if (q.hotel) {
+      const h = q.hotel, r = F.find({ ...q, city: '' }).find(x => x.h === h || (x.h.slug && x.h.slug === h.slug && x.h.real === h.real));
+      log.lastChild?.remove();
+      if (r && r.o.best) say(esc(m('gFound', { d: who, g: q.g })) + hotLink(r));
+      else say(esc(m('gHotelBusy', { h: F.hname(h) })));
+      choose([{ t: m('gOpenHotel'), href: F.link(h, q) }, { t: m('gOther'), f: gWhen }, { t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]);
+      return;
+    }
     const rows = F.find(q).filter(r => r.o.best).slice(0, 3);
     log.lastChild?.remove();
     if (!rows.length) {

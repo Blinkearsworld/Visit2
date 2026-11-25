@@ -314,7 +314,7 @@ window.JIJI = (() => {
             if (!out.ok) { state.bookings = state.bookings.filter(x => x.grp !== grp); save(); emit(); }
             return out;
           })
-        : Promise.resolve({ ok: true });
+        : instant === true ? Promise.resolve(demoInstant(rows, grp)) : Promise.resolve({ ok: true });
       return req;
     }
     // a short offer (deal key): price, note and the offered room come from it (the server recomputes them)
@@ -330,8 +330,25 @@ window.JIJI = (() => {
           if (!out.ok) { state.bookings = state.bookings.filter(x => x !== req); save(); emit(); }
           return out;
         })
-      : Promise.resolve({ ok: true });
+      : instant === true ? Promise.resolve(demoInstant([req], req.id)) : Promise.resolve({ ok: true });
     return req;
+  }
+  // browser-only demo of instant booking: every room is given a free room at once, or none is (then it stays a request)
+  function demoInstant(rows, id) {
+    const done = [];
+    for (const r of rows) {
+      const room = bestRoom(r.type, r.from, r.to);
+      if (!room || !roomFree(room, r.from, r.to, r.id)) { done.forEach(x => { x.room = null; x.status = 'pending'; }); save(); emit(); return { ok: true, instant: false }; }
+      r.room = room; r.status = 'confirmed'; r.instant = 1; if (r.price == null) r.price = kidPrice(r.type, r.from, r.to, r.guests, r.children || 0, null); done.push(r);
+    }
+    save(); emit();
+    return { ok: true, instant: true, id, key: 'demo', total: rows.reduce((a, r) => a + (r.price || 0), 0), typeName: state.types[rows[0].type] ? state.types[rows[0].type].name : '' };
+  }
+  // the guest's own booking, as the server's /api/booking gives it (browser-only demo)
+  function localBooking(id) {
+    const rows = state.bookings.filter(x => x.id === id || x.grp === id); if (!rows.length) return null;
+    const st = rows.every(x => x.status === 'confirmed') ? 'confirmed' : rows.some(x => x.status === 'cancelled') ? 'cancelled' : 'pending';
+    return { status: st, name: rows[0].name, from: rows[0].from, to: rows[0].to, rooms: rows.map(x => ({ type: x.type, guests: x.guests })), total: rows.reduce((a, r) => a + (r.price || 0), 0) };
   }
   // confirm a request; the admin may pick another room (also of another type) and set the price
   // ch: {from, to, guests} when the dates or guests were changed with the guest (e.g. by phone)
@@ -635,7 +652,7 @@ window.JIJI = (() => {
     ROOMS, SEASONS, get hotel() { return hotel; }, priceTable, get settings() { return state.settings; }, setSetting, siteSeason, get types() { return state.types; }, get bookings() { return state.bookings; },
     today, addDays, nights, fmt, fmtRange, weekday, seasonOf, quote, rateFor, fromPrice, findOffer, roomsOffer, kidPrice, nextOffer, partialOffer, splitOffer, groupOffer, fitsOne, gaps, gapDiscount, deals, dealTotal, dealNote, gapKey, gapEdits, promos, setJSON, bestRoom, roomFree,
     get payments() { return state.payments; }, METHODS, priceOf, paymentsOf, paidOf, payState, setPrice, addPayment, removePayment,
-    createRequest, confirm, setRemark, editBooking, moveRoom, decline, addManual, restore, purge, wipe, guests, guestBefore, guestNote, setGuestNote, setGuest, daysToBday, guestKey, setRate, addRate, removeRate, remove, reset, onChange, onError, reload: load,
+    createRequest, localBooking, confirm, setRemark, editBooking, moveRoom, decline, addManual, restore, purge, wipe, guests, guestBefore, guestNote, setGuestNote, setGuest, daysToBday, guestKey, setRate, addRate, removeRate, remove, reset, onChange, onError, reload: load,
     get me() { return me; }, get actlog() { return actlog; }, can: p => me.owner || (me.perms || []).includes(p),
     ready, get mode() { return mode; }, onConn, get online() { return online; }, resync
   };

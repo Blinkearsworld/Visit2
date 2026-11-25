@@ -300,7 +300,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
   }
   // the booking server did not answer: never guess availability
   function offline() {
-    bot(T('ახლა თავისუფალი ნომრების შემოწმება ვერ ხერხდება. სცადეთ ცოტა ხანში ან დაგვირეკეთ: {ph}', { ph: PHONE }));
+    bot(T('ახლა თავისუფალი ნომრების შემოწმება ვერ ხერხდება. სცადეთ ცოტა ხანში ან დაგვირეკეთ: {ph}', { ph: C().phone }));
     options([{ t: T('სასტუმროსთან დაკავშირება'), f: contact }, ...nav()]);
   }
   function group() {
@@ -310,6 +310,12 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
   // how the guest books: where the hotel turned instant booking on — book right here or on the booking form;
   // elsewhere a request the hotel confirms
   const INST = () => !!window.V2_INSTANT;
+  // the guest's booking link: this page with its own query (such as ?h=) kept, plus b and k
+  function bookLink(id, key) {
+    const u = new URL(window.location.href); u.hash = '';
+    u.searchParams.set('b', id); u.searchParams.set('k', key);
+    return u.toString();
+  }
   function bookOpts() {
     if (!INST()) return [{ t: T('ჯავშნის მოთხოვნა'), f: askName }];
     return [{ t: T('✓ დაჯავშნა ახლავე'), f: () => { ctx.instant = true; askName(); } },
@@ -317,7 +323,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
   }
   function toPage() {
     if (typeof window.V2_GOBOOK === 'function') { box.hidden = true; fab.hidden = false; window.V2_GOBOOK(ctx.from, ctx.to, ctx.g, ctx.kids || 0); return; }
-    location.hash = 'book';
+    window.location.hash = 'book';
   }
   function askName() {
     if (ctx.instant && !ctx.split) {
@@ -347,7 +353,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
     const r = { from: job.parts[0].from, to: job.parts[job.parts.length - 1].to };
     const done = res[0] || {};
     if (job.instant && done.instant && done.key) {
-      const link = location.origin + location.pathname + `?b=${encodeURIComponent(done.id)}&k=${encodeURIComponent(done.key)}`;
+      const link = bookLink(done.id, done.key);
       bot(`<b>${T('✓ დაჯავშნილია! ჯავშანი დადასტურებულია.')}</b>\n${J.fmtRange(r.from, r.to)} · ${esc(RN(done.typeName || job.offerName))} · ${done.total || job.total} ₾\n${T('ჯავშნის ნომერი')}: <b>${esc(String(done.id).slice(-6).toUpperCase())}</b>\n\n${T('შეინახეთ ბმული: მასზე ნებისმიერ დროს ნახავთ თქვენს ჯავშანს.')}\n<a href="${esc(link)}">${T('ჩემი ჯავშანი')}</a>`);
       options(nav()); return;
     }
@@ -365,7 +371,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
   const SEND_ERR = {'bad dates':'თარიღი არასწორია ან უკვე გავიდა. აირჩიეთ სხვა თარიღი.','too long':'ერთ მოთხოვნაში მაქსიმუმ 30 ღამეა.','name and phone required':'შეამოწმეთ სახელი და ტელეფონის ნომერი.'};
   function sendFailed(job, offline, msg) {
     const why = !offline && msg ? (SEND_ERR[msg] ? T(SEND_ERR[msg]) + '\n' : `<small>(${esc(String(msg).slice(0, 160))})</small>\n`) : '';
-    bot(`<b>${T('❌ მოთხოვნა ვერ გაიგზავნა.')}</b>\n${why}${offline ? T('ინტერნეტთან კავშირი არ არის. შეამოწმეთ კავშირი და სცადეთ ხელახლა, თქვენი მონაცემები შენახულია.') : T('სცადეთ ხელახლა ან დაგვირეკეთ: 596 90 40 60.')}`);
+    bot(`<b>${T('❌ მოთხოვნა ვერ გაიგზავნა.')}</b>\n${why}${offline ? T('ინტერნეტთან კავშირი არ არის. შეამოწმეთ კავშირი და სცადეთ ხელახლა, თქვენი მონაცემები შენახულია.') : T('სცადეთ ხელახლა ან დაგვირეკეთ: {ph}', { ph: esc(C().phone) })}`);
     options([{ t: T('ხელახლა გაგზავნა'), f: () => finish(job) }, { t: T('დაკავშირება'), f: contact, sub: true }, ...nav()]);
   }
   function location() {

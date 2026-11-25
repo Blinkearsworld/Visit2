@@ -301,12 +301,12 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     // sample hotels: the list saved with the site every week (data/places.json), no waiting for OpenStreetMap
     if (isDemo()) try {
       const d = await (await fetch('data/places.json')).json(), list = d.hotels?.[slug()];
-      if (list?.length) { PL = list; render(); return; }
+      if (list?.length) { PL = list; redraw(); return; }
     } catch (e) { /* ask OpenStreetMap below */ }
-    try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c && Date.now() - c.t < 7 * 864e5) { PL = c.places; render(); return; } } catch (e) { /* ask again */ }
+    try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c && Date.now() - c.t < 7 * 864e5) { PL = c.places; redraw(); return; } } catch (e) { /* ask again */ }
     try { PL = await window.V2OSM.places(p.lat, p.lng); } catch (e) { return; }
     if (PL.length) try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), places: PL })); } catch (e) { /* full */ }
-    render();
+    redraw();
   }
   // the list shown: host's tips, then real places (minus hidden), nearest first
   function foodList() {
@@ -670,10 +670,14 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   }
 
   // ---------- the guest's booking (after instant booking, and behind the link ?b=…&k=…) ----------
+  let booked = null; // the booking shown on this page, drawn again when the page is redrawn
+  const redraw = () => { render(); if (booked) showBooked(booked.id, booked.key, false); };
   async function showBooked(id, key, fresh) {
-    const link = location.origin + location.pathname + `?b=${encodeURIComponent(id)}&k=${encodeURIComponent(key)}`;
+    booked = { id, key };
+    const u = new URL(location.href); u.hash = ''; u.searchParams.set('b', id); u.searchParams.set('k', key); const link = u.toString();
     let b = null;
-    try { const r = await fetch(`api/booking?id=${encodeURIComponent(id)}&k=${encodeURIComponent(key)}`); const o = await r.json(); if (o.ok) b = o.booking; } catch (e) { /* offline: show what we know */ }
+    if (key === 'demo') b = J.localBooking(id);
+    else try { const r = await fetch(`api/booking?id=${encodeURIComponent(id)}&k=${encodeURIComponent(key)}`); const o = await r.json(); if (o.ok) b = o.booking; } catch (e) { /* offline: show what we know */ }
     const st = b ? { confirmed: 'stConfirmed', pending: 'stPending', cancelled: 'stCancelled' }[b.status] : 'stConfirmed';
     const c = S().contact || {}, phone = c.phone || '';
     const box = document.createElement('div'); box.className = 'booked'; box.setAttribute('role', 'status');
@@ -713,9 +717,9 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
       summary(); pillText();
       $('#book')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
-    if (I) I.onChange(() => render());
+    if (I) I.onChange(redraw);
     J.onChange(() => summary());
     loadPlaces();
-    if (window.JC && window.JC.onChange) window.JC.onChange(() => render());
+    if (window.JC && window.JC.onChange) window.JC.onChange(redraw);
   });
 })();
