@@ -160,7 +160,7 @@
       const dated = from && to && to > from;
       if (!dated) return { minFrom: h.minFrom };
       const fresh = h.offerKey === `${from}|${to}|${g}|${rooms}|${kids}`;
-      return { minFrom: h.minFrom, best: fresh && h.offer ? { total: h.offer.total, type: h.offer.type } : null, n: nights(from, to), unknown: !fresh, freeRooms: h.freeRooms };
+      return { minFrom: h.minFrom, best: fresh && h.offer ? { total: h.offer.total, type: h.offer.type, typeId: h.offer.typeId } : null, n: nights(from, to), unknown: !fresh, freeRooms: h.freeRooms };
     }
     const rate = ty => (h.types[ty]?.rates || []).find(r => r.guests >= g);
     const minFrom = Math.min(...Object.values(h.types).flatMap(ty => ty.rates.map(r => Math.min(...Object.values(r.price)))));
@@ -189,7 +189,7 @@
       const free = D.ROOMS.filter(x => x.type === ty && !bs.some(b => b.room === x.id && b.from < to && from < b.to));
       if (!free.length) continue;
       let sum = 0; for (let d = from; d < to; d = addDays(d, 1)) sum += r.price[season(d)] || 0;
-      if (!best || sum < best.total) best = { total: sum, type: h.types[ty].name };
+      if (!best || sum < best.total) best = { total: sum, type: h.types[ty].name, typeId: ty };
     }
     return { minFrom, best, n: nights(from, to) };
   }
@@ -214,7 +214,8 @@
   };
   // this build's stamp (from our own script tag), so a hotel page never comes from an old browser copy
   const BUILD = ((document.querySelector('script[src*="site/platform.js"]') || {}).src || '').split('?v=')[1] || '';
-  const qs = q => (q.from && q.to ? `from=${q.from}&to=${q.to}&g=${q.g}${q.rooms > 1 ? '&rooms=' + q.rooms : ''}` : '');
+  // g = everyone who needs a bed (adults and children), c = children of them, i = infants, p = pets; book = open at the booking form
+  const qs = q => (q.from && q.to ? `from=${q.from}&to=${q.to}&g=${q.g}${q.rooms > 1 ? '&rooms=' + q.rooms : ''}${q.kids ? '&c=' + q.kids : ''}${q.babies ? '&i=' + q.babies : ''}${q.pets ? '&p=' + q.pets : ''}${q.book ? '&book=1' + (q.type ? '&t=' + encodeURIComponent(q.type) : '') : ''}` : '');
   const link = (h, q) => h.real ? h.url + (qs(q) ? '?' + qs(q) : '') : `hotel.html?h=${encodeURIComponent(h.slug)}${qs(q) ? '&' + qs(q) : ''}${BUILD ? '&v=' + BUILD : ''}`;
   // header: solid once the page scrolls, so the logo (home) and links stay readable everywhere
   const top = document.querySelector('.p-top');

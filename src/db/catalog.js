@@ -45,7 +45,7 @@ export async function catalog(db, { siteOf, from = '', to = '', guests = 2, room
         if (!o.parts) h.freeRooms = o.free;
       } else {
         const o = findOffer(st, from, to, guests);
-        h.offer = o ? { total: kidPrice(st, o.type, from, to, guests, Math.min(kids, guests - 1), s.kids || null), type: o.name, n: nights(from, to) } : null;
+        h.offer = o ? { total: kidPrice(st, o.type, from, to, guests, Math.min(kids, guests - 1), s.kids || null), type: o.name, typeId: o.type, n: nights(from, to) } : null;
       }
     }
     out.push(h);

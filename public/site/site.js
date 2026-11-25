@@ -52,7 +52,7 @@
     whenQ: ['როდის მოდიხართ?', 'When are you coming?', 'Когда приезжаете?'], whoQ: ['ვინ მოდის?', 'Who is coming?', 'Кто едет?'],
     arrive: ['ჩამოსვლა', 'Arriving', 'Заезд'], leave: ['წასვლა', 'Leaving', 'Выезд'], pickArrive: ['აირჩიეთ ჩამოსვლის დღე', 'Pick the day you arrive', 'Выберите день заезда'],
     pickLeave: ['ახლა აირჩიეთ წასვლის დღე', 'Now pick the day you leave', 'Теперь выберите день выезда'], clear: ['გასუფთავება', 'Clear', 'Сбросить'], save: ['შენახვა', 'Save', 'Сохранить'],
-    seePrice: ['ფასის ნახვა', 'See prices', 'Узнать цены'], changeDates: ['თარიღების შეცვლა', 'Change dates', 'Изменить даты'], menu: ['მენიუ', 'Menu', 'Меню'],
+    seePrice: ['ფასის ნახვა', 'See prices', 'Узнать цены'], otherRoom: ['სხვა ნომრის არჩევა', 'Choose another room', 'Выбрать другой номер'], changeDates: ['თარიღების შეცვლა', 'Change dates', 'Изменить даты'], menu: ['მენიუ', 'Menu', 'Меню'],
     guestsN: ['{n} სტუმარი', '{n} guests', 'Гостей: {n}'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], babiesN: ['{n} ჩვილი', '{n} infants', 'младенцев: {n}'],
     rooms: ['ნომრები', 'Rooms', 'Номера'], roomsSub: ['ერთ ჯავშანში, მთელი ჯგუფისთვის', 'In one booking, for the whole group', 'В одной брони, на всю группу'], roomsN: ['{n} ნომერი', '{n} rooms', 'номеров: {n}'],
     onlyFree: ['ამ თარიღებზე {n} ნომერია თავისუფალი. აირჩიეთ ნაკლები ნომერი ან სხვა დღეები.', 'Only {n} rooms are free on these dates. Choose fewer rooms or other days.', 'На эти даты свободно номеров: {n}. Выберите меньше номеров или другие дни.'],
@@ -514,6 +514,8 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   function pillText() {
     document.querySelectorAll('.p-when').forEach(el => { el.textContent = sel.from && sel.to ? J.fmtRange(sel.from, sel.to) : w('addDates'); });
     document.querySelectorAll('.p-who').forEach(el => { el.textContent = guestsText(); });
+    // in the booking form, once the dates are chosen, the price is already above: the button offers another room instead
+    document.querySelectorAll('.book-pick .pill-go').forEach(el => { el.textContent = sel.from && sel.to ? w('otherRoom') : w('seePrice'); });
   }
   const inst = () => !!(S().instant && S().instant.on);
   // prepayment at the hotel's bank (Visit2 turned it on, the hotel connected its bank): the server says so in /api/content
@@ -567,6 +569,10 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     sel.from = params.get('from'); sel.to = params.get('to'); sel.adults = Math.max(1, Math.min(16, +params.get('g') || 2));
   }
   if (+params.get('rooms') > 1) sel.rooms = Math.min(10, +params.get('rooms'));
+  if (sel.from && +params.get('c') > 0) { sel.kids = Math.min(10, +params.get('c')); sel.adults = Math.max(1, sel.adults - sel.kids); }
+  if (+params.get('i') > 0) sel.babies = Math.min(5, +params.get('i'));
+  if (+params.get('p') > 0) sel.pets = Math.min(5, +params.get('p'));
+  if (params.get('t')) sel.type = params.get('t');
   const fmtN = n => `${n} ₾`;
   // beds needed: adults and children (infants share a bed); the price follows the owner's rule for children
   const beds = () => sel.adults + sel.kids;
@@ -744,6 +750,8 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   J.ready.then(loadContent).then(() => {
     render();
     if (params.get('b') && params.get('k')) showBooked(params.get('b'), params.get('k'), false);
+    // from the Visit2.ge assistant's "book at this price": straight to the booking form, dates and room already chosen
+    else if (params.get('book') && sel.from) { if (sel.type && !J.types[sel.type]) sel.type = ''; summary(); setTimeout(() => $('#book')?.scrollIntoView({ block: 'start' }), 60); }
     // for the chatbot: is instant booking on, the hotel's rules, and "go to the booking form" with the chosen dates
     const R = S().instant || {};
     window.V2_PAY = payOn() ? { min: PAYMIN, part: payPart(), rule: (S().instant || {}).pay } : null;

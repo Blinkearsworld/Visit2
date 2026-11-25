@@ -22,6 +22,7 @@
     gHotelBusy: ['{h}: ამ თარიღებზე თავისუფალი ნომერი არ ჩანს. სცადე სხვა თარიღი ან ნახე სასტუმროს გვერდი.', '{h}: no free room on these dates. Try other dates or see the hotel page.', '{h}: на эти даты свободных номеров нет. Попробуйте другие даты или страницу отеля.'],
     gWhen: ['როდის?', 'When?', 'Когда?'], gThisWk: ['ამ შაბათ-კვირას', 'This weekend', 'В эти выходные'], gNextWk: ['შემდეგ შაბათ-კვირას', 'Next weekend', 'В следующие выходные'],
     gOther: ['სხვა თარიღი', 'Other dates', 'Другие даты'], gAskDates: ['აირჩიე შესვლის და გასვლის დღე', 'Pick the arrival and departure day', 'Выберите дни заезда и выезда'],
+    gBookIt: ['დაჯავშნა ამ ფასით', 'Book at this price', 'Забронировать по этой цене'], gSeeHotel: ['სასტუმროს ნახვა', 'See the hotel', 'Посмотреть отель'],
     gIn: ['შესვლა', 'Arrival', 'Заезд'], gOut: ['გასვლა', 'Departure', 'Выезд'], gGo: ['გაგრძელება', 'Continue', 'Продолжить'],
     gPickOut: ['ახლა აირჩიე გასვლის დღე', 'Now pick the departure day', 'Теперь выберите день выезда'],
     gBadDates: ['ვერ გავიგე. ჩაწერე ასე: 15.01–18.01', 'I did not get that. Type like: 15.01–18.01', 'Не понял. Напишите так: 15.01–18.01'],
@@ -61,7 +62,7 @@
 .vc[hidden],.vc-fab[hidden]{display:none}.vc-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;background:#0E857D;color:#fff}.vc-head b{font-size:16px}
 .vc-x{background:none;border:0;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:4px 8px}.vc-log{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#FFF8EE}
 .vc-m{max-width:88%;padding:9px 12px;border-radius:14px;background:#fff;box-shadow:0 1px 0 #eadfce;white-space:pre-line}.vc-m.me{align-self:flex-end;background:#0E857D;color:#fff}
-.vc-m a{color:#0B7A73;font-weight:700}.vc-hot{display:block;margin-top:6px;padding:8px 10px;border:1px solid #eadfce;border-radius:10px;text-decoration:none;color:#1F1A17}.vc-hot b{display:block}
+.vc-m a{color:#0B7A73;font-weight:700}.vc-hot{display:block;margin-top:8px;padding:10px 12px;border:1px solid #eadfce;border-radius:12px;background:#fff;color:#1F1A17}.vc-hot b{display:block}.vc-hot-p{display:block;margin-top:2px;font-weight:700;color:#0B7A73}.vc-hot-b{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.vc-m .vc-hot-b a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:10px;border:1.5px solid #0E857D;color:#0B7A73;text-decoration:none;font-weight:700;font-size:14px}.vc-m .vc-hot-b a.go{background:#0B7A73;border-color:#0B7A73;color:#fff}
 .vc-cal{align-self:stretch;background:#fff;border:1px solid #eadfce;border-radius:14px;padding:10px}.vc-cal-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 6px}.vc-cal-h b{font-size:15px}.vc-cal-h button{width:44px;height:40px;border:0;border-radius:10px;background:#F0F8F6;color:#0B7A73;font-size:20px;cursor:pointer}.vc-cal-h button:disabled{opacity:.3;cursor:default}.vc-cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}.vc-cal-g i{font-style:normal;font-size:12px;color:#8a7f76;padding:4px 0}.vc-cal-g button{height:40px;border:0;border-radius:10px;background:none;font:inherit;font-size:15px;color:#1F1A17;cursor:pointer}.vc-cal-g button:disabled{color:#cfc5b8;cursor:default}.vc-cal-g button.mid{background:#E3F2EF}.vc-cal-g button.on{background:#0E857D;color:#fff;font-weight:700}.vc-cal-s{margin:8px 2px;font-size:14px;color:#5f5650;min-height:20px}.vc-cal-go{width:100%;min-height:44px;border:0;border-radius:12px;background:#0B7A73;color:#fff;font:inherit;font-weight:700;cursor:pointer}.vc-cal-go:disabled{opacity:.4;cursor:default}
 .vc-opts{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-top:1px solid #f0e6d8}.vc-opts button,.vc-opts a{min-height:44px;padding:0 16px;border:1.5px solid #0E857D;border-radius:999px;background:#fff;color:#0B7A73;font-family:inherit;font-size:15px;font-weight:600;line-height:1.2;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
 .vc-in{display:flex;gap:6px;padding:10px 12px;border-top:1px solid #f0e6d8}.vc-in input{flex:1;min-height:42px;padding:0 12px;border:1px solid #eadfce;border-radius:10px;font-family:inherit;font-size:16px;font-weight:500}.vc-in button{min-height:42px;padding:0 14px;border:0;border-radius:10px;background:#0E857D;color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}`;
@@ -76,7 +77,9 @@
     $('vcFab').textContent = '💬 ' + m('open'); $('vcFab').setAttribute('aria-label', m('open')); $('vcTitle').textContent = m('title'); $('vcX').setAttribute('aria-label', m('close'));
     $('vcText').placeholder = m('typeHere'); $('vcSend').textContent = m('send'); $('vc').setAttribute('aria-label', m('title'));
   };
-  const say = (html, me) => { const d = document.createElement('div'); d.className = 'vc-m' + (me ? ' me' : ''); d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight; };
+  const say = (html, me) => { const d = document.createElement('div'); d.className = 'vc-m' + (me ? ' me' : ''); d.innerHTML = html; log.appendChild(d); log.scrollTop = log.scrollHeight; return d; };
+  // a long answer (hotels found): scroll so its beginning is in view
+  const sayTop = html => { const d = say(html); requestAnimationFrame(() => { log.scrollTop += d.getBoundingClientRect().top - log.getBoundingClientRect().top - 8; }); return d; };
   const choose = list => {
     opts.innerHTML = '';
     for (const o of list) {
@@ -208,7 +211,8 @@
     say(esc(m('gRooms')));
     choose(Array.from({ length: Math.min(4, adults) }, (_, i) => i + 1).map(n => ({ t: n === 1 ? m('gOneRoom') : m('gRoomsN', { n }), f: () => { q.rooms = n; gShow(); } })));
   }
-  const hotLink = ({ h, o, d }) => `<a class="vc-hot" href="${F.link(h, q)}"><b>${esc(F.hname(h))}</b>${esc(F.town(h.city))}${d != null ? ' · ' + m('gKm', { k: d < 10 ? d.toFixed(1) : Math.round(d) }) : ''} · ${o.best.total} ₾ · ${o.n} ${m('gNights')}${q.rooms > 1 ? ' · ' + m('gAllRooms', { n: q.rooms }) : ''}</a>`;
+  // one free hotel: book at this price (straight to its booking form, everything chosen) or look the hotel over first
+  const hotLink = ({ h, o, d }) => `<div class="vc-hot"><b>${esc(F.hname(h))}</b>${esc(F.town(h.city))}${d != null ? ' · ' + m('gKm', { k: d < 10 ? d.toFixed(1) : Math.round(d) }) : ''}<span class="vc-hot-p">${o.best.total} ₾ · ${o.n} ${m('gNights')}${q.rooms > 1 ? ' · ' + m('gAllRooms', { n: q.rooms }) : ''}</span><span class="vc-hot-b"><a class="go" href="${esc(F.link(h, { ...q, book: 1, type: o.best.typeId || '' }))}">${esc(m('gBookIt'))}</a><a href="${esc(F.link(h, q))}">${esc(m('gSeeHotel'))}</a></span></div>`;
   async function gShow() {
     say(esc(m('gLooking'))); choose([]);
     try { await F.loadReal(q); } catch (e) { /* the samples still answer */ }
@@ -216,9 +220,9 @@
     if (q.hotel) {
       const h = q.hotel, r = F.find({ ...q, city: '' }).find(x => x.h === h || (x.h.slug && x.h.slug === h.slug && x.h.real === h.real));
       log.lastChild?.remove();
-      if (r && r.o.best) say(esc(m('gFound', { d: who, g: q.g })) + hotLink(r));
+      if (r && r.o.best) sayTop(esc(m('gFound', { d: who, g: q.g })) + hotLink(r));
       else say(esc(m('gHotelBusy', { h: F.hname(h) })));
-      choose([{ t: m('gOpenHotel'), href: F.link(h, q) }, { t: m('gOther'), f: gWhen }, { t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]);
+      choose([...(r && r.o.best ? [] : [{ t: m('gOpenHotel'), href: F.link(h, q) }]), { t: m('gOther'), f: gWhen }, { t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]);
       return;
     }
     const rows = F.find(q).filter(r => r.o.best).slice(0, 3);
@@ -227,10 +231,10 @@
       // nothing in that town: the nearest free places around its centre
       const c = q.city && F.centreOf(q.city);
       const near = c ? F.find({ ...q, city: '', sort: 'near', near: c }).filter(r => r.o.best && r.d != null && r.d <= 80).slice(0, 3) : [];
-      if (near.length) { say(esc(m('gNoHere', { p: F.town(q.city) })) + near.map(hotLink).join('')); choose([{ t: m('gOther'), f: gWhen }, { t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]); return; }
+      if (near.length) { sayTop(esc(m('gNoHere', { p: F.town(q.city) })) + near.map(hotLink).join('')); choose([{ t: m('gOther'), f: gWhen }, { t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]); return; }
       say(esc(m('gNone'))); choose([{ t: m('gOther'), f: gWhen }, { t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]); return;
     }
-    say(esc(m('gFound', { d: who, g: q.g })) + rows.map(hotLink).join(''));
+    sayTop(esc(m('gFound', { d: who, g: q.g })) + rows.map(hotLink).join(''));
     const f = document.getElementById('search'), home = window.V2HOME;
     choose([...(home ? [{ t: m('gAll'), f: () => home.show(q) }] : f ? [{ t: m('gAll'), f: () => {
       f.city.value = q.city; f.from.value = q.from; f.to.value = q.to; f.g.value = String(q.g);
