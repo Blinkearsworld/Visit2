@@ -15,4 +15,4 @@ Favicon / favicon.ico — საიტისა და აპის ხატუ
 
 ასოები ვექტორულ კონტურებადაა გადაყვანილი; ქართული — Noto Sans Georgian-ის საფუძველზე (OFL, იხ. Noto-license.txt).
 
-ხატულაზე დიდი ბაცი „2“ — Noto Serif Black-ის ციფრი (OFL, იგივე Noto ოჯახი, იხ. Noto-license.txt), ოდნავ გაგანიერებული.
+აპის ხატულა და ფავიკონი: „Visit“ და დიდი ბაცი „2“, ორივე Noto Serif Black-ით (OFL, იგივე Noto ოჯახი, იხ. Noto-license.txt). საიტის ლოგო უცვლელია.
