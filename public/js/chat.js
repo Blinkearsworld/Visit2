@@ -188,21 +188,29 @@
   }
   // adults first, then children under 10 (they take places too; the hotel sees them apart)
   function askGuests() {
-    bot(T('რამდენი სტუმარია 10 წლიდან? (უფროსების ჩათვლით)'));
+    bot(T('რამდენი ზრდასრულია? (13 წლიდან)'));
     options([
-      ...[1, 2, 3, 4, 5, 6, 7].map(n => ({ t: String(n), f: () => askKids(n, 7, g => check(g)) })),
+      ...[1, 2, 3, 4, 5, 6, 7].map(n => ({ t: String(n), f: () => askKids(n, 7, g => askBabies(() => check(g))) })),
       { t: T('8 ან მეტი'), f: group }, ...nav()
     ]);
   }
   function askKids(adults, max, then) {
     ctx.adults = adults;
     if (adults >= max) { ctx.kids = 0; return then(adults); }
-    bot(T('და რამდენი ბავშვი 10 წლამდე?'));
+    bot(T('და რამდენი ბავშვი (2–12 წლის)?'));
     options([
       { t: T('ბავშვის გარეშე'), f: () => { ctx.kids = 0; then(adults); } },
       ...Array.from({ length: max - adults }, (_, i) => i + 1).map(k => ({ t: String(k), f: () => { ctx.kids = k; then(adults + k); } })), ...nav()
     ]);
   }
+  // infants under 2 stay free; the hotel sees them in the booking
+  function askBabies(then) {
+    bot(T('ჩვილები (2 წლამდე)? ისინი უფასოა.'));
+    options([{ t: T('ჩვილის გარეშე'), f: () => { ctx.babies = 0; then(); } },
+      ...[1, 2, 3].map(k => ({ t: String(k), f: () => { ctx.babies = k; then(); } })), ...nav()]);
+  }
+  // the price with the hotel's child rule (free / fixed for 2–12), the same the server stores
+  const priced = (type, from, to, g) => (J.kidPrice ? J.kidPrice(type, from, to, g, ctx.kids || 0, (window.V2_RULES || {}).kids || null) : J.quote(type, from, to, g));
   function offerHtml(from, to, n, g, o) {
     return `${T('{d} · {n} ღამე · {g} სტუმარი', { d: J.fmtRange(from, to), n, g })}\n${T('თავისუფალია: {room} ნომერი', { room: esc(RN(o.name)) })}<strong>${o.total} ₾</strong>${T('სანიმუშო ფასი')}`;
   }
@@ -211,7 +219,7 @@
     ctx.g = g; ctx.to = J.addDays(ctx.from, ctx.n);
     const hit = J.deals().find(x => x.from === ctx.from && x.to === ctx.to && J.rateFor(x.type, g) && (x.price || x.pct));
     if (hit) { ctx.gap = hit; gapGuests(g); return; }
-    const o = J.findOffer(ctx.from, ctx.to, g);
+    const o0 = J.findOffer(ctx.from, ctx.to, g), o = o0 && { ...o0, total: priced(o0.type, ctx.from, ctx.to, g) };
     if (o) {
       ctx.offer = o;
       bot(offerHtml(ctx.from, ctx.to, ctx.n, g, o), 'offer');
@@ -279,7 +287,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
   }
   function pickGap(g) {
     ctx.gap = g; ctx.from = g.from; ctx.to = g.to; ctx.n = g.n;
-    bot(T('რამდენი სტუმარია 10 წლიდან? (უფროსების ჩათვლით)'));
+    bot(T('რამდენი ზრდასრულია? (13 წლიდან)'));
     const cap = Math.min(maxGuests(g.type), 7);
     options([...Array.from({ length: cap }, (_, i) => i + 1).map(n => ({ t: String(n), f: () => askKids(n, cap, gapGuests) })), ...nav()]);
   }
@@ -325,7 +333,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
     const job = retry || {
       parts: kidsOver((ctx.split || [{ from: ctx.from, to: ctx.to, type: ctx.offer.type }]).map(p => ({ ...p })), ctx.kids || 0, ctx.g),
       deal: !ctx.split && ctx.offer.note && ctx.offer.deal ? ctx.offer.deal : null,
-      g: ctx.g, name: ctx.name, phone: ctx.phone, offerName: ctx.offer.name, total: ctx.offer.total, instant: !!ctx.instant && !ctx.split
+      g: ctx.g, name: ctx.name, phone: ctx.phone, offerName: ctx.offer.name, total: ctx.offer.total, instant: !!ctx.instant && !ctx.split, babies: ctx.babies || 0
     };
     ctx.instant = false;
     delete ctx.split; delete ctx.gap;
@@ -333,7 +341,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
     if (navigator.onLine === false) return sendFailed(job, true);
     bot(T('იგზავნება…'));
     const todo = job.parts.filter(p => !p.sent);
-    const res = await Promise.all(todo.map(p => J.createRequest({ from: p.from, to: p.to, guests: p.guests || job.g, children: p.kids || 0, name: job.name, phone: job.phone, source: 'chat', type: p.type, instant: job.instant, ...(job.deal ? { deal: job.deal } : {}) }).saved));
+    const res = await Promise.all(todo.map(p => J.createRequest({ from: p.from, to: p.to, guests: p.guests || job.g, children: p.kids || 0, name: job.name, phone: job.phone, source: 'chat', type: p.type, instant: job.instant, kidRule: (window.V2_RULES || {}).kids || null, wish: job.babies ? T('{n} ჩვილი (2 წლამდე)', { n: job.babies }) : '', ...(job.deal ? { deal: job.deal } : {}) }).saved));
     res.forEach((r, i) => { if (r && r.ok) todo[i].sent = true; });
     if (job.parts.some(p => !p.sent)) return sendFailed(job, res.some(r => r && r.offline), (res.find(r => r && !r.ok && r.msg) || {}).msg);
     const r = { from: job.parts[0].from, to: job.parts[job.parts.length - 1].to };

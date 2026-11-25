@@ -18,7 +18,13 @@
     gWhen: ['როდის?', 'When?', 'Когда?'], gThisWk: ['ამ შაბათ-კვირას', 'This weekend', 'В эти выходные'], gNextWk: ['შემდეგ შაბათ-კვირას', 'Next weekend', 'В следующие выходные'],
     gOther: ['სხვა თარიღი', 'Other dates', 'Другие даты'], gAskDates: ['ჩაწერე თარიღები ასე: 15.01–18.01', 'Type the dates like this: 15.01–18.01', 'Напишите даты так: 15.01–18.01'],
     gBadDates: ['ვერ გავიგე. ჩაწერე ასე: 15.01–18.01', 'I did not get that. Type like: 15.01–18.01', 'Не понял. Напишите так: 15.01–18.01'],
-    gWho: ['რამდენი სტუმარი იქნებით?', 'How many guests?', 'Сколько гостей?'],
+    gWho: ['რამდენი ზრდასრული? (13 წლიდან)', 'How many adults? (13 and over)', 'Сколько взрослых? (от 13 лет)'],
+    gKids: ['ბავშვები (2–12 წლის)?', 'Children (2–12)?', 'Дети (2–12 лет)?'], gNoKids: ['ბავშვის გარეშე', 'No children', 'Без детей'],
+    gBabies: ['ჩვილები (2 წლამდე)? ისინი უფასოა.', 'Infants (under 2)? They stay free.', 'Младенцы (до 2 лет)? Они бесплатно.'], gNoBabies: ['ჩვილის გარეშე', 'No infants', 'Без младенцев'],
+    gRooms: ['რამდენი ნომერი გჭირდებათ?', 'How many rooms do you need?', 'Сколько номеров нужно?'], gRoomsN: ['{n} ნომერი', '{n} rooms', 'номеров: {n}'], gOneRoom: ['1 ნომერი', '1 room', '1 номер'],
+    gLooking: ['ვეძებ…', 'Looking…', 'Ищу…'],
+    gNoHere: ['{p}-ში ამ თარიღებზე თავისუფალი ვერ ვიპოვე. ახლოს არის:', 'Nothing free in {p} on these dates. Close by:', 'В {p} на эти даты свободного нет. Рядом:'],
+    gKm: ['{k} კმ', '{k} km', '{k} км'], gAllRooms: ['{n}-ვე ნომერი', 'all {n} rooms', 'за {n} номера'],
     gFound: ['{d}, {g} სტუმარი. აი, რა არის თავისუფალი:', '{d}, {g} guests. Here is what is free:', '{d}, {g} гост. Вот что свободно:'],
     gNone: ['ამ თარიღებზე თავისუფალი არ ვიპოვე. სცადე სხვა თარიღი ან სხვა ადგილი.', 'Nothing free on these dates. Try other dates or another place.', 'На эти даты ничего нет. Попробуйте другие даты или место.'],
     gAll: ['ყველას ნახვა სიაში', 'See all in the list', 'Все в списке'], gNights: ['ღამე', 'nights', 'ноч.'],
@@ -49,8 +55,8 @@
 .vc-x{background:none;border:0;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:4px 8px}.vc-log{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#FFF8EE}
 .vc-m{max-width:88%;padding:9px 12px;border-radius:14px;background:#fff;box-shadow:0 1px 0 #eadfce;white-space:pre-line}.vc-m.me{align-self:flex-end;background:#0E857D;color:#fff}
 .vc-m a{color:#0B7A73;font-weight:700}.vc-hot{display:block;margin-top:6px;padding:8px 10px;border:1px solid #eadfce;border-radius:10px;text-decoration:none;color:#1F1A17}.vc-hot b{display:block}
-.vc-opts{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-top:1px solid #f0e6d8}.vc-opts button,.vc-opts a{min-height:38px;padding:0 12px;border:1px solid #0E857D;border-radius:999px;background:#fff;color:#0B7A73;font:600 14px/1 inherit;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
-.vc-in{display:flex;gap:6px;padding:10px 12px;border-top:1px solid #f0e6d8}.vc-in input{flex:1;min-height:42px;padding:0 12px;border:1px solid #eadfce;border-radius:10px;font:500 16px/1 inherit}.vc-in button{min-height:42px;padding:0 14px;border:0;border-radius:10px;background:#0E857D;color:#fff;font:700 14px/1 inherit;cursor:pointer}`;
+.vc-opts{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-top:1px solid #f0e6d8}.vc-opts button,.vc-opts a{min-height:44px;padding:0 16px;border:1.5px solid #0E857D;border-radius:999px;background:#fff;color:#0B7A73;font-family:inherit;font-size:15px;font-weight:600;line-height:1.2;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.vc-in{display:flex;gap:6px;padding:10px 12px;border-top:1px solid #f0e6d8}.vc-in input{flex:1;min-height:42px;padding:0 12px;border:1px solid #eadfce;border-radius:10px;font-family:inherit;font-size:16px;font-weight:500}.vc-in button{min-height:42px;padding:0 14px;border:0;border-radius:10px;background:#0E857D;color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}`;
   document.head.insertAdjacentHTML('beforeend', `<style>${css}</style>`);
   document.body.insertAdjacentHTML('beforeend', `<button type="button" class="vc-fab" id="vcFab"></button>
 <section class="vc" id="vc" hidden role="dialog" aria-modal="false"><div class="vc-head"><b id="vcTitle"></b><button type="button" class="vc-x" id="vcX">×</button></div>
@@ -84,7 +90,7 @@
   $('vcX').addEventListener('click', () => { $('vc').hidden = true; $('vcFab').hidden = false; $('vcFab').focus(); });
 
   // ---------- guests ----------
-  const q = { city: '', from: '', to: '', g: 2 };
+  const q = { city: '', from: '', to: '', g: 2, kids: 0, babies: 0, rooms: 1 };
   const weekend = k => { const t0 = F.today(), d = new Date(t0 + 'T00:00:00Z'), add = (6 - d.getUTCDay() + 7) % 7 + 7 * k; const fri = F.addDays(t0, Math.max(0, add - 1)); return [fri, F.addDays(fri, 2)]; };
   function gStart() {
     say(esc(m('gHi')));
@@ -116,15 +122,41 @@
     if (isNaN(new Date(a)) || isNaN(new Date(b)) || b <= a) { ask(m('gBadDates'), parseDates); return; }
     q.from = a; q.to = b; onText = null; gWho();
   }
+  // who: adults (13+), children (2–12), infants (free), then rooms when there are three or more people
+  let adults = 2;
   function gWho() {
     say(esc(m('gWho')));
-    choose([1, 2, 3, 4, 5, 6].map(n => ({ t: String(n), f: () => { q.g = n; gShow(); } })));
+    choose([1, 2, 3, 4, 5, 6, 7, 8].map(n => ({ t: String(n), f: () => { adults = n; gKids(); } })));
   }
-  function gShow() {
+  function gKids() {
+    say(esc(m('gKids')));
+    choose([{ t: m('gNoKids'), f: () => { q.kids = 0; gBabies(); } }, ...[1, 2, 3, 4, 5].map(n => ({ t: String(n), f: () => { q.kids = n; gBabies(); } }))]);
+  }
+  function gBabies() {
+    say(esc(m('gBabies')));
+    choose([{ t: m('gNoBabies'), f: () => { q.babies = 0; gRooms(); } }, ...[1, 2, 3].map(n => ({ t: String(n), f: () => { q.babies = n; gRooms(); } }))]);
+  }
+  function gRooms() {
+    q.g = adults + q.kids; q.rooms = 1;
+    if (q.g < 3) return gShow();
+    say(esc(m('gRooms')));
+    choose(Array.from({ length: Math.min(4, adults) }, (_, i) => i + 1).map(n => ({ t: n === 1 ? m('gOneRoom') : m('gRoomsN', { n }), f: () => { q.rooms = n; gShow(); } })));
+  }
+  const hotLink = ({ h, o, d }) => `<a class="vc-hot" href="${F.link(h, q)}"><b>${esc(F.hname(h))}</b>${esc(F.town(h.city))}${d != null ? ' · ' + m('gKm', { k: d < 10 ? d.toFixed(1) : Math.round(d) }) : ''} · ${o.best.total} ₾ · ${o.n} ${m('gNights')}${q.rooms > 1 ? ' · ' + m('gAllRooms', { n: q.rooms }) : ''}</a>`;
+  async function gShow() {
+    say(esc(m('gLooking'))); choose([]);
+    try { await F.loadReal(q); } catch (e) { /* the samples still answer */ }
+    const who = `${F.fmt(q.from)} – ${F.fmt(q.to)}`;
     const rows = F.find(q).filter(r => r.o.best).slice(0, 3);
-    if (!rows.length) { say(esc(m('gNone'))); choose([{ t: m('gOther'), f: gWhen }, { t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]); return; }
-    say(esc(m('gFound', { d: `${F.fmt(q.from)} – ${F.fmt(q.to)}`, g: q.g })) + rows.map(({ h, o }) =>
-      `<a class="vc-hot" href="${F.link(h, q)}"><b>${esc(F.hname(h))}</b>${esc(F.town(h.city))} · ${o.best.total} ₾ · ${o.n} ${m('gNights')}</a>`).join(''));
+    log.lastChild?.remove();
+    if (!rows.length) {
+      // nothing in that town: the nearest free places around its centre
+      const c = q.city && F.centreOf(q.city);
+      const near = c ? F.find({ ...q, city: '', sort: 'near', near: c }).filter(r => r.o.best && r.d != null && r.d <= 80).slice(0, 3) : [];
+      if (near.length) { say(esc(m('gNoHere', { p: F.town(q.city) })) + near.map(hotLink).join('')); choose([{ t: m('gOther'), f: gWhen }, { t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]); return; }
+      say(esc(m('gNone'))); choose([{ t: m('gOther'), f: gWhen }, { t: m('gFind'), f: gWhere }, { t: m('back'), f: start }]); return;
+    }
+    say(esc(m('gFound', { d: who, g: q.g })) + rows.map(hotLink).join(''));
     const f = document.getElementById('search'), home = window.V2HOME;
     choose([...(home ? [{ t: m('gAll'), f: () => home.show(q) }] : f ? [{ t: m('gAll'), f: () => {
       f.city.value = q.city; f.from.value = q.from; f.to.value = q.to; f.g.value = String(q.g);

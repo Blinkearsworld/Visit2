@@ -706,7 +706,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     if (params.get('b') && params.get('k')) showBooked(params.get('b'), params.get('k'), false);
     // for the chatbot: is instant booking on, the hotel's rules, and "go to the booking form" with the chosen dates
     const R = S().instant || {};
-    window.V2_INSTANT = inst(); window.V2_RULES = { cancel: pick(R.cancel), prepay: pick(R.prepay) };
+    window.V2_INSTANT = inst(); window.V2_RULES = { cancel: pick(R.cancel), prepay: pick(R.prepay), kids: kidsRule().mode ? kidsRule() : null };
     window.V2_GOBOOK = (from, to, g, kids) => {
       if (from && to) { sel.from = from; sel.to = to; }
       if (g) { sel.kids = Math.max(0, Math.min(10, kids || 0)); sel.adults = Math.max(1, g - sel.kids); }

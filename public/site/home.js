@@ -475,7 +475,7 @@
   } else renderEat();
 
   // the chatbot hands its search to the page
-  window.V2HOME = { show(q) { Q.city.value = q.city || ''; Q.from.value = q.from || ''; Q.to.value = q.to || ''; Q.g.value = q.g || 2; Q.kids.value = 0; summary(); showResults(true); } };
+  window.V2HOME = { show(q) { Q.city.value = q.city || ''; Q.from.value = q.from || ''; Q.to.value = q.to || ''; Q.kids.value = q.kids || 0; Q.g.value = Math.max(1, (q.g || 2) - (q.kids || 0)); Q.babies.value = q.babies || 0; Q.rooms.value = q.rooms || 1; summary(); showResults(true); } };
 
   function renderAll() { applyTexts(); summary(); heroCredit(); renderChips(); renderRows(); if (!$('#results').hidden) showResults(false); if (!$('#eat').hidden) renderEat(); if (view && sheet.open) show(view); }
   window.V2LANG?.onChange(renderAll);
