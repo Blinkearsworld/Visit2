@@ -347,7 +347,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
     if (navigator.onLine === false) return sendFailed(job, true);
     bot(T('იგზავნება…'));
     const todo = job.parts.filter(p => !p.sent);
-    const res = await Promise.all(todo.map(p => J.createRequest({ from: p.from, to: p.to, guests: p.guests || job.g, children: p.kids || 0, name: job.name, phone: job.phone, source: 'chat', type: p.type, instant: job.instant, kidRule: (window.V2_RULES || {}).kids || null, wish: job.babies ? T('{n} ჩვილი (2 წლამდე)', { n: job.babies }) : '', ...(job.deal ? { deal: job.deal } : {}) }).saved));
+    const res = await Promise.all(todo.map(p => J.createRequest({ from: p.from, to: p.to, guests: p.guests || job.g, children: p.kids || 0, name: job.name, phone: job.phone, source: 'chat', type: p.type, instant: job.instant, payRule: job.instant && window.V2_PAY ? window.V2_PAY.rule : null, kidRule: (window.V2_RULES || {}).kids || null, wish: job.babies ? T('{n} ჩვილი (2 წლამდე)', { n: job.babies }) : '', ...(job.deal ? { deal: job.deal } : {}) }).saved));
     res.forEach((r, i) => { if (r && r.ok) todo[i].sent = true; });
     if (job.parts.some(p => !p.sent)) return sendFailed(job, res.some(r => r && r.offline), (res.find(r => r && !r.ok && r.msg) || {}).msg);
     const r = { from: job.parts[0].from, to: job.parts[job.parts.length - 1].to };

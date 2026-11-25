@@ -117,7 +117,8 @@ window.V2DEMO = (() => {
   Object.assign(HOTELS[0], { instant: true });
   HOTELS[0].site.instant = { on: true,
     cancel: T3('უფასო გაუქმება შესვლამდე 3 დღით ადრე.', 'Free cancellation up to 3 days before arrival.', 'Бесплатная отмена за 3 дня до заезда.'),
-    prepay: T3('გადახდა ადგილზე, შესვლისას.', 'Pay at the hotel on arrival.', 'Оплата на месте при заезде.') };
+    prepay: T3('ჯავშნისას 30% ავანსი, დანარჩენი ადგილზე.', 'A 30% deposit when booking, the rest at the hotel.', 'Предоплата 30% при бронировании, остальное на месте.'),
+    pay: { on: true, part: 'deposit', pct: 30 } }; // sample bank page, no money moves
 
   // only for scripts/check-layout.py: the longest name and town we expect, never listed
   const STRESS = { slug: 'test-long', hidden: true, name: 'საოჯახო სასტუმრო „დიდი მთის ძველი სახლი“', city: 'სტეფანწმინდა (ყაზბეგი)', theme: 'kva', accent: '#0E857D', types: types(1.4), site: HOTELS[0].site, kind: 'mountain', cover: 'bakuriani-chalet', lat: 42.66, lng: 44.64 };

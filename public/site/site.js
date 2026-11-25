@@ -518,7 +518,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   const inst = () => !!(S().instant && S().instant.on);
   // prepayment at the hotel's bank (Visit2 turned it on, the hotel connected its bank): the server says so in /api/content
   let PAY = false, PAYMIN = 20;
-  const payOn = () => inst() && PAY;
+  const payOn = () => inst() && (PAY || (isDemo() && !!((S().instant || {}).pay || {}).on));
   const payPart = () => { const p = (S().instant || {}).pay || {}; return p.part === 'deposit' ? w('payDeposit').replace('{p}', p.pct || 30) : w('payFull'); };
   function rulesHtml() {
     const r = S().instant || {}, c = pick(r.cancel), pp = pick(r.prepay);
@@ -676,7 +676,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     if (!name || phone.replace(/\D/g, '').length < 9) { msg.textContent = w('needName'); (name ? f.phone : f.name).focus(); return; }
     if (f.rules && !f.rules.checked) { msg.textContent = w('needRules'); f.rules.focus(); return; }
     const btn = f.querySelector('button[type=submit]'); btn.disabled = true;
-    const req = J.createRequest({ instant: inst(), kidRule: kidsRule(), from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · ') });
+    const req = J.createRequest({ instant: inst(), kidRule: kidsRule(), payRule: payOn() ? (S().instant || {}).pay : null, from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · ') });
     const out = await req.saved;
     btn.disabled = false;
     if (out && out.ok && out.instant && out.pay) { msg.dataset.state = 'ok'; msg.textContent = w('toBank'); location.href = out.pay; return; }
@@ -690,9 +690,9 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   const redraw = () => { render(); if (booked) showBooked(booked.id, booked.key, false); };
   async function showBooked(id, key, fresh) {
     booked = { id, key };
-    const u = new URL(location.href); u.hash = ''; u.searchParams.set('b', id); u.searchParams.set('k', key); const link = u.toString();
+    const u = new URL(location.href); u.hash = ''; ['paid', 'demopay'].forEach(x => u.searchParams.delete(x)); u.searchParams.set('b', id); u.searchParams.set('k', key); const link = u.toString();
     let b = null;
-    if (key === 'demo') b = J.localBooking(id);
+    if (key === 'demo') { if (params.get('demopay') === 'ok') J.demoPaid(id); b = J.localBooking(id); }
     else {
       const load = async () => { try { const r = await fetch(`api/booking?id=${encodeURIComponent(id)}&k=${encodeURIComponent(key)}`, { cache: 'no-store' }); const o = await r.json(); if (o.ok) b = o.booking; } catch (e) { /* offline: show what we know */ } };
       await load();
@@ -726,6 +726,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     if (fresh) try { history.replaceState(null, '', link); } catch (e) { /* ignore */ }
     box.querySelector('[data-pay]')?.addEventListener('click', async ev => {
       const btn = ev.currentTarget; btn.disabled = true; btn.textContent = w('toBank');
+      if (key === 'demo') { location.href = J.demoBank(id, b.pay.amount); return; }
       try {
         const r = await fetch('api/pay/again', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, k: key, lang: (document.documentElement.lang || 'ka').slice(0, 2) }) });
         const o = await r.json(); if (o.ok && o.pay) { location.href = o.pay; return; }
@@ -745,7 +746,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     if (params.get('b') && params.get('k')) showBooked(params.get('b'), params.get('k'), false);
     // for the chatbot: is instant booking on, the hotel's rules, and "go to the booking form" with the chosen dates
     const R = S().instant || {};
-    window.V2_PAY = payOn() ? { min: PAYMIN, part: payPart() } : null;
+    window.V2_PAY = payOn() ? { min: PAYMIN, part: payPart(), rule: (S().instant || {}).pay } : null;
     window.V2_INSTANT = inst(); window.V2_RULES = { cancel: pick(R.cancel), prepay: pick(R.prepay), kids: kidsRule().mode ? kidsRule() : null };
     window.V2_GOBOOK = (from, to, g, kids) => {
       if (from && to) { sel.from = from; sel.to = to; }

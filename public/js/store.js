@@ -108,6 +108,19 @@ window.JIJI = (() => {
     for (const k in state.types) if (!DEFAULT_TYPES[k]) { delete state.types[k]; added = true; }
     for (const k in DEFAULT_TYPES) if (!state.types[k]) { state.types[k] = JSON.parse(JSON.stringify(DEFAULT_TYPES[k])); syncCap(k); added = true; }
     if (added) save();
+    demoExpire();
+  }
+  // browser-only demo of prepayment: an unpaid hold past its time gives the room back (as the server does)
+  function demoExpire() {
+    const now = new Date().toISOString(); let n = 0;
+    for (const b of state.bookings) if (b.payState === 'waiting' && b.status === 'confirmed' && b.payUntil < now) { b.status = 'declined'; b.payState = 'expired'; b.room = null; n++; }
+    if (n) save();
+  }
+  // the demo bank page sends the guest back with ?demopay=ok: the booking counts as paid
+  function demoPaid(id) {
+    demoExpire();
+    const rows = state.bookings.filter(x => (x.id === id || x.grp === id) && x.payState === 'waiting');
+    rows.forEach(x => { x.payState = 'paid'; }); if (rows.length) { save(); emit(); }
   }
   // a few sample payments so the money tab is not empty in the demo
   function demoPayments() {
@@ -298,7 +311,7 @@ window.JIJI = (() => {
   }
 
   // ---------- actions ----------
-  function createRequest({ from, to, guests, name, phone, source, type, price, note, wish, deal, children, rooms, instant, kidRule }) {
+  function createRequest({ from, to, guests, name, phone, source, type, price, note, wish, deal, children, rooms, instant, kidRule, payRule }) {
     rooms = Math.max(1, Math.min(10, guests, parseInt(rooms) || 1));
     if (rooms > 1) {
       // several rooms: one row per room, tied by grp (the server builds the same rows)
@@ -314,7 +327,7 @@ window.JIJI = (() => {
             if (!out.ok) { state.bookings = state.bookings.filter(x => x.grp !== grp); save(); emit(); }
             return out;
           })
-        : instant === true ? Promise.resolve(demoInstant(rows, grp)) : Promise.resolve({ ok: true });
+        : instant === true ? Promise.resolve(demoInstant(rows, grp, payRule)) : Promise.resolve({ ok: true });
       return req;
     }
     // a short offer (deal key): price, note and the offered room come from it (the server recomputes them)
@@ -330,25 +343,43 @@ window.JIJI = (() => {
           if (!out.ok) { state.bookings = state.bookings.filter(x => x !== req); save(); emit(); }
           return out;
         })
-      : instant === true ? Promise.resolve(demoInstant([req], req.id)) : Promise.resolve({ ok: true });
+      : instant === true ? Promise.resolve(demoInstant([req], req.id, payRule)) : Promise.resolve({ ok: true });
     return req;
   }
   // browser-only demo of instant booking: every room is given a free room at once, or none is (then it stays a request)
-  function demoInstant(rows, id) {
+  function demoInstant(rows, id, payRule) {
+    demoExpire();
     const done = [];
     for (const r of rows) {
       const room = bestRoom(r.type, r.from, r.to);
       if (!room || !roomFree(room, r.from, r.to, r.id)) { done.forEach(x => { x.room = null; x.status = 'pending'; }); save(); emit(); return { ok: true, instant: false }; }
       r.room = room; r.status = 'confirmed'; r.instant = 1; if (r.price == null) r.price = kidPrice(r.type, r.from, r.to, r.guests, r.children || 0, null); done.push(r);
     }
+    const total = rows.reduce((a, r) => a + (r.price || 0), 0), typeName = state.types[rows[0].type] ? state.types[rows[0].type].name : '';
+    if (payRule && payRule.on) {
+      // the room waits 20 minutes for payment on the (sample) bank page
+      const amount = payRule.part === 'deposit' ? Math.max(1, Math.round(total * (+payRule.pct || 30) / 100)) : Math.round(total);
+      const until = new Date(Date.now() + 20 * 60e3).toISOString();
+      rows.forEach(r => { r.payState = 'waiting'; r.payUntil = until; r.payAmount = amount; });
+      save(); emit();
+      return { ok: true, instant: true, id, key: 'demo', total, typeName, pay: demoBank(id, amount), payAmount: amount, payMinutes: 20 };
+    }
     save(); emit();
-    return { ok: true, instant: true, id, key: 'demo', total: rows.reduce((a, r) => a + (r.price || 0), 0), typeName: state.types[rows[0].type] ? state.types[rows[0].type].name : '' };
+    return { ok: true, instant: true, id, key: 'demo', total, typeName };
+  }
+  // the sample bank page: comes back to this page's booking link with ?demopay=ok
+  function demoBank(id, amount) {
+    const back = new URL(location.href); back.hash = ''; back.searchParams.set('b', id); back.searchParams.set('k', 'demo'); back.searchParams.set('paid', '1');
+    const q = new URLSearchParams({ a: amount, h: hotel.name || '', back: back.toString() });
+    return new URL('demo-bank.html?' + q, location.href).toString();
   }
   // the guest's own booking, as the server's /api/booking gives it (browser-only demo)
   function localBooking(id) {
+    demoExpire();
     const rows = state.bookings.filter(x => x.id === id || x.grp === id); if (!rows.length) return null;
     const st = rows.every(x => x.status === 'confirmed') ? 'confirmed' : rows.some(x => x.status === 'cancelled') ? 'cancelled' : 'pending';
-    return { status: st, name: rows[0].name, from: rows[0].from, to: rows[0].to, rooms: rows.map(x => ({ type: x.type, guests: x.guests })), total: rows.reduce((a, r) => a + (r.price || 0), 0) };
+    return { status: st, name: rows[0].name, from: rows[0].from, to: rows[0].to, rooms: rows.map(x => ({ type: x.type, guests: x.guests })), total: rows.reduce((a, r) => a + (r.price || 0), 0),
+      pay: rows[0].payState ? { state: rows[0].payState, until: rows[0].payUntil, amount: rows[0].payAmount } : null };
   }
   // confirm a request; the admin may pick another room (also of another type) and set the price
   // ch: {from, to, guests} when the dates or guests were changed with the guest (e.g. by phone)
@@ -652,7 +683,7 @@ window.JIJI = (() => {
     ROOMS, SEASONS, get hotel() { return hotel; }, priceTable, get settings() { return state.settings; }, setSetting, siteSeason, get types() { return state.types; }, get bookings() { return state.bookings; },
     today, addDays, nights, fmt, fmtRange, weekday, seasonOf, quote, rateFor, fromPrice, findOffer, roomsOffer, kidPrice, nextOffer, partialOffer, splitOffer, groupOffer, fitsOne, gaps, gapDiscount, deals, dealTotal, dealNote, gapKey, gapEdits, promos, setJSON, bestRoom, roomFree,
     get payments() { return state.payments; }, METHODS, priceOf, paymentsOf, paidOf, payState, setPrice, addPayment, removePayment,
-    createRequest, localBooking, confirm, setRemark, editBooking, moveRoom, decline, addManual, restore, purge, wipe, guests, guestBefore, guestNote, setGuestNote, setGuest, daysToBday, guestKey, setRate, addRate, removeRate, remove, reset, onChange, onError, reload: load,
+    createRequest, localBooking, demoPaid, demoBank, confirm, setRemark, editBooking, moveRoom, decline, addManual, restore, purge, wipe, guests, guestBefore, guestNote, setGuestNote, setGuest, daysToBday, guestKey, setRate, addRate, removeRate, remove, reset, onChange, onError, reload: load,
     get me() { return me; }, get actlog() { return actlog; }, can: p => me.owner || (me.perms || []).includes(p),
     ready, get mode() { return mode; }, onConn, get online() { return online; }, resync
   };
