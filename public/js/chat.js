@@ -354,7 +354,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
     const done = res[0] || {};
     if (job.instant && done.instant && done.key) {
       const link = bookLink(done.id, done.key);
-      bot(`<b>${T('✓ დაჯავშნილია! ჯავშანი დადასტურებულია.')}</b>\n${J.fmtRange(r.from, r.to)} · ${esc(RN(done.typeName || job.offerName))} · ${done.total || job.total} ₾\n${T('ჯავშნის ნომერი')}: <b>${esc(String(done.id).slice(-6).toUpperCase())}</b>\n\n${T('შეინახეთ ბმული: მასზე ნებისმიერ დროს ნახავთ თქვენს ჯავშანს.')}\n<a href="${esc(link)}">${T('ჩემი ჯავშანი')}</a>`);
+      bot(`<b>${T('✓ დაჯავშნილია! ჯავშანი დადასტურებულია.')}</b>\n${J.fmtRange(r.from, r.to)} · ${esc(RN(done.typeName || job.offerName))} · ${done.total || job.total} ₾\n${T('ჯავშნის ნომერი')}: <b>${esc(String(done.id).slice(-6).toUpperCase())}</b>${(window.V2_RULES || {}).prepay ? `\n${T('წინასწარი გადახდა')}: ${esc(window.V2_RULES.prepay)}` : ''}${(window.V2_RULES || {}).cancel ? `\n${T('გაუქმება')}: ${esc(window.V2_RULES.cancel)}` : ''}\n\n${T('შეინახეთ ბმული: მასზე ნებისმიერ დროს ნახავთ თქვენს ჯავშანს.')}\n<a href="${esc(link)}">${T('ჩემი ჯავშანი')}</a>`);
       options(nav()); return;
     }
     if (job.instant) bot(T('ეს ნომერი ახლახან დაიჯავშნა, ამიტომ მოთხოვნა გაიგზავნა. სასტუმრო მალე დაგიკავშირდებათ.'));

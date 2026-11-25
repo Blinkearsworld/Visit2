@@ -683,6 +683,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     const box = document.createElement('div'); box.className = 'booked'; box.setAttribute('role', 'status');
     box.innerHTML = `<h3>${fresh ? w('booked') : w('myBooking')}</h3>
       ${b ? `<p class="bk-st" data-s="${esc(b.status)}">${w(st)}</p><p><b>${esc(b.name)}</b><br>${J.fmtRange(b.from, b.to)} · ${J.nights(b.from, b.to)} ${w('nights')}<br>${b.rooms.map(x => `${esc(typeName((J.types[x.type] && J.types[x.type].name) || x.type))} · ${w('guestsN').replace('{n}', x.guests)}`).join('<br>')}<br><b>${fmtN(b.total)}</b></p>` : ''}
+      ${(() => { const r = S().instant || {}, c = pick(r.cancel), pp = pick(r.prepay); return pp || c ? `<p>${pp ? `<b>${w('prepayT')}:</b> ${esc(pp)}` : ''}${pp && c ? '<br>' : ''}${c ? `<b>${w('cancelT')}:</b> ${esc(c)}` : ''}</p>` : ''; })()}
       <p class="bk-no">${w('bookNo')}: <b>${esc(String(id).slice(-6).toUpperCase())}</b></p>
       ${fresh ? `<p>${w('keepLink')}</p><p class="bk-acts"><a class="btn btn-ghost" href="${esc(link)}">${w('myBooking')}</a><button type="button" class="btn btn-ghost" data-copy="${esc(link)}">${w('copyLink')}</button></p>` : ''}
       ${phone ? `<p>${w('callHotel')}: <a href="tel:${esc(phone.replace(/[^\d+]/g, ''))}">${esc(phone)}</a></p>` : ''}`;
