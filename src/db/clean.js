@@ -47,6 +47,8 @@ function cleanSite(s) {
     }
     prune(o.rooms);
   }
+  // instant booking: on/off, the hotel's own rules the guest agrees to before booking
+  if (s.instant && typeof s.instant === 'object') o.instant = prune({ on: s.instant.on === true ? true : undefined, cancel: tri(s.instant.cancel, 500), prepay: tri(s.instant.prepay, 500) });
   if (s.kids && ['free', 'fixed'].includes(s.kids.mode)) o.kids = prune({ mode: s.kids.mode, price: s.kids.mode === 'fixed' ? num(s.kids.price, 0, 10000) : undefined });
   if (s.pin) { const lat = num(s.pin.lat, -90, 90), lng = num(s.pin.lng, -180, 180); if (lat != null && lng != null) o.pin = { lat, lng }; }
   if (s.food && typeof s.food === 'object') {

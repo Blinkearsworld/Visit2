@@ -95,7 +95,7 @@
 .v2-glow{outline:3px solid #0E857D!important;outline-offset:4px;border-radius:10px;animation:v2glow 1s ease-in-out 3}
 @keyframes v2glow{50%{outline-color:rgba(14,133,125,.25)}}
 @media (prefers-reduced-motion:reduce){.v2-glow{animation:none}}
-body.site .v2h-btn{bottom:max(96px,calc(env(safe-area-inset-bottom) + 96px))}
+body.site .v2h-btn{bottom:max(140px,calc(env(safe-area-inset-bottom) + 140px))}
 body.site .v2h{bottom:max(156px,calc(env(safe-area-inset-bottom) + 156px))}`;
   document.head.appendChild(css);
 

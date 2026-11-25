@@ -67,6 +67,15 @@
     nearest: ['უახლოესი თავისუფალი', 'Nearest available', 'Ближайшие свободные'], choose: ['ეს ნომერი', 'This room', 'Этот номер'],
     consent: ['მოთხოვნის გაგზავნით თქვენი სახელი და ტელეფონი გადაეცემა სასტუმროს ჯავშნის დასადასტურებლად. <a href="privacy.html" target="_blank">კონფიდენციალურობა</a>', 'By sending a request, your name and phone go to the hotel to confirm the booking. <a href="privacy.html" target="_blank">Privacy</a>', 'Отправляя запрос, вы передаёте имя и телефон отелю для подтверждения брони. <a href="privacy.html" target="_blank">Конфиденциальность</a>'],
     noPay: ['გადახდა ახლა არ არის საჭირო. სასტუმრო დაგიკავშირდებათ და ჯავშანს დაგიდასტურებთ.', 'No payment now. The hotel will call you to confirm.', 'Оплата сейчас не нужна. Отель свяжется с вами для подтверждения.'],
+    noPayI: ['ბარათი არ გჭირდებათ: ფულს სასტუმროს პირდაპირ უხდით, მისი წესებით.', 'No card needed: you pay the hotel directly, under its rules.', 'Карта не нужна: вы платите отелю напрямую, по его правилам.'],
+    bookNow: ['დაჯავშნა', 'Book now', 'Забронировать'], instantNote: ['✓ მყისიერი დადასტურება: ნომერი მაშინვე თქვენია', '✓ Instant confirmation: the room is yours at once', '✓ Мгновенное подтверждение: номер сразу ваш'],
+    rulesOk: ['ვეთანხმები სასტუმროს წესებს', 'I agree to the hotel’s rules', 'Согласен с правилами отеля'], cancelT: ['გაუქმება', 'Cancellation', 'Отмена'], prepayT: ['წინასწარი გადახდა', 'Prepayment', 'Предоплата'],
+    needRules: ['დაჯავშნამდე მონიშნეთ, რომ ეთანხმებით სასტუმროს წესებს.', 'Please tick that you agree to the hotel’s rules.', 'Отметьте, что согласны с правилами отеля.'],
+    consentI: ['დაჯავშნით თქვენი სახელი და ტელეფონი გადაეცემა სასტუმროს. ჯავშანი თქვენსა და სასტუმროს შორისაა. <a href="privacy.html" target="_blank">კონფიდენციალურობა</a>', 'By booking, your name and phone go to the hotel. The booking is between you and the hotel. <a href="privacy.html" target="_blank">Privacy</a>', 'Бронируя, вы передаёте имя и телефон отелю. Бронь — между вами и отелем. <a href="privacy.html" target="_blank">Конфиденциальность</a>'],
+    booked: ['დაჯავშნილია ✓', 'Booked ✓', 'Забронировано ✓'], bookNo: ['ჯავშნის ნომერი', 'Booking number', 'Номер брони'], keepLink: ['შეინახეთ ბმული: მასზე ნებისმიერ დროს ნახავთ თქვენს ჯავშანს.', 'Keep the link: your booking is always there.', 'Сохраните ссылку: по ней всегда видна ваша бронь.'],
+    myBooking: ['ჩემი ჯავშანი', 'My booking', 'Моя бронь'], stConfirmed: ['დადასტურებულია', 'Confirmed', 'Подтверждено'], stPending: ['სასტუმრო ადასტურებს', 'The hotel is confirming', 'Отель подтверждает'], stCancelled: ['გაუქმებულია', 'Cancelled', 'Отменено'],
+    fellBack: ['ეს ნომერი ახლახან დაიჯავშნა, ამიტომ მოთხოვნა გაიგზავნა. სასტუმრო მალე დაგიკავშირდებათ.', 'That room was just taken, so we sent a request. The hotel will contact you soon.', 'Этот номер только что заняли, поэтому отправлен запрос. Отель скоро свяжется с вами.'],
+    callHotel: ['სასტუმრო', 'Hotel', 'Отель'], another: ['კიდევ ერთი ჯავშანი', 'Another booking', 'Ещё одна бронь'], copyLink: ['ბმულის კოპირება', 'Copy link', 'Копировать ссылку'], copied: ['დაკოპირდა ✓', 'Copied ✓', 'Скопировано ✓'],
     sent: ['მოთხოვნა გაიგზავნა. სასტუმრო მალე დაგიკავშირდებათ.', 'Request sent. The hotel will contact you soon.', 'Запрос отправлен. Отель скоро свяжется с вами.'],
     needName: ['ჩაწერეთ სახელი და ტელეფონი', 'Enter your name and phone', 'Укажите имя и телефон'], err: ['ვერ გაიგზავნა. სცადეთ ხელახლა ან დაგვირეკეთ.', 'Could not send. Try again or call us.', 'Не удалось отправить. Попробуйте ещё раз или позвоните.'],
     call: ['დარეკვა', 'Call', 'Позвонить'], map: ['რუკაზე ნახვა', 'Open map', 'На карте'], estimate: ['საორიენტაციო ფასი', 'Estimated price', 'Ориентировочная цена'],
@@ -494,6 +503,13 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     document.querySelectorAll('.p-when').forEach(el => { el.textContent = sel.from && sel.to ? J.fmtRange(sel.from, sel.to) : w('addDates'); });
     document.querySelectorAll('.p-who').forEach(el => { el.textContent = guestsText(); });
   }
+  const inst = () => !!(S().instant && S().instant.on);
+  function rulesHtml() {
+    const r = S().instant || {}, c = pick(r.cancel), pp = pick(r.prepay);
+    if (!inst()) return '';
+    return `<div class="rules wide">${c ? `<p><b>${w('cancelT')}:</b> ${esc(c)}</p>` : ''}${pp ? `<p><b>${w('prepayT')}:</b> ${esc(pp)}</p>` : ''}
+      ${c || pp ? `<label class="rules-ok"><input type="checkbox" name="rules"> <span>${w('rulesOk')}</span></label>` : ''}</div>`;
+  }
   function bookForm() {
     return `<section class="book" id="book">
   <h2>${caps(w('book'))}</h2>
@@ -503,9 +519,11 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     <label><span>${w('name')}</span><input name="name" autocomplete="name" required></label>
     <label><span>${w('phone')}</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
     <label class="wide"><span>${w('wish')} <small>(${w('optional')})</small></span><textarea name="wish" rows="2" maxlength="500"></textarea></label>
-    <button class="btn btn-accent wide" type="submit">${w('send')}</button>
-    <p class="note wide">${w('noPay')}</p>
-    <p class="note wide">${w('consent')}</p>
+    ${rulesHtml()}
+    ${inst() ? `<p class="inst-note wide">${w('instantNote')}</p>` : ''}
+    <button class="btn btn-accent wide" type="submit">${w(inst() ? 'bookNow' : 'send')}</button>
+    <p class="note wide">${w(inst() ? 'noPayI' : 'noPay')}</p>
+    <p class="note wide">${w(inst() ? 'consentI' : 'consent')}</p>
     <p class="msg wide" id="msg" role="status"></p>
   </form>
 </section>`;
@@ -640,17 +658,60 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     msg.dataset.state = 'bad';
     if (!sel.from || !sel.to || sel.to <= sel.from) { msg.textContent = w('pickDates'); openSheet('when'); return; }
     if (!name || phone.replace(/\D/g, '').length < 9) { msg.textContent = w('needName'); (name ? f.phone : f.name).focus(); return; }
-    const btn = f.querySelector('button'); btn.disabled = true;
-    const req = J.createRequest({ from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · ') });
+    if (f.rules && !f.rules.checked) { msg.textContent = w('needRules'); f.rules.focus(); return; }
+    const btn = f.querySelector('button[type=submit]'); btn.disabled = true;
+    const req = J.createRequest({ instant: inst(), from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · ') });
     const out = await req.saved;
     btn.disabled = false;
-    if (out && out.ok) { msg.dataset.state = 'ok'; msg.textContent = w('sent'); f.reset(); }
+    if (out && out.ok && out.instant && out.key) { f.reset(); showBooked(out.id, out.key, true); }
+    else if (out && out.ok) { msg.dataset.state = 'ok'; msg.textContent = w(inst() ? 'fellBack' : 'sent'); f.reset(); }
     else msg.textContent = out && out.free != null ? w('onlyFree').replace('{n}', out.free) : (out && out.msg) || w('err');
+  }
+
+  // ---------- the guest's booking (after instant booking, and behind the link ?b=…&k=…) ----------
+  async function showBooked(id, key, fresh) {
+    const link = location.origin + location.pathname + `?b=${encodeURIComponent(id)}&k=${encodeURIComponent(key)}`;
+    let b = null;
+    try { const r = await fetch(`api/booking?id=${encodeURIComponent(id)}&k=${encodeURIComponent(key)}`); const o = await r.json(); if (o.ok) b = o.booking; } catch (e) { /* offline: show what we know */ }
+    const st = b ? { confirmed: 'stConfirmed', pending: 'stPending', cancelled: 'stCancelled' }[b.status] : 'stConfirmed';
+    const c = S().contact || {}, phone = c.phone || '';
+    const box = document.createElement('div'); box.className = 'booked'; box.setAttribute('role', 'status');
+    box.innerHTML = `<h3>${fresh ? w('booked') : w('myBooking')}</h3>
+      ${b ? `<p class="bk-st" data-s="${esc(b.status)}">${w(st)}</p><p><b>${esc(b.name)}</b><br>${J.fmtRange(b.from, b.to)} · ${J.nights(b.from, b.to)} ${w('nights')}<br>${b.rooms.map(x => `${esc(typeName((J.types[x.type] && J.types[x.type].name) || x.type))} · ${w('guestsN').replace('{n}', x.guests)}`).join('<br>')}<br><b>${fmtN(b.total)}</b></p>` : ''}
+      <p class="bk-no">${w('bookNo')}: <b>${esc(String(id).slice(-6).toUpperCase())}</b></p>
+      ${fresh ? `<p>${w('keepLink')}</p><p class="bk-acts"><a class="btn btn-ghost" href="${esc(link)}">${w('myBooking')}</a><button type="button" class="btn btn-ghost" data-copy="${esc(link)}">${w('copyLink')}</button></p>` : ''}
+      ${phone ? `<p>${w('callHotel')}: <a href="tel:${esc(phone.replace(/[^\d+]/g, ''))}">${esc(phone)}</a></p>` : ''}`;
+    const book = $('#book'); if (!book) return;
+    book.querySelector('.booked')?.remove();
+    book.querySelector('#req').before(box);
+    if (fresh) {
+      // done: the form steps aside so the booking is all the guest sees (another booking is one tap away)
+      ['#req', '#sum', '.book-pick'].forEach(q => { const el = book.querySelector(q); if (el) el.hidden = true; });
+      const again = document.createElement('p'); again.innerHTML = `<button type="button" class="btn btn-ghost">${w('another')}</button>`;
+      again.firstChild.addEventListener('click', () => { ['#req', '#sum', '.book-pick'].forEach(q => { const el = book.querySelector(q); if (el) el.hidden = false; }); again.remove(); });
+      box.append(again);
+    }
+    if (fresh) try { history.replaceState(null, '', link); } catch (e) { /* ignore */ }
+    box.querySelector('[data-copy]')?.addEventListener('click', async ev => {
+      const b2 = ev.currentTarget;
+      try { if (navigator.share && matchMedia('(pointer: coarse)').matches) await navigator.share({ url: b2.dataset.copy }); else { await navigator.clipboard.writeText(b2.dataset.copy); b2.textContent = w('copied'); } } catch (e) { /* closed */ }
+    });
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   // ---------- start ----------
   J.ready.then(loadContent).then(() => {
     render();
+    if (params.get('b') && params.get('k')) showBooked(params.get('b'), params.get('k'), false);
+    // for the chatbot: is instant booking on, the hotel's rules, and "go to the booking form" with the chosen dates
+    const R = S().instant || {};
+    window.V2_INSTANT = inst(); window.V2_RULES = { cancel: pick(R.cancel), prepay: pick(R.prepay) };
+    window.V2_GOBOOK = (from, to, g, kids) => {
+      if (from && to) { sel.from = from; sel.to = to; }
+      if (g) { sel.kids = Math.max(0, Math.min(10, kids || 0)); sel.adults = Math.max(1, g - sel.kids); }
+      summary(); pillText();
+      $('#book')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
     if (I) I.onChange(() => render());
     J.onChange(() => summary());
     loadPlaces();

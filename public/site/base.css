@@ -252,3 +252,57 @@ main > section:nth-of-type(even):not(.hero) { background: var(--soft); }
 /* paid places look the same everywhere: the badge on the photo, like on Visit2.ge */
 .food-item.has-ph .food-badge { position: absolute; top: 10px; left: 10px; margin: 0 !important; background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
 .food-item.has-ph { box-shadow: none; }
+
+/* instant booking: the hotel's rules, the confirmation, the guest's own booking */
+.book .rules { display: grid; gap: 6px; padding: 14px 16px; border-radius: 14px; background: var(--bg2, #FFF8EE); border: 1px solid var(--line, #EADFCF); font-size: 15px; line-height: 1.5; }
+.book .rules p { margin: 0; }
+.rules-ok { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 600; cursor: pointer; }
+.rules-ok input { width: 22px; height: 22px; flex: none; accent-color: var(--accent, #0B7A73); }
+.inst-note { margin: 0; color: var(--accent-ink, #0B7A73); font-weight: 600; font-size: 15px; }
+.booked { display: grid; gap: 8px; margin: 0 0 18px; padding: 18px 20px; border-radius: 16px; background: #F0F8F6; border: 1px solid #9FD0C8; line-height: 1.55; overflow-wrap: anywhere; }
+.booked h3 { margin: 0; font-size: 22px; }
+.booked p { margin: 0; }
+.booked a { color: var(--accent-ink, #0B7A73); }
+.bk-st { font-weight: 700; color: #0B7A73; }
+.bk-st[data-s="pending"] { color: #8A5A00; }
+.bk-st[data-s="cancelled"] { color: #9B2C1F; }
+.bk-no b { letter-spacing: .06em; }
+.bk-acts { display: flex; flex-wrap: wrap; gap: 8px; } .bk-acts .btn { min-height: 44px; }
+.book #req[hidden], .book .book-sum[hidden], .book .book-pick[hidden] { display: none; }
+
+/* the chat in the calm Visit2 look: white window, warm messages, the hotel's colour for actions */
+html body .jc { background: #FFFFFF; color: #1F1A17; border: 1px solid #EADFCF; box-shadow: 0 24px 60px -20px rgba(31, 26, 23, .35); border-radius: 20px; }
+html body .jc-head { background: #FFFFFF; border-bottom: 1px solid #EFE7DB; }
+html body .jc-head b { font: 700 17px/1.2 "Noto Sans Georgian", system-ui, sans-serif; color: #1F1A17; }
+html body .jc-head small { color: #6B625A; }
+html body .jc-x { color: #1F1A17; } html body .jc-x:hover { background: #F7F3EC; }
+html body .jc-log { background: #FFFCF7; }
+html body .jc-m.bot { background: #FFFFFF; color: #1F1A17; border: 1px solid #EFE7DB; }
+html body .jc-m.me { background: var(--accent); color: #fff; }
+html body .jc-m a { color: var(--accent); font-weight: 600; }
+html body .jc-m.offer { border-color: color-mix(in srgb, var(--accent) 45%, #EFE7DB); }
+html body .jc-m.offer strong { color: #1F1A17; }
+html body .jc-opts { background: #FFFCF7; padding-top: 4px; }
+html body .jc-opts button { min-height: 44px; border-color: var(--accent); color: var(--accent); background: #fff; font-weight: 600; }
+html body .jc-opts button:hover { background: color-mix(in srgb, var(--accent) 10%, #fff); }
+html body .jc-opts button.sub { border-color: #E3D9CB; color: #4A423C; font-weight: 500; }
+html body .jc-in { background: #FFFFFF; border-top: 1px solid #EFE7DB; }
+html body .jc-in input { background: #fff; color: #1F1A17; border-color: #E3D9CB; border-radius: 12px; }
+html body .jc-in button { background: var(--accent); color: #fff; border-radius: 12px; }
+html body .jc-typing { color: #6B625A; }
+html body .jc-fab:focus-visible, html body .jc button:focus-visible, html body .jc input:focus-visible { outline: 3px solid var(--accent); }
+html body .jc-cal-h { background: #FFFFFF; }
+html body .jc-cal-h button, html body .jc-cal-g button { color: #1F1A17; }
+html body .jc-cal-w span, html body .jc-cal-s, html body .jc-cal-l { color: #6B625A; }
+html body .jc-cal-g button:disabled { color: #CFC6BA; }
+html body .jc-cal-g button.td { box-shadow: inset 0 0 0 1px var(--accent); }
+html body .jc-cal-g button.in { background: color-mix(in srgb, var(--accent) 14%, #fff); }
+html body .jc-cal-g button.a, html body .jc-cal-g button.b, html body .jc-cal-g button.full.a, html body .jc-cal-g button.full.b { background: var(--accent); color: #fff; }
+html body .jc-cal-g button.full { background: #F8E3DE; color: #A1483A; }
+html body .jc-cal-l i.l-ok { box-shadow: inset 0 0 0 1px #B9AE9F; } html body .jc-cal-l i.l-full { background: #F1C9C0; }
+html body .jc-cal-ok { background: var(--accent); color: #fff; border-radius: 12px; font-weight: 600; }
+html body .jc-cal-nav button { border-color: #E3D9CB; color: #1F1A17; }
+html body .dpk { background: #FFFFFF; color: #1F1A17; }
+html body .dpk::backdrop { background: rgba(31, 26, 23, .45); }
+html body .dpk-x { color: #1F1A17; }
+@media (max-width: 600px) { html body .jc { border-radius: 0; border: 0; } }

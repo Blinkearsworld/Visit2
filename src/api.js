@@ -2,17 +2,19 @@
 //   public: GET /api/state, POST /api/request, GET /api/content, GET /media/<id>, POST /api/login, POST /api/logout
 //   admin:  /api/admin/state, rev, action, users, log, content  (signed in, member of this hotel)
 import { json, readJson } from './lib/http.js';
-import { loadState, createRequest } from './db/hotel.js';
+import { loadState, createRequest, guestBooking } from './db/hotel.js';
 import { getContent, listVersions, getVersion, saveContent, putMedia, getMedia, MAX_MEDIA } from './db/content.js';
 import { adminAction } from './db/actions.js';
 import { getSetting } from './db/settings.js';
 import { grantHelp, helpUntil, listNotices } from './db/ops.js';
 import {
   checkLogin, makeCookie, supportSignIn, clearCookie, sessionUser, tooManyFails, noteFail, clearFails, logAct, bookingLog, journal,
-  can, teamList, addMember, updateStaff, setStaffPassword, removeStaff, renameMe, PERMS,
+  can, teamList, addMember, updateStaff, setStaffPassword, removeStaff, renameMe, PERMS, hmac,
 } from './db/users.js';
 
 const DENIED = { ok: false, msg: 'ამის უფლება არ გაქვთ. მიმართეთ მფლობელს.' };
+
+const bookingKey = async (secret, t, id) => (await hmac(secret, 'booking|' + t.id + '|' + id)).slice(0, 20);
 
 export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}) {
   const db = env.DB, url = new URL(request.url), p = url.pathname, m = request.method;
@@ -29,9 +31,19 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
     if (!body) return json({ error: 'bad json' }, 400);
     try {
       const st = await loadState(db, t);
-      const r = await createRequest(db, t, st, { ...body, source: body.source === 'chat' ? 'chat' : 'site' });
-      return json({ ok: true, id: r.booking.id, total: r.total, typeName: r.typeName });
+      // instant booking (booking form or chat) only if the hotel turned it on: read here, never trusted from the browser
+      const on = body.instant === true && !!(await getContent(db, t)).content?.site?.instant?.on;
+      const r = await createRequest(db, t, st, { ...body, instant: on, source: body.source === 'chat' ? 'chat' : 'site' });
+      const key = r.instant && secret ? await bookingKey(secret, t, r.booking.id) : '';
+      return json({ ok: true, id: r.booking.id, total: r.total, typeName: r.typeName, instant: !!r.instant, key });
     } catch (e) { return json({ ok: false, error: e.message }, 400); }
+  }
+  // the guest's own booking, behind the link they got when booking (id + key); nothing else is reachable with it
+  if (p === '/api/booking' && m === 'GET') {
+    const id = url.searchParams.get('id') || '', k = url.searchParams.get('k') || '';
+    if (!secret || !/^[\w-]{6,40}$/.test(id) || k !== await bookingKey(secret, t, id)) return json({ ok: false }, 404);
+    const b = await guestBooking(db, t, id);
+    return b ? json({ ok: true, booking: b }, 200, { 'cache-control': 'no-store' }) : json({ ok: false }, 404);
   }
   if (p.startsWith('/media/') && (m === 'GET' || m === 'HEAD')) {
     const id = p.slice(7);

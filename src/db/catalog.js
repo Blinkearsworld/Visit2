@@ -35,6 +35,7 @@ export async function catalog(db, { siteOf, from = '', to = '', guests = 2, room
       cap: Math.max(0, ...Object.values(st.types).map(ty => ty.cap || 0)),
       roomTypes: Object.values(st.types).map(ty => pick(ty.name)).filter(Boolean).slice(0, 8),
       rooms: st.rooms.length,
+      instant: !!(s.instant && s.instant.on),
       kids: s.kids && ['free', 'fixed'].includes(s.kids.mode) ? { mode: s.kids.mode, price: +s.kids.price || 0 } : { mode: 'adult' },
     };
     if (dated) {

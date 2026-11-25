@@ -2,7 +2,7 @@
 // Ported from Villa JIJI functions/_lib/core.js (loadState, createRequest, bumpRev).
 import { today, addDays, nights, isDate, nowIso } from '../lib/time.js';
 import { getSeasons } from './settings.js';
-import { deals, rateFor, freeRooms, quote, findOffer, roomsOffer, dealTotal, dealNote } from '../lib/availability.js';
+import { deals, rateFor, freeRooms, quote, findOffer, roomsOffer, roomFree, bestRoom, dealTotal, dealNote } from '../lib/availability.js';
 
 export const DEFAULT_SETTINGS = { seasonMode: 'auto', winterFrom: '11-15', winterTo: '03-31', gapDiscount: '10' };
 export const uid = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12);
@@ -30,7 +30,7 @@ export async function seedSample(db, t, types = SAMPLE_TYPES, rooms = SAMPLE_ROO
 // ---------- state ----------
 export const rowToBooking = r => ({ id: r.id, room: r.room, type: r.type, from: r.date_from, to: r.date_to, guests: r.guests,
   name: r.name, phone: r.phone, status: r.status, source: r.source, created: r.created, price: r.price, note: r.note,
-  prevStatus: r.prev_status, deletedAt: r.deleted_at, remark: r.remark || '', wish: r.wish || '', wantRoom: r.want_room || '', children: r.children || 0, grp: r.grp || '' });
+  prevStatus: r.prev_status, deletedAt: r.deleted_at, remark: r.remark || '', wish: r.wish || '', wantRoom: r.want_room || '', children: r.children || 0, grp: r.grp || '', instant: r.instant ? 1 : 0 });
 
 // Everything needed to answer availability questions. `full` adds guest details (admin only).
 export async function loadState(db, t, { full = false } = {}) {
@@ -75,7 +75,7 @@ export const bumpRev = (db, t) => db.prepare("INSERT INTO settings (tenant_id, k
   .bind(t.id, String(Date.now())).run();
 
 // ---------- booking request from the site or the chatbot ----------
-export async function createRequest(db, t, st, { from, to, guests, name, phone, source, type: wanted, gap, deal, wish, children, rooms }) {
+export async function createRequest(db, t, st, { from, to, guests, name, phone, source, type: wanted, gap, deal, wish, children, rooms, instant }) {
   if (!isDate(from) || !isDate(to) || to <= from || from < today()) throw new Error('bad dates');
   if (nights(from, to) > 30) throw new Error('too long');
   guests = Math.max(1, Math.min(12, parseInt(guests) || 1));
@@ -87,7 +87,8 @@ export async function createRequest(db, t, st, { from, to, guests, name, phone, 
   children = Math.max(0, Math.min(guests - 1, parseInt(children) || 0));
   // several rooms at once (a family or a group): one row per room, tied together by grp
   rooms = Math.max(1, Math.min(10, guests, parseInt(rooms) || 1));
-  if (rooms > 1) return createGroup(db, t, st, { from, to, guests, name, phone, source, wish, children, rooms });
+  if (instant && await instantToday(db, t, phone) >= 3) instant = false; // a few a day per phone; more go as requests
+  if (rooms > 1) return createGroup(db, t, st, { from, to, guests, name, phone, source, wish, children, rooms, instant });
   // a short offer (gap or promotion): the server takes its price, never the browser's
   const D = deals(st).find(x => (deal ? x.key === deal : gap && x.type === wanted) && x.from === from && x.to === to && rateFor(st, x.type, guests));
   if (D) wanted = D.type;
@@ -103,15 +104,36 @@ export async function createRequest(db, t, st, { from, to, guests, name, phone, 
   if (dup) return { booking: rowToBooking(dup), total: dup.price, typeName: st.types[type]?.name, repeat: true };
   const b = { id: uid(), room: null, type, from, to, guests, name, phone, status: 'pending', source: String(source || 'site').slice(0, 20),
     created: nowIso(), price, note, wish, wantRoom: D ? D.room : '', children };
+  // instant booking: take a free room now; if someone took the last one a moment ago, it goes as a request
+  if (instant && offer) {
+    const rooms0 = st.rooms.filter(r => r.type === type && roomFree(st, r.id, from, to)).map(r => r.id);
+    const first = D && D.room && rooms0.includes(D.room) ? D.room : bestRoom(st, type, from, to);
+    for (const room of [first, ...rooms0.filter(x => x !== first)].filter(Boolean)) {
+      if (await grabRoom(db, t, { ...b, room })) { await bumpRev(db, t); return { booking: { ...b, room, status: 'confirmed', instant: 1 }, total: price, typeName: st.types[type]?.name, instant: true }; }
+    }
+  }
   await db.prepare('INSERT INTO bookings (tenant_id, id, room, type, date_from, date_to, guests, name, phone, status, source, created, price, note, wish, want_room, children) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
     .bind(t.id, b.id, null, b.type, b.from, b.to, b.guests, b.name, b.phone, b.status, b.source, b.created, b.price, b.note, b.wish, b.wantRoom || null, children).run();
   await bumpRev(db, t);
   return { booking: b, total: price, typeName: st.types[type]?.name };
 }
 
-async function createGroup(db, t, st, { from, to, guests, name, phone, source, wish, children, rooms }) {
+async function createGroup(db, t, st, { from, to, guests, name, phone, source, wish, children, rooms, instant }) {
   const o = roomsOffer(st, from, to, guests, rooms);
   if (!o.parts) throw new Error(`only ${o.free} rooms free`);
+  if (instant) {
+    // every room of the group taken now, or none (then the group goes as a request)
+    const grp = uid(), created = nowIso(), src = String(source || 'site').slice(0, 20), got = [];
+    let kids = children;
+    for (const x of o.parts) {
+      const c = Math.min(kids, x.guests - 1); kids -= c;
+      const b = { id: uid(), room: x.room, type: x.type, from, to, guests: x.guests, name, phone, source: src, created, price: x.total, note: '', wish, children: c, grp };
+      if (!(await grabRoom(db, t, b))) break;
+      got.push(b.id);
+    }
+    if (got.length === o.parts.length) { await bumpRev(db, t); return { booking: { id: grp, grp, rooms: got.length, status: 'confirmed', instant: 1 }, total: o.total, typeName: o.parts.map(x => x.name).join(', '), instant: true }; }
+    if (got.length) await db.batch(got.map(id => db.prepare('DELETE FROM bookings WHERE tenant_id = ? AND id = ?').bind(t.id, id)));
+  }
   const dup = await db.prepare("SELECT grp FROM bookings WHERE tenant_id = ? AND phone = ? AND date_from = ? AND date_to = ? AND grp IS NOT NULL AND status = 'pending' AND created > ? LIMIT 1")
     .bind(t.id, phone, from, to, new Date(Date.now() - 30 * 60e3).toISOString()).first();
   if (dup) return { booking: { id: dup.grp, grp: dup.grp }, total: o.total, typeName: o.parts.map(x => x.name).join(', '), repeat: true };
@@ -122,4 +144,29 @@ async function createGroup(db, t, st, { from, to, guests, name, phone, source, w
     .bind(t.id, r.id, r.type, from, to, r.guests, name, phone, 'pending', src, created, r.price, '', wish, r.children, grp)));
   await bumpRev(db, t);
   return { booking: { id: grp, grp, rooms: rows.length }, total: o.total, typeName: o.parts.map(x => x.name).join(', ') };
+}
+
+// Puts a confirmed booking into a room only if the room is still free in the database at that moment
+// (two guests pressing "book" at once: one gets the room, the other does not).
+async function grabRoom(db, t, b) {
+  const r = await db.prepare(`INSERT INTO bookings (tenant_id, id, room, type, date_from, date_to, guests, name, phone, status, source, created, price, note, wish, want_room, children, grp, instant)
+    SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?, ?, NULL, ?, ?, 1
+    WHERE NOT EXISTS (SELECT 1 FROM bookings WHERE tenant_id = ? AND room = ? AND status = 'confirmed' AND date_from < ? AND date_to > ?)`)
+    .bind(t.id, b.id, b.room, b.type, b.from, b.to, b.guests, b.name, b.phone, b.source, b.created, b.price, b.note || '', b.wish || '', b.children || 0, b.grp || null,
+      t.id, b.room, b.to, b.from).run();
+  return (r.meta?.changes || 0) > 0;
+}
+async function instantToday(db, t, phone) {
+  const r = await db.prepare('SELECT COUNT(DISTINCT COALESCE(grp, id)) AS n FROM bookings WHERE tenant_id = ? AND phone = ? AND instant = 1 AND created > ?')
+    .bind(t.id, phone, new Date(Date.now() - 864e5).toISOString()).first();
+  return r?.n || 0;
+}
+
+// What the guest sees behind their booking link: their own booking only, without anyone else's data.
+export async function guestBooking(db, t, id) {
+  const r = await db.prepare('SELECT id, grp, type, date_from, date_to, guests, children, name, price, status, room FROM bookings WHERE tenant_id = ? AND (id = ? OR grp = ?) ORDER BY id').bind(t.id, id, id).all();
+  const rows = r.results || [];
+  if (!rows.length) return null;
+  return { id, from: rows[0].date_from, to: rows[0].date_to, name: rows[0].name, status: rows.every(x => x.status === 'confirmed') ? 'confirmed' : rows.every(x => x.status === 'declined' || x.status === 'deleted') ? 'cancelled' : 'pending',
+    rooms: rows.map(x => ({ type: x.type, guests: x.guests, price: x.price })), total: rows.reduce((s, x) => s + (x.price || 0), 0) };
 }

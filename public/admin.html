@@ -395,6 +395,10 @@ dialog::backdrop,.dpick::backdrop{background:rgba(31,26,23,.45)}
 .alert{box-shadow:0 6px 18px -12px rgba(31,26,23,.4)}
 .hist th,.mt thead th,.prices th{font-weight:600}
 main select,dialog select{background-color:#fff;color:var(--ink)}
+.bk-modes{display:grid;gap:10px}.bk-mode{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--line);border-radius:14px;cursor:pointer;background:#fff}
+.bk-mode:has(input:checked){border-color:#9FD0C8;background:#F0F8F6}.bk-mode input{width:22px;height:22px;margin:2px 0 0;accent-color:var(--night);flex:none}.bk-mode b{display:block}.bk-mode span{color:var(--mute);font-size:14px}
+.bk-sure{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:#FFF8EE;border:1px solid #F0DDBF;font-size:15px}.bk-sure input{width:22px;height:22px;flex:none;accent-color:var(--night)}
+.p-inst{background:#E3F1EF;color:var(--night)}
 .legbox{margin:0 0 12px}.legbox>summary{cursor:pointer;min-height:40px;display:inline-flex;align-items:center;gap:6px;color:var(--night);font-weight:600;font-size:14px}
 .legbox[open]>summary{margin-bottom:6px}
 </style>
@@ -426,6 +430,7 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 <main>
 <section class="panel" id="p-day" role="tabpanel" aria-labelledby="t-day">
 <div class="dnav"><button class="btn" type="button" id="dPrev" aria-label="წინა დღე">←</button><button class="btn" type="button" id="dToday">დღეს</button><button class="btn" type="button" id="dNext" aria-label="შემდეგი დღე">→</button><strong id="dTitle"></strong></div>
+<div id="dNew"></div>
 <div class="kpis" id="dK"></div>
 <div class="mgrid">
 <div class="pcard"><h2 style="margin:0 0 10px">შემოდიან</h2><div class="dl" id="dIn"></div></div>
@@ -546,6 +551,7 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 <button class="stab" role="tab" aria-selected="false" data-s="amen">რა გვაქვს</button>
 <button class="stab" role="tab" aria-selected="false" data-s="look">იერსახე და ბავშვები</button>
 <button class="stab" role="tab" aria-selected="false" data-s="near">რუკა და რესტორნები</button>
+<button class="stab" role="tab" aria-selected="false" data-s="book">ჯავშნის წესი</button>
 <button class="stab" role="tab" aria-selected="false" data-s="contact">კონტაქტები</button>
 <button class="stab" role="tab" aria-selected="false" data-s="faq">ხშირი კითხვები</button>
 <button class="stab" role="tab" aria-selected="false" data-s="hist">ისტორია</button>
@@ -557,6 +563,7 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 <section class="panel" id="s-amen" role="tabpanel" hidden></section>
 <section class="panel" id="s-look" role="tabpanel" hidden></section>
 <section class="panel" id="s-near" role="tabpanel" hidden></section>
+<section class="panel" id="s-book" role="tabpanel" hidden></section>
 <section class="panel" id="s-contact" role="tabpanel" hidden></section>
 <section class="panel" id="s-faq" role="tabpanel" hidden></section>
 <section class="panel" id="s-hist" role="tabpanel" hidden></section>
@@ -595,10 +602,10 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 </form>
 </dialog>
 
-<script src="site/hotels.js?v=20261125c"></script>
-<script src="js/i18n.js?v=20261125c"></script>
-<script src="js/store.js?v=20261125c"></script>
-<script src="js/content.js?v=20261125c"></script>
+<script src="site/hotels.js?v=20261125e"></script>
+<script src="js/i18n.js?v=20261125e"></script>
+<script src="js/store.js?v=20261125e"></script>
+<script src="js/content.js?v=20261125e"></script>
 <script>
 {
 const J=JIJI,$=id=>document.getElementById(id);
@@ -684,7 +691,8 @@ function checkNew(){
  if(onReq&&fresh.length){fresh.forEach(b=>seen.add(b.id));saveSeen();return checkNew()}
  if(!fresh.length){$('alertBar').hidden=true;$('alertBar').classList.remove('new');blinkTitle(0);firstCheck=false;return}
  const b=fresh[fresh.length-1];
- $('alertTxt').textContent=fresh.length===1?`ახალი მოთხოვნა: ${b.name}, ${J.fmtRange(b.from,b.to)}${b.source&&SRC[b.source]?' · '+SRC[b.source]:''}`:`${fresh.length} ახალი მოთხოვნა ელოდება დადასტურებას`;
+ const nReq=new Set(fresh.map(x=>x.grp||x.id)).size;
+ $('alertTxt').textContent=nReq===1?`ახალი მოთხოვნა: ${b.name}, ${J.fmtRange(b.from,b.to)}${b.source&&SRC[b.source]?' · '+SRC[b.source]:''}`:`${nReq} ახალი მოთხოვნა ელოდება დადასტურებას`;
  const wasHidden=$('alertBar').hidden,count=+($('alertBar').dataset.n||0);
  $('alertBar').hidden=false;$('alertBar').classList.add('new');$('alertBar').dataset.n=fresh.length;
  if(!firstCheck&&(wasHidden||fresh.length>count)){ding();try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
@@ -1064,7 +1072,18 @@ $('p-money').addEventListener('keydown',e=>{const r=e.target.closest('[data-open
 let day=J.today();
 const tel=p=>p?`<a href="tel:${esc(p.replace(/\s/g,''))}">${esc(p)}</a>`:'';
 function item(b,extra){const p=J.payState(b);return `<div class="it"><div><b>${esc(b.name)}</b> · ნომერი ${b.room}<br>${tel(b.phone)}${b.phone?' · ':''}<span class="src">${J.fmtRange(b.from,b.to)}, ${J.nights(b.from,b.to)} ღამე${extra||''}</span>${b.wish?`<div class="wish">💬 ${esc(b.wish)}</div>`:''}${b.remark?`<div class="remark">📌 ${esc(b.remark)}</div>`:''}${J.guestNote(b.phone)?`<div class="gnote">📝 ${esc(J.guestNote(b.phone))}</div>`:''}</div><div class="r">${p.left?`<span class="owe">დარჩა ${money(p.left)}</span>`:`<span class="pill p-ok">გადახდილი</span>`}<button type="button" class="btn" data-open="${b.id}">${p.left?'გადახდა':'გახსნა'}</button></div></div>`}
+/* new instant bookings (confirmed by themselves): shown on top until someone presses "ვნახე" */
+const SEEN_K='v2-instant-seen:'+location.host+location.pathname;
+const seenIds=()=>{try{return JSON.parse(localStorage.getItem(SEEN_K)||'[]')}catch(e){return []}};
+function renderNew(){
+ const since=new Date(Date.now()-3*864e5).toISOString(),seen=seenIds();
+ const fresh=J.bookings.filter(b=>b.instant&&b.status==='confirmed'&&(b.created||'')>since&&!seen.includes(b.grp||b.id));
+ const groups=[...new Map(fresh.map(b=>[b.grp||b.id,fresh.filter(x=>(x.grp||x.id)===(b.grp||b.id))])).values()];
+ $('dNew').innerHTML=groups.length?`<div class="pcard" style="border-color:#9FD0C8;background:#F0F8F6;margin:0 0 16px"><h2 style="margin:0 0 10px">✓ ახალი მყისიერი ჯავშანი (${groups.length})</h2><div class="dl">${groups.map(g=>{const b=g[0];return `<div class="it"><div><b>${esc(b.name)}</b> · ${J.fmtRange(b.from,b.to)} · ${g.map(x=>"№"+esc((J.ROOMS.find(r=>r.id===x.room)||{}).name||x.room||"")).join(', ')}<br><a href="tel:${esc(String(b.phone||'').replace(/[^\d+]/g,''))}">${esc(b.phone||'')}</a> · ${money(g.reduce((s,x)=>s+(+x.price||0),0))}</div><div class="r"><button class="btn" type="button" data-seen="${esc(b.grp||b.id)}">ვნახე</button></div></div>`}).join('')}</div></div>`:'';
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-seen]');if(!b)return;const l=seenIds();l.push(b.dataset.seen);try{localStorage.setItem(SEEN_K,JSON.stringify(l.slice(-200)))}catch(x){}renderNew()});
 function renderDay(){
+ renderNew();
  const t=J.today(),conf=J.bookings.filter(b=>b.status==='confirmed'),tom=J.addDays(day,1);
  $('dTitle').textContent=(day===t?'დღეს, ':day===J.addDays(t,1)?'ხვალ, ':day===J.addDays(t,-1)?'გუშინ, ':'')+J.weekday(day)+', '+J.fmt(day);
  const ins=conf.filter(b=>b.from===day),outs=conf.filter(b=>b.to===day),stay=conf.filter(b=>b.from<=day&&day<b.to),tomIn=conf.filter(b=>b.from===tom);
@@ -1140,12 +1159,12 @@ function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderS
 J.onChange(()=>{if(!$('app').hidden){renderAll();checkNew()}});
 }
 </script>
-<script src="js/admin-dates.js?v=20261125c"></script>
-<script src="js/admin-team.js?v=20261125c"></script>
-<script src="js/admin-v2.js?v=20261125c"></script>
-<script src="js/osm.js?v=20261125c"></script>
-<script src="js/admin-site.js?v=20261125c"></script>
-<script src="js/admin-help.js?v=20261125c"></script>
+<script src="js/admin-dates.js?v=20261125e"></script>
+<script src="js/admin-team.js?v=20261125e"></script>
+<script src="js/admin-v2.js?v=20261125e"></script>
+<script src="js/osm.js?v=20261125e"></script>
+<script src="js/admin-site.js?v=20261125e"></script>
+<script src="js/admin-help.js?v=20261125e"></script>
 <script>/* the colour key: open on a computer, folded on a phone */(()=>{const l=document.getElementById('legBox');if(l&&matchMedia('(min-width:641px)').matches)l.open=true})()</script>
 </body>
 </html>

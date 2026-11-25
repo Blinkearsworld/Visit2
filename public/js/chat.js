@@ -215,7 +215,7 @@
     if (o) {
       ctx.offer = o;
       bot(offerHtml(ctx.from, ctx.to, ctx.n, g, o), 'offer');
-      options([{ t: T('ჯავშნის მოთხოვნა'), f: askName }, { t: T('სხვა თარიღი'), f: askDate }, ...nav()]);
+      options([...bookOpts(), { t: T('სხვა თარიღი'), f: askDate }, ...nav()]);
       return;
     }
     // Too many people for one room: offer two rooms together.
@@ -288,7 +288,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
     const total = J.dealTotal(g, n), name = RN(J.types[g.type].name), full = J.quote(g.type, g.from, g.to, n);
     ctx.offer = { type: g.type, name, total, note: J.dealNote(g), deal: g.key };
     bot(`${T('{d} · {n} ღამე · {g} სტუმარი', { d: J.fmtRange(g.from, g.to), n: g.n, g: n })}\n${esc(name)}<strong>${total} ₾</strong>${total < full ? T('ჩვეულებრივ {p} ₾ · ', { p: full }) : ''}${T('სანიმუშო ფასი')}`, 'offer');
-    options([{ t: T('ჯავშნის მოთხოვნა'), f: askName }, { t: T('სხვა შეთავაზება'), f: deals }, ...nav()]);
+    options([...bookOpts(), { t: T('სხვა შეთავაზება'), f: deals }, ...nav()]);
   }
   // the booking server did not answer: never guess availability
   function offline() {
@@ -299,24 +299,51 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
     bot(T('8 და მეტი სტუმრისთვის რამდენიმე ნომერს გავაერთიანებთ. ამას სასტუმრო პირადად შეგითანხმებთ.'));
     contact(true);
   }
-  function askName() { bot(T('ეს ჯავშნის მოთხოვნაა: ნომერი თქვენთვის დაიჯავშნება მას შემდეგ, რაც სასტუმრო დაგიკავშირდებათ და დაადასტურებს. გადახდა საჭირო არ არის.')); bot(T('თქვენი სახელი?')); mode = 'name'; setInput('text', T('სახელი')); options(nav()); }
+  // how the guest books: where the hotel turned instant booking on — book right here or on the booking form;
+  // elsewhere a request the hotel confirms
+  const INST = () => !!window.V2_INSTANT;
+  function bookOpts() {
+    if (!INST()) return [{ t: T('ჯავშნის მოთხოვნა'), f: askName }];
+    return [{ t: T('✓ დაჯავშნა ახლავე'), f: () => { ctx.instant = true; askName(); } },
+      { t: T('ჯავშნის გვერდზე გადასვლა'), f: toPage, sub: true }];
+  }
+  function toPage() {
+    if (typeof window.V2_GOBOOK === 'function') { box.hidden = true; fab.hidden = false; window.V2_GOBOOK(ctx.from, ctx.to, ctx.g, ctx.kids || 0); return; }
+    location.hash = 'book';
+  }
+  function askName() {
+    if (ctx.instant && !ctx.split) {
+      const r = window.V2_RULES || {};
+      bot(`<b>${T('ჯავშანი დადასტურდება მაშინვე, ნომერი თქვენი იქნება.')}</b>${r.cancel ? `\n${T('გაუქმება')}: ${esc(r.cancel)}` : ''}${r.prepay ? `\n${T('წინასწარი გადახდა')}: ${esc(r.prepay)}` : ''}\n${T('დაჯავშნით ეთანხმებით სასტუმროს წესებს. ბარათი არ გჭირდებათ.')}`);
+      bot(T('თქვენი სახელი?')); mode = 'name'; setInput('text', T('სახელი')); options(nav()); return;
+    }
+    ctx.instant = false;
+    bot(T('ეს ჯავშნის მოთხოვნაა: ნომერი თქვენთვის დაიჯავშნება მას შემდეგ, რაც სასტუმრო დაგიკავშირდებათ და დაადასტურებს. გადახდა საჭირო არ არის.')); bot(T('თქვენი სახელი?')); mode = 'name'; setInput('text', T('სახელი')); options(nav()); }
   function askPhone() { bot(T('ტელეფონის ნომერი, რომ დაგიკავშირდეთ?')); mode = 'phone'; setInput('tel', '+995 5…'); options(nav()); }
   // send the request; it counts as sent only when the server confirms it (with automatic retries)
   async function finish(retry) {
     const job = retry || {
       parts: kidsOver((ctx.split || [{ from: ctx.from, to: ctx.to, type: ctx.offer.type }]).map(p => ({ ...p })), ctx.kids || 0, ctx.g),
       deal: !ctx.split && ctx.offer.note && ctx.offer.deal ? ctx.offer.deal : null,
-      g: ctx.g, name: ctx.name, phone: ctx.phone, offerName: ctx.offer.name, total: ctx.offer.total
+      g: ctx.g, name: ctx.name, phone: ctx.phone, offerName: ctx.offer.name, total: ctx.offer.total, instant: !!ctx.instant && !ctx.split
     };
+    ctx.instant = false;
     delete ctx.split; delete ctx.gap;
     mode = 'menu'; setInput(null); opts.innerHTML = '';
     if (navigator.onLine === false) return sendFailed(job, true);
     bot(T('იგზავნება…'));
     const todo = job.parts.filter(p => !p.sent);
-    const res = await Promise.all(todo.map(p => J.createRequest({ from: p.from, to: p.to, guests: p.guests || job.g, children: p.kids || 0, name: job.name, phone: job.phone, source: 'chat', type: p.type, ...(job.deal ? { deal: job.deal } : {}) }).saved));
+    const res = await Promise.all(todo.map(p => J.createRequest({ from: p.from, to: p.to, guests: p.guests || job.g, children: p.kids || 0, name: job.name, phone: job.phone, source: 'chat', type: p.type, instant: job.instant, ...(job.deal ? { deal: job.deal } : {}) }).saved));
     res.forEach((r, i) => { if (r && r.ok) todo[i].sent = true; });
     if (job.parts.some(p => !p.sent)) return sendFailed(job, res.some(r => r && r.offline), (res.find(r => r && !r.ok && r.msg) || {}).msg);
     const r = { from: job.parts[0].from, to: job.parts[job.parts.length - 1].to };
+    const done = res[0] || {};
+    if (job.instant && done.instant && done.key) {
+      const link = location.origin + location.pathname + `?b=${encodeURIComponent(done.id)}&k=${encodeURIComponent(done.key)}`;
+      bot(`<b>${T('✓ დაჯავშნილია! ჯავშანი დადასტურებულია.')}</b>\n${J.fmtRange(r.from, r.to)} · ${esc(RN(done.typeName || job.offerName))} · ${done.total || job.total} ₾\n${T('ჯავშნის ნომერი')}: <b>${esc(String(done.id).slice(-6).toUpperCase())}</b>\n\n${T('შეინახეთ ბმული: მასზე ნებისმიერ დროს ნახავთ თქვენს ჯავშანს.')}\n<a href="${esc(link)}">${T('ჩემი ჯავშანი')}</a>`);
+      options(nav()); return;
+    }
+    if (job.instant) bot(T('ეს ნომერი ახლახან დაიჯავშნა, ამიტომ მოთხოვნა გაიგზავნა. სასტუმრო მალე დაგიკავშირდებათ.'));
     bot(`<b>${T('✓ მოთხოვნა გაიგზავნა. ეს ჯერ არ არის დადასტურებული ჯავშანი.')}</b>\n${J.fmtRange(r.from, r.to)} · ${esc(RN(job.offerName))} · ${job.total} ₾\n\n${T('ჯავშნის დასასრულებლად სასტუმრო დაგიკავშირდებათ ნომერზე {ph}. სანამ არ დაგიდასტურებთ, ნომერი თქვენთვის დაკავებული არ არის.', { ph: esc(job.phone) })}`);
     options(nav());
   }
@@ -369,6 +396,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
     if (!started) { started = true; start(); }
   };
   fab.addEventListener('click', openChat);
+  J.ready?.then(labels); // the hotel's own name once its data has loaded
   box.querySelector('.jc-x').addEventListener('click', () => { box.hidden = true; fab.hidden = false; fab.focus(); });
   // a new language starts the conversation again in that language
   window.I18N?.onChange(() => {

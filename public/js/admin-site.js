@@ -232,6 +232,28 @@
     };
   }
 
+  // ჯავშნის წესი: request (the hotel confirms) or instant (confirmed at once with a room), and the hotel's own rules
+  function drawBook() {
+    const p = $('s-book'), ins = siteGet('instant') || {}, on = !!ins.on;
+    p.innerHTML = `<p class="sub">აირჩიეთ, როგორ ჯავშნიან სტუმრები თქვენს საიტზე და Visit2.ge-ზე.</p>
+      <div class="card2 bk-modes" role="radiogroup" aria-label="ჯავშნის წესი">
+        <label class="bk-mode"><input type="radio" name="bkMode" value="req"${on ? '' : ' checked'}><div><b>მოთხოვნით</b><span>სტუმარი აგზავნის მოთხოვნას, თქვენ ადასტურებთ ადმინში. სტუმარი პასუხს ელოდება.</span></div></label>
+        <label class="bk-mode"><input type="radio" name="bkMode" value="instant"${on ? ' checked' : ''}><div><b>მყისიერი ჯავშანი</b><span>სტუმარი ჯავშნის და ნომერი მაშინვე მისია. თავისუფალ ნომერს სისტემა თავად არჩევს, ჯავშანი კალენდარში დადასტურებული ჩნდება. Visit2.ge-ზე თქვენ ბარათს ნიშანი „✓ მყისიერი დადასტურება“ ექნება.</span></div></label>
+      </div>
+      <div class="card2" id="bkSureBox"${on ? ' hidden' : ''}><label class="bk-sure"><input type="checkbox" id="bkSure"> <span>ყველა ჯავშანი (Booking, Airbnb, ტელეფონით, ადგილზე) ამ კალენდარში ჩაწერილია. სხვა საიტიდან მოსულ ჯავშანს აქაც მაშინვე ვწერ, რომ ერთი ნომერი ორჯერ არ გაიყიდოს.</span></label></div>
+      <div class="card2"><div class="fld"><div class="fh"><b>გაუქმების პირობა</b><span class="hint">სტუმარი ჯავშნამდე ხედავს. მაგ.: „უფასოდ შეიძლება გაუქმება ჩამოსვლამდე 3 დღით ადრე“.</span></div>${langFields(asTri(ins.cancel), { short: true, z: 'cancel' })}</div></div>
+      <div class="card2"><div class="fld"><div class="fh"><b>წინასწარი გადახდა (თუ გინდათ)</b><span class="hint">ცარიელი — არ ჩანს. მაგ.: „ჯავშნიდან 24 საათში 30% ჩარიცხეთ: GE00TB0000000000000000“. ფული პირდაპირ თქვენ მოგდით.</span></div>${langFields(asTri(ins.prepay), { short: true, z: 'prepay' })}</div></div>`;
+    const put = o => { const v = { ...(siteGet('instant') || {}), ...o }; for (const k of Object.keys(v)) if (v[k] == null || v[k] === false || (typeof v[k] === 'object' && !Object.values(v[k]).some(Boolean))) delete v[k]; sitePut('instant', Object.keys(v).length ? v : null); };
+    p.onchange = e => {
+      const t = e.target;
+      if (t.name === 'bkMode') {
+        if (t.value === 'instant' && !$('bkSure').checked) { t.checked = false; p.querySelector('[value=req]').checked = true; $('bkSure').closest('.bk-sure').scrollIntoView({ block: 'center', behavior: 'smooth' }); $('bkSure').focus(); return; }
+        put({ on: t.value === 'instant' || null }); $('bkSureBox').hidden = t.value === 'instant';
+      }
+    };
+    p.oninput = e => { const i = e.target; if (!i.dataset.z) return; const v = asTri((siteGet('instant') || {})[i.dataset.z]); v[i.dataset.l] = i.value; put({ [i.dataset.z]: v }); };
+  }
+
   const defFaq = () => JC.DEF.faq.map(([q, a]) => ({ q: tri(q), a: tri(a) }));
   function drawFaq() {
     const p = $('s-faq'), list = clone(D.faq || defFaq());
@@ -429,7 +451,7 @@
     }));
   }
 
-  function drawAll() { drawTexts(); drawPhotos(); drawRooms(); drawAmen(); drawContact(); drawFaq(); drawNear(); drawLook(); drawHistory(); }
+  function drawAll() { drawTexts(); drawPhotos(); drawRooms(); drawAmen(); drawContact(); drawBook(); drawFaq(); drawNear(); drawLook(); drawHistory(); }
 
   // ---------- save, undo, preview ----------
   async function save() {

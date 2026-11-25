@@ -289,7 +289,7 @@ window.JIJI = (() => {
   }
 
   // ---------- actions ----------
-  function createRequest({ from, to, guests, name, phone, source, type, price, note, wish, deal, children, rooms }) {
+  function createRequest({ from, to, guests, name, phone, source, type, price, note, wish, deal, children, rooms, instant }) {
     rooms = Math.max(1, Math.min(10, guests, parseInt(rooms) || 1));
     if (rooms > 1) {
       // several rooms: one row per room, tied by grp (the server builds the same rows)
@@ -301,7 +301,7 @@ window.JIJI = (() => {
       state.bookings.push(...rows); save();
       const req = { id: grp, grp, rows };
       req.saved = mode === 'api'
-        ? sendRequest({ from, to, guests, name, phone, source, rooms, wish: rows[0].wish, children }).then(out => {
+        ? sendRequest({ from, to, guests, name, phone, source, rooms, wish: rows[0].wish, children, instant: instant === true }).then(out => {
             if (!out.ok) { state.bookings = state.bookings.filter(x => x.grp !== grp); save(); emit(); }
             return out;
           })
@@ -317,7 +317,7 @@ window.JIJI = (() => {
     state.bookings.push(req); save();
     // on the real site the request counts as sent only when the server confirms it; otherwise it is taken back
     req.saved = mode === 'api'
-      ? sendRequest({ from, to, guests, name, phone, source, type: t, deal: D ? D.key : undefined, wish: req.wish, children: req.children }).then(out => {
+      ? sendRequest({ from, to, guests, name, phone, source, type: t, deal: D ? D.key : undefined, wish: req.wish, children: req.children, instant: instant === true }).then(out => {
           if (!out.ok) { state.bookings = state.bookings.filter(x => x !== req); save(); emit(); }
           return out;
         })

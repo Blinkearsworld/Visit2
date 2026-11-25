@@ -26,6 +26,7 @@
     babies: ['ჩვილები', 'Infants', 'Младенцы'], babiesAge: ['2 წლამდე', 'Under 2', 'До 2 лет'], baby1: ['1 ჩვილი', '1 infant', '1 младенец'], babiesN: ['{n} ჩვილი', '{n} infants', 'младенцев: {n}'],
     pets: ['შინაური ცხოველი', 'Pets', 'Домашние животные'], petsSub: ['ვაჩვენებთ სასტუმროებს, სადაც ცხოველი შეიძლება', 'We show places where pets are welcome', 'Покажем места, где можно с животными'],
     pet1: ['ცხოველით', 'with a pet', 'с животным'], petsN: ['{n} ცხოველით', 'with {n} pets', 'с животными: {n}'],
+    instant: ['✓ მყისიერი დადასტურება', '✓ Instant confirmation', '✓ Мгновенное подтверждение'],
     cmpAdd: ['შედარება', 'Compare', 'Сравнить'], cmpOn: ['შედარებაშია', 'In comparison', 'В сравнении'], cmpRm: ['ამოღება', 'Remove', 'Убрать'], cmpH: ['შედარება', 'Compare', 'Сравнение'],
     cmpN: ['შედარება ({n})', 'Compare ({n})', 'Сравнить ({n})'], cmpFull: ['შეადარე ერთად მაქსიმუმ 3 სასტუმრო. ჯერ ერთი ამოიღე.', 'Compare up to 3 places. Remove one first.', 'Можно сравнить до 3 мест. Сначала уберите одно.'],
     cmpPrice: ['ფასი', 'Price', 'Цена'], cmpTown: ['ადგილი', 'Place', 'Место'], cmpKinds: ['რა ადგილია', 'Kind of place', 'Что за место'], cmpRooms: ['ნომრები', 'Rooms', 'Номера'],
@@ -243,7 +244,7 @@
     <div class="h-card-ph">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : ''}</div>
     <h3>${esc(F.hname(x))}</h3>
     <p class="h-card-m">${esc(shortTown(x.city))}${F.kindsOf(x).length ? ' · ' + esc(F.kindsOf(x).map(F.kindName).join(', ')) : ''}${o.d != null ? ' · ' + h('km', { k: o.d < 10 ? o.d.toFixed(1) : Math.round(o.d) }) : ''}</p>
-    <p class="h-card-p">${price}</p>
+    <p class="h-card-p">${price}</p>${x.instant ? `<p class="h-card-i">${esc(h('instant'))}</p>` : ''}
   </a>${heart(x.slug)}${cmpBtn(x.slug)}</article>`;
   }
 
