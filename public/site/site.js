@@ -53,7 +53,10 @@
     arrive: ['ჩამოსვლა', 'Arriving', 'Заезд'], leave: ['წასვლა', 'Leaving', 'Выезд'], pickArrive: ['აირჩიეთ ჩამოსვლის დღე', 'Pick the day you arrive', 'Выберите день заезда'],
     pickLeave: ['ახლა აირჩიეთ წასვლის დღე', 'Now pick the day you leave', 'Теперь выберите день выезда'], clear: ['გასუფთავება', 'Clear', 'Сбросить'], save: ['შენახვა', 'Save', 'Сохранить'],
     seePrice: ['ფასის ნახვა', 'See prices', 'Узнать цены'], changeDates: ['თარიღების შეცვლა', 'Change dates', 'Изменить даты'], menu: ['მენიუ', 'Menu', 'Меню'],
-    guestsN: ['{n} სტუმარი', '{n} guests', 'Гостей: {n}'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], babiesN: ['{n} ჩვილი', '{n} infants', 'младенцев: {n}'], petsN: ['ცხოველით', 'with pets', 'с животными'],
+    guestsN: ['{n} სტუმარი', '{n} guests', 'Гостей: {n}'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], babiesN: ['{n} ჩვილი', '{n} infants', 'младенцев: {n}'],
+    rooms: ['ნომრები', 'Rooms', 'Номера'], roomsSub: ['ერთ ჯავშანში, მთელი ჯგუფისთვის', 'In one booking, for the whole group', 'В одной брони, на всю группу'], roomsN: ['{n} ნომერი', '{n} rooms', 'номеров: {n}'],
+    onlyFree: ['ამ თარიღებზე {n} ნომერია თავისუფალი. აირჩიეთ ნაკლები ნომერი ან სხვა დღეები.', 'Only {n} rooms are free on these dates. Choose fewer rooms or other days.', 'На эти даты свободно номеров: {n}. Выберите меньше номеров или другие дни.'],
+    roomsFit: ['ამდენი სტუმარი ამ ნომრებში ვერ დაეტევა. დაამატეთ ნომერი.', 'That many guests do not fit in these rooms. Add a room.', 'Столько гостей не поместится в эти номера. Добавьте номер.'], petsN: ['ცხოველით', 'with pets', 'с животными'],
     kidsFree: ['ბავშვები 2–12 წლის უფასოდ', 'Children 2–12 stay free', 'Дети 2–12 лет бесплатно'], kidsFixed: ['ბავშვი 2–12 წლის: {p} ₾ ღამე', 'Child 2–12: {p} ₾ a night', 'Ребёнок 2–12 лет: {p} ₾ за ночь'],
     babiesFree: ['ჩვილები 2 წლამდე უფასოდ', 'Infants under 2 stay free', 'Младенцы до 2 лет бесплатно'], photos: ['ფოტოები', 'Photos', 'Фото'],
     name: ['სახელი', 'Name', 'Имя'], phone: ['ტელეფონი', 'Phone', 'Телефон'], wish: ['სპეციალური მოთხოვნა', 'Special request', 'Особые пожелания'],
@@ -439,7 +442,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
       <div class="sheet-foot"><button type="button" class="btn btn-ghost" id="calReset">${w('clear')}</button><button type="button" class="btn btn-accent" id="calSave">${w('save')}</button></div>
     </div>
     <div class="view" data-view="who" hidden>
-      ${step('adults', 'adults', 'adultsAge')}${step('kids', 'kids', 'kidsAge')}${step('babies', 'babies', 'babiesAge')}
+      ${step('adults', 'adults', 'adultsAge')}${step('kids', 'kids', 'kidsAge')}${step('babies', 'babies', 'babiesAge')}${J.ROOMS.length > 1 ? step('rooms', 'rooms', 'roomsSub') : ''}
       <div class="step"><div><b>${w('pets')}</b><small>${w(petsOk ? 'petsOk' : 'petsNo')}</small></div>${petsOk ? `<div class="stepper"><button type="button" data-n="pets" data-d="-1" aria-label="−">−</button><output data-v="pets">0</output><button type="button" data-n="pets" data-d="1" aria-label="+">+</button></div>` : ''}</div>
       <div class="sheet-foot"><button type="button" class="btn btn-accent" id="whoSave">${w('save')}</button></div>
     </div>
@@ -456,7 +459,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     d.querySelectorAll('[data-view]').forEach(x => { x.hidden = x.dataset.view !== v; });
     $('#sheetH').textContent = w(v === 'when' ? 'whenQ' : 'whoQ');
     if (v === 'when') { calFrom = sel.from; calTo = sel.to; drawCal(); }
-    if (v === 'who') ['adults', 'kids', 'babies', 'pets'].forEach(n => { const o = d.querySelector(`[data-v="${n}"]`); if (o) o.value = sel[n]; });
+    if (v === 'who') ['adults', 'kids', 'babies', 'rooms', 'pets'].forEach(n => { const o = d.querySelector(`[data-v="${n}"]`); if (o) o.value = sel[n]; });
     d.querySelector('.sheet-in').scrollTop = 0;
   }
   function drawCal() {
@@ -486,7 +489,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     const n = calFrom && calTo ? J.nights(calFrom, calTo) : 0;
     $('#rNights').textContent = n ? `${n} ${w('nights')}` : w(calFrom ? 'pickLeave' : 'pickArrive');
   }
-  const guestsText = () => [w('guestsN').replace('{n}', sel.adults + sel.kids), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(', ');
+  const guestsText = () => [w('guestsN').replace('{n}', sel.adults + sel.kids), sel.rooms > 1 ? w('roomsN').replace('{n}', sel.rooms) : '', sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(', ');
   function pillText() {
     document.querySelectorAll('.p-when').forEach(el => { el.textContent = sel.from && sel.to ? J.fmtRange(sel.from, sel.to) : w('addDates'); });
     document.querySelectorAll('.p-who').forEach(el => { el.textContent = guestsText(); });
@@ -524,11 +527,12 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   }
 
   // ---------- booking ----------
-  const sel = { from: '', to: '', adults: 2, kids: 0, babies: 0, pets: 0, type: '' };
+  const sel = { from: '', to: '', adults: 2, kids: 0, babies: 0, pets: 0, rooms: 1, type: '' };
   // dates and guests from the Visit2.ge search (hotel.html?h=…&from=…&to=…&g=…)
   if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('from') || '') && /^\d{4}-\d{2}-\d{2}$/.test(params.get('to') || '') && params.get('to') > params.get('from')) {
     sel.from = params.get('from'); sel.to = params.get('to'); sel.adults = Math.max(1, Math.min(16, +params.get('g') || 2));
   }
+  if (+params.get('rooms') > 1) sel.rooms = Math.min(10, +params.get('rooms'));
   const fmtN = n => `${n} ₾`;
   // beds needed: adults and children (infants share a bed); the price follows the owner's rule for children
   const beds = () => sel.adults + sel.kids;
@@ -541,6 +545,14 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     document.querySelectorAll('.room').forEach(r => { r.classList.toggle('picked', r.dataset.type === sel.type); });
     if (!from || !to || to <= from) { el.innerHTML = w('pickDates'); availability(); return; }
     const n = J.nights(from, to), free = k => roomsOf(k).filter(r => J.roomFree(r.id, from, to)).length;
+    if (sel.rooms > 1) {
+      availability();
+      const o = J.roomsOffer(from, to, g, Math.min(sel.rooms, g)), kidsExtra = kidsRule().mode === 'fixed' ? (+kidsRule().price || 0) * sel.kids * n : 0;
+      if (!o.parts) { el.innerHTML = `<b>${o.free < Math.min(sel.rooms, g) ? w('onlyFree').replace('{n}', o.free) : w('roomsFit')}</b>`; sel.offer = ''; return; }
+      sel.offer = '';
+      el.innerHTML = `<b>${w('roomsN').replace('{n}', o.parts.length)}</b><br>${o.parts.map(x => `${esc(typeName(x.name))} · ${w('guestsN').replace('{n}', x.guests)}`).join('<br>')}<br>${J.fmtRange(from, to)} · ${n} ${w('nights')}<br><span class="sum-total">${w('estimate')}: ${fmtN(o.total + kidsExtra)}</span>`;
+      return;
+    }
     let type = sel.type && free(sel.type) && J.rateFor(sel.type, g) ? sel.type : null;
     if (!type) { const o = J.findOffer(from, to, g); type = o ? o.type : null; }
     availability();
@@ -581,11 +593,12 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     });
     sheet.querySelector('[data-view="who"]').addEventListener('click', e => {
       const b = e.target.closest('[data-n]'); if (!b) return;
-      const n = b.dataset.n, o = sheet.querySelector(`[data-v="${n}"]`), min = n === 'adults' ? 1 : 0, max = { adults: 16, kids: 10, babies: 5, pets: 5 }[n];
+      const n = b.dataset.n, o = sheet.querySelector(`[data-v="${n}"]`), min = n === 'adults' || n === 'rooms' ? 1 : 0, max = { adults: 16, kids: 10, babies: 5, pets: 5, rooms: 10 }[n];
       o.value = Math.min(max, Math.max(min, +o.value + +b.dataset.d));
     });
     $('#whoSave').addEventListener('click', () => {
-      ['adults', 'kids', 'babies', 'pets'].forEach(n => { const o = sheet.querySelector(`[data-v="${n}"]`); sel[n] = o ? +o.value : 0; });
+      ['adults', 'kids', 'babies', 'rooms', 'pets'].forEach(n => { const o = sheet.querySelector(`[data-v="${n}"]`); sel[n] = o ? +o.value : n === 'rooms' ? 1 : 0; });
+      sel.rooms = Math.max(1, Math.min(sel.rooms, beds()));
       sheet.close(); summary();
       if (sel.from) $('#rooms').scrollIntoView({ behavior: still });
     });
@@ -628,11 +641,11 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     if (!sel.from || !sel.to || sel.to <= sel.from) { msg.textContent = w('pickDates'); openSheet('when'); return; }
     if (!name || phone.replace(/\D/g, '').length < 9) { msg.textContent = w('needName'); (name ? f.phone : f.name).focus(); return; }
     const btn = f.querySelector('button'); btn.disabled = true;
-    const req = J.createRequest({ from: sel.from, to: sel.to, guests: g, children: sel.kids, name, phone, source: 'site', type: sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · ') });
+    const req = J.createRequest({ from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · ') });
     const out = await req.saved;
     btn.disabled = false;
     if (out && out.ok) { msg.dataset.state = 'ok'; msg.textContent = w('sent'); f.reset(); }
-    else msg.textContent = (out && out.msg) || w('err');
+    else msg.textContent = out && out.free != null ? w('onlyFree').replace('{n}', out.free) : (out && out.msg) || w('err');
   }
 
   // ---------- start ----------

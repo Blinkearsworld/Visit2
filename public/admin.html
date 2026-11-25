@@ -186,6 +186,8 @@ h2{font-size:17px;font-weight:600;margin:28px 0 12px}
 .rpick{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:10px}.rpick label{display:grid;gap:4px;font-size:13px;color:var(--mute)}.rpick select,.rpick input{min-height:46px;padding:0 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:16px;background:#fff;color:var(--ink);width:100%}
 .pill{font-size:12px;padding:3px 10px;border-radius:999px;white-space:nowrap;font-weight:500}
 .p-wait{background:var(--waitbg);color:var(--wait)}
+.rgrp-h{display:grid;gap:2px;margin:18px 0 8px;padding:12px 14px;border-radius:12px;background:#E3F1EF;border:1px solid #BFE0DC}.rgrp-h span{font-size:14px;color:var(--mute)}
+.req.in-grp{border-left:4px solid #0E857D}
 .p-ok{background:var(--okbg);color:var(--ok)}
 .p-no{background:#fde7e5;color:var(--no)}
 .src{font-size:12px;color:var(--mute)}
@@ -538,10 +540,10 @@ body:has(#gate:not([hidden])) .v2h-btn{display:none}
 </form>
 </dialog>
 
-<script src="site/hotels.js?v=20261124y"></script>
-<script src="js/i18n.js?v=20261124y"></script>
-<script src="js/store.js?v=20261124y"></script>
-<script src="js/content.js?v=20261124y"></script>
+<script src="site/hotels.js?v=20261125a"></script>
+<script src="js/i18n.js?v=20261125a"></script>
+<script src="js/store.js?v=20261125a"></script>
+<script src="js/content.js?v=20261125a"></script>
 <script>
 {
 const J=JIJI,$=id=>document.getElementById(id);
@@ -660,20 +662,24 @@ const asPicked=(b,c)=>({...b,from:c.from,to:c.to,guests:c.guests});
 const roomType=id=>J.ROOMS.find(r=>r.id===id)?.type;
 function freeFor(b,c){const x=asPicked(b,c);return J.ROOMS.some(r=>r.id===c.room)&&J.roomFree(c.room,x.from,x.to,b.id)}
 function rePrice(b,c){const t=roomType(c.room)||b.type;if(!c.touched)c.price=J.quote(t,c.from,c.to,c.guests)}
+/* a group request (several rooms at once): each row gets its own free room, not one already picked for another row of the group */
+const groupRoom=b=>{const taken=new Set(J.bookings.filter(x=>x.grp===b.grp&&x.id!==b.id&&reqPick[x.id]).map(x=>reqPick[x.id].room).filter(Boolean));
+ return (J.ROOMS.filter(r=>r.type===b.type&&!taken.has(r.id)&&J.roomFree(r.id,b.from,b.to,b.id))[0]||{}).id||''};
 function pickOf(b){
  let c=reqPick[b.id];
- if(!c){c=reqPick[b.id]={from:b.from,to:b.to,guests:b.guests,kids:+b.children||0,room:(b.wantRoom&&J.roomFree(b.wantRoom,b.from,b.to,b.id)?b.wantRoom:J.bestRoom(b.type,b.from,b.to))||'',price:b.price??J.quote(b.type,b.from,b.to,b.guests),touched:b.price!=null}}
+ if(!c){c=reqPick[b.id]={from:b.from,to:b.to,guests:b.guests,kids:+b.children||0,room:(b.grp?groupRoom(b):b.wantRoom&&J.roomFree(b.wantRoom,b.from,b.to,b.id)?b.wantRoom:J.bestRoom(b.type,b.from,b.to))||'',price:b.price??J.quote(b.type,b.from,b.to,b.guests),touched:b.price!=null}}
  if(c.room&&!freeFor(b,c)){c.room=J.bestRoom(roomType(c.room)||b.type,c.from,c.to)||'';rePrice(b,c)}
  return c;
 }
 const pin='min-height:46px;padding:0 10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:16px;background:#fff;color:var(--ink);width:100%';
 function renderReqs(){renderTrash();
- const pend=J.bookings.filter(b=>b.status==='pending').sort((a,b)=>a.from<b.from?-1:1);
- $('cnt').textContent=pend.length;
- $('reqs').innerHTML=pend.length?pend.map(b=>{const n=J.nights(b.from,b.to),c=pickOf(b),x=asPicked(b,c),cn=J.nights(c.from,c.to);
+ const pend=J.bookings.filter(b=>b.status==='pending').sort((a,b)=>a.from<b.from?-1:a.from>b.from?1:(a.grp||'')<(b.grp||'')?-1:(a.grp||'')>(b.grp||'')?1:0);
+ $('cnt').textContent=new Set(pend.map(b=>b.grp||b.id)).size;
+ const grpOf=b=>b.grp?pend.filter(x=>x.grp===b.grp):[];
+ $('reqs').innerHTML=pend.length?pend.map((b,i)=>{const G=grpOf(b),gi=G.indexOf(b),head=G.length>1&&gi===0?`<div class="rgrp-h"><b>ერთი მოთხოვნა · ${G.length} ნომერი</b><span>${esc(b.name)} · ${J.fmtRange(b.from,b.to)} · სულ ${G.reduce((s,x)=>s+(+x.guests||0),0)} სტუმარი · ${G.reduce((s,x)=>s+(+x.price||0),0)} ₾</span></div>`:'';const n=J.nights(b.from,b.to),c=pickOf(b),x=asPicked(b,c),cn=J.nights(c.from,c.to);
   const ch=[c.from!==b.from||c.to!==b.to?'თარიღი':'',+c.guests!==+b.guests||+c.kids!==(+b.children||0)?'სტუმრები':'',c.room&&roomType(c.room)!==b.type?'ნომრის ტიპი':''].filter(Boolean);
-  return `<article class="req">
-  <div class="top"><div><div class="who">${esc(b.name)}${backPill(b)}</div>${J.guestNote(b.phone)?`<div class="gnote">📝 ${esc(J.guestNote(b.phone))}</div>`:''}<a class="tel" href="tel:${esc(b.phone.replace(/\s/g,''))}">${esc(b.phone)}</a></div><span class="pill p-wait">მოლოდინში</span></div>
+  return `${head}<article class="req${G.length>1?' in-grp':''}">
+  <div class="top"><div><div class="who">${esc(b.name)}${backPill(b)}${G.length>1?` <span class="pill p-gap">ნომერი ${gi+1} / ${G.length}</span>`:''}</div>${J.guestNote(b.phone)?`<div class="gnote">📝 ${esc(J.guestNote(b.phone))}</div>`:''}<a class="tel" href="tel:${esc(b.phone.replace(/\s/g,''))}">${esc(b.phone)}</a></div><span class="pill p-wait">მოლოდინში</span></div>
   ${b.wish?`<div class="wish"><small>სტუმრის მოთხოვნა</small>💬 ${esc(b.wish)}</div>`:''}${b.remark?`<div class="remark">📌 ${esc(b.remark)}</div>`:''}
   <dl><dt>მოითხოვა</dt><dd>${J.fmtRange(b.from,b.to)} · ${n} ღამე · ${gTxt(b,1)}<br>${esc(typeName(b.type))}</dd><dt>წყარო</dt><dd>${SRC[b.source]||b.source}</dd></dl>
   <details class="redit"${ch.length?' open':''}><summary>შეცვლა: თარიღი, სტუმრები, ჩვენი შენიშვნა${ch.length?' <span class="pill p-wait">შეცვლილია</span>':''}</summary>
@@ -1079,11 +1085,11 @@ function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderS
 J.onChange(()=>{if(!$('app').hidden){renderAll();checkNew()}});
 }
 </script>
-<script src="js/admin-dates.js?v=20261124y"></script>
-<script src="js/admin-team.js?v=20261124y"></script>
-<script src="js/admin-v2.js?v=20261124y"></script>
-<script src="js/osm.js?v=20261124y"></script>
-<script src="js/admin-site.js?v=20261124y"></script>
-<script src="js/admin-help.js?v=20261124y"></script>
+<script src="js/admin-dates.js?v=20261125a"></script>
+<script src="js/admin-team.js?v=20261125a"></script>
+<script src="js/admin-v2.js?v=20261125a"></script>
+<script src="js/osm.js?v=20261125a"></script>
+<script src="js/admin-site.js?v=20261125a"></script>
+<script src="js/admin-help.js?v=20261125a"></script>
 </body>
 </html>

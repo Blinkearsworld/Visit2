@@ -8,8 +8,8 @@
 <link rel="icon" href="favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="site/platform.css?v=20261124y">
-<link rel="stylesheet" href="site/home.css?v=20261124y">
+<link rel="stylesheet" href="site/platform.css?v=20261125a">
+<link rel="stylesheet" href="site/home.css?v=20261125a">
 </head>
 <body data-chat="guests" class="home2" data-photo>
 <main>
@@ -29,7 +29,7 @@
   </section>
 
   <!-- the search state lives in this hidden form (the chatbot fills it too) -->
-  <form id="q" hidden><input name="city"><input name="from"><input name="to"><input name="g" value="2"><input name="kids" value="0"><input name="babies" value="0"><input name="pets" value="0"></form>
+  <form id="q" hidden><input name="city"><input name="from"><input name="to"><input name="g" value="2"><input name="kids" value="0"><input name="babies" value="0"><input name="pets" value="0"><input name="rooms" value="1"></form>
 
   <div class="h-chips-wrap"><div class="h-chips" id="chips" role="group" aria-label="Kinds"></div></div>
 
@@ -87,6 +87,16 @@
   </div>
 </footer>
 
+<!-- compare: a small bar while hotels are picked, then a side-by-side table in the same sheet as the search -->
+<div class="h-cmp-bar" id="cmpBar" hidden><button type="button" class="h-cmp-go" id="cmpOpen"><span id="cmpN">შედარება</span></button><button type="button" class="h-cmp-x" id="cmpClear" aria-label="გასუფთავება">×</button></div>
+<p class="h-cmp-full" id="cmpFull" role="status" hidden data-h="cmpFull">შეადარე ერთად მაქსიმუმ 3 სასტუმრო.</p>
+<dialog class="h-sheet wide h-cmp-dlg" id="cmp" aria-labelledby="cmpH">
+  <div class="h-sheet-in">
+    <div class="h-sheet-head"><span aria-hidden="true"></span><h2 id="cmpH" data-h="cmpH">შედარება</h2><button type="button" class="h-x" data-close aria-label="Close">×</button></div>
+    <div id="cmpBody"></div>
+  </div>
+</dialog>
+
 <!-- search: one sheet, full screen on a phone, a panel on a computer -->
 <dialog class="h-sheet" id="sheet" aria-labelledby="sheetH">
   <div class="h-sheet-in">
@@ -116,20 +126,21 @@
       <div class="h-step"><div><b data-h="adults">უფროსები</b><small data-h="adultsAge">13 წლიდან</small></div><div class="h-stepper"><button type="button" data-n="g" data-d="-1" aria-label="−">−</button><output id="nG">2</output><button type="button" data-n="g" data-d="1" aria-label="+">+</button></div></div>
       <div class="h-step"><div><b data-h="kids">ბავშვები</b><small data-h="kidsAge">2–12 წლის</small></div><div class="h-stepper"><button type="button" data-n="kids" data-d="-1" aria-label="−">−</button><output id="nK">0</output><button type="button" data-n="kids" data-d="1" aria-label="+">+</button></div></div>
       <div class="h-step"><div><b data-h="babies">ჩვილები</b><small data-h="babiesAge">2 წლამდე</small></div><div class="h-stepper"><button type="button" data-n="babies" data-d="-1" aria-label="−">−</button><output id="nB">0</output><button type="button" data-n="babies" data-d="1" aria-label="+">+</button></div></div>
+      <div class="h-step"><div><b data-h="rooms">ნომრები</b><small data-h="roomsSub">ერთ ჯავშანში, მთელი ჯგუფისთვის</small></div><div class="h-stepper"><button type="button" data-n="rooms" data-d="-1" aria-label="−">−</button><output id="nR">1</output><button type="button" data-n="rooms" data-d="1" aria-label="+">+</button></div></div>
       <div class="h-step"><div><b data-h="pets">შინაური ცხოველი</b><small data-h="petsSub">ვაჩვენებთ სასტუმროებს, სადაც ცხოველი შეიძლება</small></div><div class="h-stepper"><button type="button" data-n="pets" data-d="-1" aria-label="−">−</button><output id="nP">0</output><button type="button" data-n="pets" data-d="1" aria-label="+">+</button></div></div>
       <div class="h-sheet-foot"><button type="button" class="btn btn-teal" id="whoSave" data-h="save">შენახვა</button></div>
     </div>
   </div>
 </dialog>
 
-<script src="site/food.js?v=20261124y"></script>
-<script src="js/osm.js?v=20261124y"></script>
-<script src="site/places.js?v=20261124y"></script>
-<script src="site/ads.js?v=20261124y"></script>
-<script src="site/hotels.js?v=20261124y"></script>
-<script src="site/menu.js?v=20261124y"></script>
-<script src="site/platform.js?v=20261124y"></script>
-<script src="site/home.js?v=20261124y"></script>
-<script src="site/visit2-chat.js?v=20261124y"></script>
+<script src="site/food.js?v=20261125a"></script>
+<script src="js/osm.js?v=20261125a"></script>
+<script src="site/places.js?v=20261125a"></script>
+<script src="site/ads.js?v=20261125a"></script>
+<script src="site/hotels.js?v=20261125a"></script>
+<script src="site/menu.js?v=20261125a"></script>
+<script src="site/platform.js?v=20261125a"></script>
+<script src="site/home.js?v=20261125a"></script>
+<script src="site/visit2-chat.js?v=20261125a"></script>
 </body>
 </html>

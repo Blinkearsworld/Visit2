@@ -26,6 +26,14 @@
     babies: ['ჩვილები', 'Infants', 'Младенцы'], babiesAge: ['2 წლამდე', 'Under 2', 'До 2 лет'], baby1: ['1 ჩვილი', '1 infant', '1 младенец'], babiesN: ['{n} ჩვილი', '{n} infants', 'младенцев: {n}'],
     pets: ['შინაური ცხოველი', 'Pets', 'Домашние животные'], petsSub: ['ვაჩვენებთ სასტუმროებს, სადაც ცხოველი შეიძლება', 'We show places where pets are welcome', 'Покажем места, где можно с животными'],
     pet1: ['ცხოველით', 'with a pet', 'с животным'], petsN: ['{n} ცხოველით', 'with {n} pets', 'с животными: {n}'],
+    cmpAdd: ['შედარება', 'Compare', 'Сравнить'], cmpOn: ['შედარებაშია', 'In comparison', 'В сравнении'], cmpRm: ['ამოღება', 'Remove', 'Убрать'], cmpH: ['შედარება', 'Compare', 'Сравнение'],
+    cmpN: ['შედარება ({n})', 'Compare ({n})', 'Сравнить ({n})'], cmpFull: ['შეადარე ერთად მაქსიმუმ 3 სასტუმრო. ჯერ ერთი ამოიღე.', 'Compare up to 3 places. Remove one first.', 'Можно сравнить до 3 мест. Сначала уберите одно.'],
+    cmpPrice: ['ფასი', 'Price', 'Цена'], cmpTown: ['ადგილი', 'Place', 'Место'], cmpKinds: ['რა ადგილია', 'Kind of place', 'Что за место'], cmpRooms: ['ნომრები', 'Rooms', 'Номера'],
+    cmpCap: ['ერთ ნომერში', 'In one room', 'В одном номере'], cmpCapN: ['{n} სტუმრამდე', 'up to {n} guests', 'до {n} гостей'], cmpRoomsN: ['სულ {n} ნომერი', '{n} rooms in all', 'всего номеров: {n}'],
+    cmpAmen: ['რა არის ადგილზე', 'Amenities', 'Удобства'], cmpKids: ['ბავშვის ფასი (2–12)', 'Child price (2–12)', 'Цена за ребёнка (2–12)'],
+    kidAdult: ['როგორც უფროსის', 'Same as adults', 'Как за взрослого'], kidFree: ['უფასოა', 'Free', 'Бесплатно'], kidFixed: ['{p} ₾ ღამეში', '{p} ₾ a night', '{p} ₾ за ночь'],
+    rooms: ['ნომრები', 'Rooms', 'Номера'], roomsSub: ['ერთ ჯავშანში, მთელი ჯგუფისთვის', 'In one booking, for the whole group', 'В одной брони, на всю группу'], roomsN: ['{n} ნომერი', '{n} rooms', 'номеров: {n}'],
+    onlyFree: ['თავისუფალია მხოლოდ {n} ნომერი', 'Only {n} rooms free', 'Свободно только {n}'],
     guestsN: ['{n} სტუმარი', '{n} guests', 'Гостей: {n}'], guest1: ['1 სტუმარი', '1 guest', '1 гость'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], kid1: ['1 ბავშვი', '1 child', '1 ребёнок'],
     all: ['ყველა', 'All', 'Все'], seeAll: ['ყველას ნახვა', 'See all', 'Смотреть все'],
     rowKind: { mountain: ['მთაში', 'In the mountains', 'В горах'], sea: ['ზღვაზე', 'By the sea', 'У моря'], history: ['ისტორიასთან ახლოს', 'Close to history', 'Рядом с историей'], wine: ['ღვინის მხარეში', 'In wine country', 'В винном крае'],
@@ -61,14 +69,14 @@
 
   // ---------- the search state (a hidden form, so the chatbot can fill it too) ----------
   const Q = $('#q');
-  const st = () => ({ city: Q.city.value, from: Q.from.value, to: Q.to.value, g: Math.max(1, +Q.g.value || 2), kids: Math.max(0, +Q.kids.value || 0), babies: Math.max(0, +Q.babies.value || 0), pets: Math.max(0, +Q.pets.value || 0) });
+  const st = () => ({ city: Q.city.value, from: Q.from.value, to: Q.to.value, g: Math.max(1, +Q.g.value || 2), kids: Math.max(0, +Q.kids.value || 0), babies: Math.max(0, +Q.babies.value || 0), pets: Math.max(0, +Q.pets.value || 0), rooms: Math.max(1, +Q.rooms.value || 1) });
   const dated = s => s.from && s.to && s.to > s.from;
   const range = s => {
     if (!dated(s)) return '';
     const a = F.fmt(s.from), b = F.fmt(s.to), [da, ma] = a.split(' '), [db, mb] = b.split(' ');
     return ma === mb ? `${da}–${db} ${mb}` : `${a} – ${b}`;
   };
-  const guests = s => [s.g === 1 ? h('guest1') : h('guestsN', { n: s.g }), s.kids ? (s.kids === 1 ? h('kid1') : h('kidsN', { n: s.kids })) : '', s.babies ? (s.babies === 1 ? h('baby1') : h('babiesN', { n: s.babies })) : '', s.pets ? (s.pets === 1 ? h('pet1') : h('petsN', { n: s.pets })) : ''].filter(Boolean).join(', ');
+  const guests = s => [s.g === 1 ? h('guest1') : h('guestsN', { n: s.g }), s.kids ? (s.kids === 1 ? h('kid1') : h('kidsN', { n: s.kids })) : '', s.rooms > 1 ? h('roomsN', { n: s.rooms }) : '', s.babies ? (s.babies === 1 ? h('baby1') : h('babiesN', { n: s.babies })) : '', s.pets ? (s.pets === 1 ? h('pet1') : h('petsN', { n: s.pets })) : ''].filter(Boolean).join(', ');
   function summary() {
     const s = st();
     $('#vWhere').textContent = s.city ? F.town(s.city) : h('whereQ');
@@ -126,7 +134,7 @@
     if (v === 'main') summary();
     if (v === 'where') { $('#townFind').value = ''; drawTowns(); setTimeout(() => matchMedia('(pointer: fine)').matches && $('#townFind').focus(), 50); }
     if (v === 'when') { const s = st(); calFrom = s.from; calTo = s.to; drawCal(); }
-    if (v === 'who') { const s = st(); $('#nG').value = s.g; $('#nK').value = s.kids; $('#nB').value = s.babies; $('#nP').value = s.pets; }
+    if (v === 'who') { const s = st(); $('#nG').value = s.g; $('#nK').value = s.kids; $('#nB').value = s.babies; $('#nP').value = s.pets; $('#nR').value = s.rooms; }
     sheet.querySelector('.h-sheet-in').scrollTop = 0;
   }
   document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => openSheet(b.dataset.open)));
@@ -201,10 +209,10 @@
   // who: adults (13+), children (2–12), infants (under 2, they need no bed of their own, so they are not counted for rooms), pets
   $('[data-view="who"]').addEventListener('click', e => {
     const b = e.target.closest('[data-n]'); if (!b) return;
-    const n = b.dataset.n, out = { g: $('#nG'), kids: $('#nK'), babies: $('#nB'), pets: $('#nP') }[n], min = n === 'g' ? 1 : 0, max = { g: 16, kids: 10, babies: 5, pets: 5 }[n];
+    const n = b.dataset.n, out = { g: $('#nG'), kids: $('#nK'), babies: $('#nB'), pets: $('#nP'), rooms: $('#nR') }[n], min = n === 'g' || n === 'rooms' ? 1 : 0, max = { g: 16, kids: 10, babies: 5, pets: 5, rooms: 10 }[n];
     out.value = Math.min(max, Math.max(min, +out.value + +b.dataset.d));
   });
-  $('#whoSave').addEventListener('click', () => { Q.g.value = $('#nG').value; Q.kids.value = $('#nK').value; Q.babies.value = $('#nB').value; Q.pets.value = $('#nP').value; summary(); renderRows(); show('main'); });
+  $('#whoSave').addEventListener('click', () => { Q.g.value = $('#nG').value; Q.kids.value = $('#nK').value; Q.babies.value = $('#nB').value; Q.pets.value = $('#nP').value; Q.rooms.value = Math.max(1, Math.min(+$('#nR').value, +$('#nG').value + +$('#nK').value)); summary(); renderRows(); show('main'); });
 
   // ---------- saved hotels (♥), kept in this browser ----------
   const SKEY = 'v2-saved';
@@ -228,15 +236,15 @@
   function card(x, o, s) {
     const img = x.img || (x.cover ? `img/h/${x.cover}-s.jpg` : x.site?.hero?.img || '');
     const isDated = dated(s);
-    const price = isDated && o.unknown ? `<b>${h('fromP', { p: o.minFrom })}</b> / ${h('perNight')}` : isDated ? (o.best ? `<b>${o.best.total} ₾</b> · ${h('totalN', { n: o.n })}` : `<span class="h-busy">${h('busy')}</span>`)
+    const price = isDated && o.unknown ? `<b>${h('fromP', { p: o.minFrom })}</b> / ${h('perNight')}` : isDated ? (o.best ? `<b>${o.best.total} ₾</b> · ${h('totalN', { n: o.n })}${s.rooms > 1 ? ' · ' + h('roomsN', { n: s.rooms }) : ''}` : `<span class="h-busy">${o.freeRooms != null && s.rooms > 1 ? h('onlyFree', { n: o.freeRooms }) : h('busy')}</span>`)
       : `<b>${h('fromP', { p: o.minFrom })}</b> / ${h('perNight')}`;
     return `<article class="h-card${isDated && !o.best && !o.unknown ? ' busy' : ''}">
-  <a href="${F.link(x, isDated ? { from: s.from, to: s.to, g: s.g + s.kids } : {})}">
+  <a href="${F.link(x, isDated ? { from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms } : {})}">
     <div class="h-card-ph">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : ''}</div>
     <h3>${esc(F.hname(x))}</h3>
     <p class="h-card-m">${esc(shortTown(x.city))}${F.kindsOf(x).length ? ' · ' + esc(F.kindsOf(x).map(F.kindName).join(', ')) : ''}${o.d != null ? ' · ' + h('km', { k: o.d < 10 ? o.d.toFixed(1) : Math.round(o.d) }) : ''}</p>
     <p class="h-card-p">${price}</p>
-  </a>${heart(x.slug)}</article>`;
+  </a>${heart(x.slug)}${cmpBtn(x.slug)}</article>`;
   }
 
   // ---------- kinds (chips) and rows ----------
@@ -284,12 +292,75 @@
     summary(); showResults(true);
   });
 
+
+  // ---------- compare up to three hotels side by side (kept in this browser) ----------
+  const CKEY = 'v2-compare', CMAX = 3;
+  const cmpList = () => { try { return JSON.parse(localStorage.getItem(CKEY) || '[]').slice(0, CMAX); } catch (e) { return []; } };
+  const cmpSet = l => { try { localStorage.setItem(CKEY, JSON.stringify(l.slice(0, CMAX))); } catch (e) { /* private mode */ } };
+  const cmpBtn = slug => { const on = cmpList().includes(slug);
+    return `<button type="button" class="h-cmp" data-cmp="${esc(slug)}" aria-pressed="${on}"><span class="h-cmp-box" aria-hidden="true"></span>${esc(h(on ? 'cmpOn' : 'cmpAdd'))}</button>`; };
+  const AMEN = { wifi: ['Wi-Fi', 'Wi-Fi', 'Wi-Fi'], parking: ['პარკინგი', 'Parking', 'Парковка'], kitchen: ['სამზარეულო', 'Kitchen', 'Кухня'], breakfast: ['საუზმე', 'Breakfast', 'Завтрак'],
+    fireplace: ['ბუხარი', 'Fireplace', 'Камин'], pool: ['აუზი', 'Pool', 'Бассейн'], garden: ['ეზო', 'Garden', 'Сад'], bbq: ['მაყალი', 'BBQ', 'Мангал'], pets: ['ცხოველით', 'Pets allowed', 'С животными'],
+    ski: ['საბაგიროსთან', 'Near ski lifts', 'У подъёмника'], balcony: ['აივანი', 'Balcony', 'Балкон'], kids: ['საბავშვო კუთხე', 'Kids corner', 'Детский уголок'], transfer: ['ტრანსფერი', 'Transfer', 'Трансфер'],
+    sea: ['ზღვასთან', 'Near the sea', 'У моря'], center: ['ცენტრში', 'City centre', 'В центре'] };
+  const nameOf = n => (typeof n === 'string' ? n : n ? n[F.lang] || n.ka || n.en || '' : '');
+  function cmpFacts(x) {
+    const types = x.real ? (x.roomTypes || []) : Object.values(x.types || {}).map(t => nameOf(t.name));
+    const cap = x.real ? x.cap : Math.max(0, ...Object.values(x.types || {}).flatMap(t => (t.rates || []).map(r => r.guests)));
+    const k = x.real ? x.kids : x.site?.kids;
+    return { types, cap, rooms: x.real ? x.rooms : (D && D.ROOMS ? D.ROOMS.length : null), amen: x.site?.amenities || x.amenities || [],
+      kids: !k || !k.mode || k.mode === 'adult' ? h('kidAdult') : k.mode === 'free' ? h('kidFree') : h('kidFixed', { p: k.price }) };
+  }
+  function drawCompare() {
+    const s = st(), isDated = dated(s), list = cmpList();
+    if (isDated) F.loadReal({ from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms });
+    const rows = list.map(slug => F.find({ from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms }).find(r => r.h.slug === slug) || F.find({ g: 2 }).find(r => r.h.slug === slug)).filter(Boolean);
+    const bar = $('#cmpBar');
+    bar.hidden = !rows.length;
+    $('#cmpN').textContent = h('cmpN', { n: rows.length });
+    if (!rows.length) { if ($('#cmp').open) $('#cmp').close(); return; }
+    const price = o => isDated ? (o.unknown ? h('fromP', { p: o.minFrom }) + ' / ' + h('perNight') : o.best ? `<b>${o.best.total} ₾</b><small>${h('totalN', { n: o.n })}${s.rooms > 1 ? ' · ' + h('roomsN', { n: s.rooms }) : ''}</small>` : `<span class="h-busy">${o.freeRooms != null && s.rooms > 1 ? h('onlyFree', { n: o.freeRooms }) : h('busy')}</span>`)
+      : `<b>${h('fromP', { p: o.minFrom })}</b><small>${h('perNight')}</small>`;
+    const F2 = rows.map(r => ({ r, f: cmpFacts(r.h) }));
+    const line = (label, cell) => `<tr><th scope="row">${esc(h(label))}</th>${F2.map(({ r, f }) => `<td>${cell(r, f)}</td>`).join('')}</tr>`;
+    $('#cmpBody').innerHTML = `<p class="h-cmp-note">${isDated ? esc(`${range(s)} · ${guests(s)}`) : esc(h('pickDates'))}</p>
+      <div class="h-cmp-scroll"><table class="h-cmp-t" style="min-width:${104 + F2.length * 156}px"><thead><tr><th></th>${F2.map(({ r }) => {
+        const x = r.h, img = x.img || (x.cover ? `img/h/${x.cover}-s.jpg` : '');
+        return `<th scope="col"><a href="${F.link(x, isDated ? { from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms } : {})}"><span class="h-cmp-ph">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : ''}</span><b>${esc(F.hname(x))}</b></a><button type="button" class="h-cmp-rm" data-cmp="${esc(x.slug)}">${esc(h('cmpRm'))}</button></th>`;
+      }).join('')}</tr></thead><tbody>
+      ${line('cmpPrice', r => price(r.o))}
+      ${line('cmpTown', r => esc(shortTown(r.h.city)))}
+      ${line('cmpKinds', r => esc(F.kindsOf(r.h).map(F.kindName).join(', ') || '—'))}
+      ${line('cmpRooms', (r, f) => f.types.length ? f.types.map(esc).join('<br>') : '—')}
+      ${line('cmpCap', (r, f) => f.cap ? esc(h('cmpCapN', { n: f.cap })) + (f.rooms ? `<small>${esc(h('cmpRoomsN', { n: f.rooms }))}</small>` : '') : '—')}
+      ${line('cmpAmen', (r, f) => f.amen.length ? `<ul>${f.amen.map(a => `<li>${esc(AMEN[a] ? AMEN[a][LI()] : a)}</li>`).join('')}</ul>` : '—')}
+      ${line('cmpKids', (r, f) => esc(f.kids))}
+      </tbody></table></div>`;
+  }
+  function cmpSync() {
+    const l = cmpList();
+    document.querySelectorAll('[data-cmp].h-cmp').forEach(b => { const on = l.includes(b.dataset.cmp); b.setAttribute('aria-pressed', String(on)); b.lastChild.textContent = h(on ? 'cmpOn' : 'cmpAdd'); });
+    drawCompare();
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-cmp]'); if (!b) return;
+    e.preventDefault();
+    const l = cmpList(), i = l.indexOf(b.dataset.cmp);
+    if (i >= 0) l.splice(i, 1);
+    else { if (l.length >= CMAX) { $('#cmpFull').hidden = false; setTimeout(() => { $('#cmpFull').hidden = true; }, 3500); return; } l.push(b.dataset.cmp); }
+    cmpSet(l); cmpSync();
+  });
+  $('#cmpOpen').addEventListener('click', () => { drawCompare(); $('#cmp').showModal(); });
+  $('#cmpClear').addEventListener('click', () => { cmpSet([]); cmpSync(); });
+  $('#cmp').addEventListener('click', e => { if (e.target === e.currentTarget || e.target.closest('[data-close]')) $('#cmp').close(); });
+  F.onReal(cmpSync);
+
   // ---------- results ----------
   let center = null, radius = 5, map = null, layer = null;
   const RADII = [1, 3, 5, 10, 25];
   function showResults(scroll) {
-    if (dated(st())) { const s0 = st(); F.loadReal({ from: s0.from, to: s0.to, g: s0.g + s0.kids }); }
-    const s = st(), rows = F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, kind: curKind, center, r: radius }).filter(r => petsOk(r.h, s));
+    if (dated(st())) { const s0 = st(); F.loadReal({ from: s0.from, to: s0.to, g: s0.g + s0.kids, rooms: s0.rooms }); }
+    const s = st(), rows = F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kind: curKind, center, r: radius }).filter(r => petsOk(r.h, s));
     $('#results').hidden = false;
     $('#resTitle').textContent = center ? h('within', { r: radius }) : s.city ? F.town(s.city) : curKind ? F.kindName(curKind) : h('allStays');
     $('#resNote').textContent = dated(s) ? `${range(s)} · ${guests(s)} · ${h('freeN', { n: rows.filter(r => r.o.best).length })}` : h('pickDates');
@@ -298,7 +369,7 @@
     if (scroll) $('#results').scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth' });
   }
   $('#resClear').addEventListener('click', () => {
-    Q.city.value = Q.from.value = Q.to.value = ''; Q.g.value = 2; Q.kids.value = 0; Q.babies.value = 0; Q.pets.value = 0; curKind = ''; center = null;
+    Q.city.value = Q.from.value = Q.to.value = ''; Q.g.value = 2; Q.kids.value = 0; Q.babies.value = 0; Q.pets.value = 0; Q.rooms.value = 1; curKind = ''; center = null;
     $('#results').hidden = true; $('#mapBox').hidden = true; $('#mapBtn').setAttribute('aria-expanded', 'false');
     summary(); renderChips(); renderRows();
     $('.h-hero').scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth' });
@@ -317,14 +388,14 @@
       L.circle([center.lat, center.lng], { radius: radius * 1000, color: '#0E857D', weight: 2, fillColor: '#0E857D', fillOpacity: .1 }).addTo(layer);
       L.circleMarker([center.lat, center.lng], { radius: 6, color: '#fff', weight: 2, fillColor: '#0A3A37', fillOpacity: 1 }).addTo(layer);
     }
-    const pins = center ? rows : F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, kind: curKind });
+    const pins = center ? rows : F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kind: curKind });
     const pts = [];
     for (const { h: x, o } of pins) {
       if (!x.lat) continue;
       const price = dated(s) ? (o.best ? o.best.total + ' ₾' : '—') : h('fromP', { p: o.minFrom });
       const icon = L.divIcon({ className: '', html: `<span class="pin${dated(s) && !o.best ? ' no' : ''}">${esc(price)}</span>`, iconSize: null });
       L.marker([x.lat, x.lng], { icon, title: F.hname(x) }).addTo(layer)
-        .bindPopup(`<a class="pop" href="${F.link(x, dated(s) ? { from: s.from, to: s.to, g: s.g + s.kids } : {})}"><img src="${esc(x.img || `img/h/${x.cover}-s.jpg`)}" alt=""><b>${esc(F.hname(x))}</b><span>${esc(shortTown(x.city))} · ${esc(price)}</span></a>`);
+        .bindPopup(`<a class="pop" href="${F.link(x, dated(s) ? { from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms } : {})}"><img src="${esc(x.img || `img/h/${x.cover}-s.jpg`)}" alt=""><b>${esc(F.hname(x))}</b><span>${esc(shortTown(x.city))} · ${esc(price)}</span></a>`);
       pts.push([x.lat, x.lng]);
     }
     if (!center && pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.2), { maxZoom: 13 });

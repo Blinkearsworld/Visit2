@@ -11,10 +11,10 @@
   // asks the server once per set of dates; the answer says which real hotels are free and their price
   function loadReal(q = {}) {
     if (!HAS_SERVER) return Promise.resolve(REAL);
-    const dated = q.from && q.to && q.to > q.from, key = dated ? `${q.from}|${q.to}|${q.g || 2}` : '';
+    const dated = q.from && q.to && q.to > q.from, rooms = q.rooms > 1 ? +q.rooms : 1, key = dated ? `${q.from}|${q.to}|${q.g || 2}|${rooms}` : '';
     if (key === realKey) return realWait || Promise.resolve(REAL);
     realKey = key;
-    realWait = fetch('api/catalog' + (dated ? `?from=${q.from}&to=${q.to}&g=${q.g || 2}` : ''))
+    realWait = fetch('api/catalog' + (dated ? `?from=${q.from}&to=${q.to}&g=${q.g || 2}${rooms > 1 ? '&rooms=' + rooms : ''}` : ''))
       .then(r => (r.ok ? r.json() : { hotels: [] })).then(d => {
         REAL = (d.hotels || []).map(h => ({ ...h, offerKey: key, types: {}, site: { amenities: h.amenities || [] } }));
         realHooks.forEach(f => { try { f(); } catch (e) { console.error(e); } });
@@ -148,17 +148,34 @@
 
   // ---------- guests: search (also used by the chatbot) ----------
   const booked = h => { try { const st = JSON.parse(localStorage.getItem('v2-demo-' + h.slug) || 'null'); return st ? st.bookings.filter(b => b.status === 'confirmed') : []; } catch (e) { return []; } };
-  function offer(h, from, to, g) {
+  function offer(h, from, to, g, rooms = 1) {
     if (h.real) {
       const dated = from && to && to > from;
       if (!dated) return { minFrom: h.minFrom };
-      const fresh = h.offerKey === `${from}|${to}|${g}`;
-      return { minFrom: h.minFrom, best: fresh && h.offer ? { total: h.offer.total, type: h.offer.type } : null, n: nights(from, to), unknown: !fresh };
+      const fresh = h.offerKey === `${from}|${to}|${g}|${rooms}`;
+      return { minFrom: h.minFrom, best: fresh && h.offer ? { total: h.offer.total, type: h.offer.type } : null, n: nights(from, to), unknown: !fresh, freeRooms: h.freeRooms };
     }
     const rate = ty => (h.types[ty]?.rates || []).find(r => r.guests >= g);
     const minFrom = Math.min(...Object.values(h.types).flatMap(ty => ty.rates.map(r => Math.min(...Object.values(r.price)))));
     if (!from || !to || to <= from) return { minFrom };
     const bs = booked(h);
+    if (rooms > 1) {
+      // several rooms: guests spread evenly, each part in the cheapest free room that holds it (as on the server)
+      const free = D.ROOMS.filter(x => !bs.some(b => b.room === x.id && b.from < to && from < b.to)), n = Math.min(rooms, g);
+      if (free.length < n) return { minFrom, best: null, n: nights(from, to), freeRooms: free.length };
+      const used = new Set(); let sum = 0;
+      for (let i = 0; i < n; i++) {
+        const part = Math.floor(g / n) + (i < g % n ? 1 : 0); let pick = null;
+        for (const x of free) {
+          const r = !used.has(x.id) && (h.types[x.type]?.rates || []).find(r => r.guests >= part); if (!r) continue;
+          let s = 0; for (let d = from; d < to; d = addDays(d, 1)) s += r.price[season(d)] || 0;
+          if (!pick || s < pick.s) pick = { id: x.id, s };
+        }
+        if (!pick) return { minFrom, best: null, n: nights(from, to), freeRooms: free.length };
+        used.add(pick.id); sum += pick.s;
+      }
+      return { minFrom, best: { total: sum, rooms: n }, n: nights(from, to) };
+    }
     let best = null;
     for (const ty of Object.keys(h.types)) {
       const r = rate(ty); if (!r) continue;
@@ -173,20 +190,21 @@
   const km = (a, b) => { const R = 6371, r = x => x * Math.PI / 180, dLa = r(b.lat - a.lat), dLn = r(b.lng - a.lng);
     return 2 * R * Math.asin(Math.sqrt(Math.sin(dLa / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLn / 2) ** 2)); };
   const kindsOf = h => (Array.isArray(h.kinds) && h.kinds.length ? h.kinds : h.kind ? [h.kind] : []);
-  const find = ({ city = '', from = '', to = '', g = 2, kind = '', center = null, r = 5 }) => {
+  const find = ({ city = '', from = '', to = '', g = 2, rooms = 1, kind = '', center = null, r = 5 }) => {
     const dated = from && to && to > from;
     return pub().filter(h => !h.hidden && (!city || h.city === city) && (!kind || kindsOf(h).includes(kind)))
-      .map(h => ({ h, o: offer(h, from, to, g), d: center && h.lat ? km(center, h) : null }))
+      .map(h => ({ h, o: offer(h, from, to, g, rooms), d: center && h.lat ? km(center, h) : null }))
       .filter(x => !center || (x.d != null && x.d <= r))
       .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) : 0) || (center ? a.d - b.d : 0) || (!!b.h.promo - !!a.h.promo) || (dated ? (a.o.best?.total || 0) - (b.o.best?.total || 0) : 0));
   };
   // this build's stamp (from our own script tag), so a hotel page never comes from an old browser copy
   const BUILD = ((document.querySelector('script[src*="site/platform.js"]') || {}).src || '').split('?v=')[1] || '';
-  const link = (h, q) => h.real ? h.url + (q.from && q.to ? `?from=${q.from}&to=${q.to}&g=${q.g}` : '') : `hotel.html?h=${encodeURIComponent(h.slug)}${q.from && q.to ? `&from=${q.from}&to=${q.to}&g=${q.g}` : ''}${BUILD ? '&v=' + BUILD : ''}`;
+  const qs = q => (q.from && q.to ? `from=${q.from}&to=${q.to}&g=${q.g}${q.rooms > 1 ? '&rooms=' + q.rooms : ''}` : '');
+  const link = (h, q) => h.real ? h.url + (qs(q) ? '?' + qs(q) : '') : `hotel.html?h=${encodeURIComponent(h.slug)}${qs(q) ? '&' + qs(q) : ''}${BUILD ? '&v=' + BUILD : ''}`;
   // header: solid once the page scrolls, so the logo (home) and links stay readable everywhere
   const top = document.querySelector('.p-top');
   if (top) { const on = () => top.classList.toggle('scrolled', scrollY > 30); addEventListener('scroll', on, { passive: true }); on(); }
-  window.V2FIND = { kindsOf, loadReal, onReal: f => realHooks.push(f), find, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t, pub, nights, kindName: k => kindName(k), get lang() { return lang; } };
+  window.V2FIND = { kindsOf, loadReal, onReal: f => realHooks.push(f), find, offer, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t, pub, nights, kindName: k => kindName(k), get lang() { return lang; } };
 
   // the town list: popular places first, in order of popularity, then every place alphabetically
   function fillTowns() {
