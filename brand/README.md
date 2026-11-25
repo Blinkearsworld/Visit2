@@ -11,6 +11,6 @@ Latin    — Visit2 (SVG, PDF, PNG)
 Georgian — ᲕᲘᲖᲘᲢ2, მთავრული (SVG, PDF, PNG)
 *-white-on-teal — თეთრი ლოგო ფირუზისფერ ფონზე
 App      — აპის ხატულა, 1024×1024
-Favicon / favicon.ico — საიტის ხატულა „2“ (16–512 px)
+Favicon / favicon.ico — საიტის ხატულა, სრული „Visit2“ მომრგვალებულ კვადრატზე (16–512 px)
 
 ასოები ვექტორულ კონტურებადაა გადაყვანილი; ქართული — Noto Sans Georgian-ის საფუძველზე (OFL, იხ. Noto-license.txt).
