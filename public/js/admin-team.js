@@ -8,7 +8,7 @@
     remark: 'შეცვალა ჩვენი შენიშვნა', edit: 'შეცვალა თარიღი ან სტუმრები', confirm: 'დაადასტურა ჯავშანი', decline: 'უარყო მოთხოვნა', add: 'დაამატა ჯავშანი', remove: 'წაშალა ჯავშანი', restore: 'აღადგინა ჯავშანი',
     purge: 'სამუდამოდ წაშალა ჯავშანი', wipe: 'გაასუფთავა ყველა ჯავშანი და ჟურნალი', price: 'შეცვალა ჯავშნის ფასი', pay: 'მიიღო გადახდა', unpay: 'წაშალა გადახდა', move: 'გადაიყვანა სხვა ნომერში',
     guestnote: 'შეცვალა სტუმრის შენიშვნა', rates: 'შეცვალა ფასები', setting: 'შეცვალა პარამეტრი', site: 'შეცვალა საიტი', login: 'შევიდა პანელში',
-    'user-add': 'დაამატა თანამშრომელი', 'user-edit': 'შეცვალა თანამშრომელი', 'user-pass': 'შეცვალა პაროლი', 'user-del': 'წაშალა თანამშრომელი'
+    'user-add': 'დაამატა თანამშრომელი', 'user-edit': 'შეცვალა თანამშრომელი', 'user-pass': 'შეცვალა პაროლი', 'user-del': 'წაშალა თანამშრომელი', help: 'შეცვალა Visit2.ge-ს დახმარების უფლება'
   };
   const when = s => { const d = new Date(s); if (isNaN(d)) return ''; const p = n => String(n).padStart(2, '0'); return JIJI.fmt(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`) + (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : '') + ', ' + p(d.getHours()) + ':' + p(d.getMinutes()); };
   let data = null, log = [], more = false, msg = '';

@@ -67,6 +67,26 @@ details.add>summary::-webkit-details-marker{display:none}
 .gate{max-width:420px;margin:8vh auto;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}
 .gate form{display:grid;gap:12px}
 .gate input{width:100%;min-height:48px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;font-size:16px}
+dialog.hd{width:min(760px,100vw);max-width:100vw;max-height:100dvh;margin:auto;padding:0;border:0;border-radius:20px;background:var(--bg);color:var(--ink)}
+dialog.hd::backdrop{background:rgba(31,26,23,.45)}
+@media (max-width:640px){dialog.hd{width:100vw;height:100dvh;border-radius:0}}
+.hd .hh{position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid var(--line);padding:14px var(--pad);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hd .hh h2{margin:0;font-size:19px;overflow-wrap:anywhere}.hd .hh small{display:block;color:var(--mute);font-size:14px;font-weight:400}
+.hd .x{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:22px;cursor:pointer}
+.hd .hb{padding:16px var(--pad) 28px;display:grid;gap:14px}
+.box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:10px}
+.box h3{margin:0;font-size:16px}.box p{margin:0}.box .mute{color:var(--mute);font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row input,.row select{min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:16px}
+.row input[type=number]{width:110px}.row input.grow{flex:1 1 180px}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;margin:0}
+.facts dt{font-size:13px;color:var(--mute)}.facts dd{margin:0 0 4px;font-weight:600;overflow-wrap:anywhere}
+@media (min-width:641px){.facts{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.chk{display:flex;align-items:center;gap:10px;min-height:44px}.chk input{width:22px;height:22px;accent-color:var(--tealD)}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:6px}.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}.list li:last-child{border:0}
+.pw{font:600 20px/1.3 ui-monospace,monospace;letter-spacing:.04em;padding:10px 14px;background:var(--bg);border-radius:12px;user-select:all}
+.ok{color:var(--tealD);font-weight:600}.danger{border-color:#E8C9C0}.btn.red{color:#9B2C1F;border-color:#E8C9C0}
+.notes{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}.notes li{border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.notes small{display:block;color:var(--mute)}
 @media (min-width:641px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))}.form{grid-template-columns:repeat(2,minmax(0,1fr))}.form .wide{grid-column:1/-1}}
 @media (max-width:640px){.hotels thead{display:none}.hotels,.hotels tbody,.hotels tr,.hotels td{display:block;width:100%}.hotels tr{padding:10px 0;border-bottom:1px solid var(--line)}.hotels td{border:0;padding:2px 0}}
 </style>
@@ -113,9 +133,24 @@ details.add>summary::-webkit-details-marker{display:none}
 
   <section class="sec" aria-labelledby="hH">
     <h2 id="hH">სასტუმროები</h2>
-    <table class="hotels"><thead><tr><th>სასტუმრო</th><th>მფლობელი</th><th>სტატუსი</th><th></th></tr></thead><tbody id="hotels"></tbody></table>
+    <table class="hotels"><thead><tr><th>სასტუმრო</th><th>მფლობელი</th><th>სტატუსი</th><th>გადახდა</th><th></th></tr></thead><tbody id="hotels"></tbody></table>
+  </section>
+
+  <section class="sec" aria-labelledby="nH">
+    <h2 id="nH">შეტყობინება სასტუმროებს</h2>
+    <p class="sub">ჩანს ყველა სასტუმროს ადმინში, ზემოთ, არჩეულ დღეებში. მაგ.: „ხვალ 02:00–03:00 სისტემა განახლდება“.</p>
+    <ul class="notes" id="notes"></ul>
+    <form class="form" id="noteForm">
+      <label class="wide">ტექსტი<textarea name="text" maxlength="600" required></textarea></label>
+      <label>რა დღიდან<input name="from" type="date" required></label>
+      <label>რა დღემდე<input name="to" type="date" required></label>
+      <div class="wide"><button class="btn pri" type="submit">გამოქვეყნება</button></div>
+      <p class="msg wide" id="noteMsg" role="status"></p>
+    </form>
   </section>
 </main>
+
+<dialog class="hd" id="hd" aria-labelledby="hdName"><div class="hh"><h2 id="hdName"></h2><button class="x" type="button" id="hdX" aria-label="დახურვა">×</button></div><div class="hb" id="hdBody"></div></dialog>
 
 <script>
 (() => {
@@ -140,11 +175,13 @@ details.add>summary::-webkit-details-marker{display:none}
     $('#hello').textContent = (h < 12 ? 'დილა მშვიდობისა' : h < 18 ? 'გამარჯობა' : 'საღამო მშვიდობისა') + (S.me.name ? ', ' + S.me.name : '');
     const open = S.tasks.filter(t => t.status !== 'done'), late = open.filter(t => t.due && t.due <= d);
     $('#dateLine').textContent = `დღეს ${fmt(d)} · ${open.length ? `${open.length} დავალება${late.length ? `, მათ შორის ${late.length} დღეს ან უკვე ვადაგასული` : ''}` : 'გასაკეთებელი არაფერია'}`;
+    const money = S.hotels.filter(x => x.status === 'active' || x.status === 'paused').reduce((a, x) => a + (x.monthly || 0), 0);
+    const late2 = S.hotels.filter(x => x.status === 'active' && x.paidUntil && x.paidUntil < d).length;
     $('#cards').innerHTML = `
       <div class="card"><small>სასტუმრო</small><b>${S.stats.hotels}</b><span>+${S.stats.newWeek} ამ კვირაში</span></div>
       <div class="card${S.stats.trialEnding ? ' hot' : ''}"><small>უფასო პერიოდი მთავრდება</small><b>${S.stats.trialEnding}</b><span>7 დღეში</span></div>
-      <div class="card soon"><small>გადახდები</small><b>მალე</b><span>Stripe-ის მიერთების მერე</span></div>
-      <div class="card soon"><small>დახმარების თხოვნები</small><b>მალე</b><span>ადმინის ღილაკიდან</span></div>`;
+      <div class="card"><small>თვიური შემოსავალი</small><b>${money}₾</b><span>ჩართული სასტუმროებიდან</span></div>
+      <div class="card${late2 ? ' hot' : ''}"><small>გადახდის ვადა გავიდა</small><b>${late2}</b><span>სასტუმრო</span></div>`;
     $('#hotelSel').innerHTML = '<option value="">—</option>' + S.hotels.map(x => `<option value="${esc(x.slug)}">${esc(x.name)}</option>`).join('');
     $('#people').innerHTML = [...new Set(S.tasks.map(t => t.who).filter(Boolean))].map(w => `<option value="${esc(w)}">`).join('');
     const list = S.tasks.filter(t => (filter === 'done') === (t.status === 'done'));
@@ -156,7 +193,8 @@ details.add>summary::-webkit-details-marker{display:none}
       ${t.how ? `<p class="how">${esc(t.how)}</p>` : ''}
       <div class="acts">${t.status === 'done' ? `<button class="btn sm" data-st="todo" data-id="${t.id}">დაბრუნება</button>` : `${t.status === 'todo' ? `<button class="btn sm" data-st="doing" data-id="${t.id}">ვიწყებ</button>` : ''}<button class="btn sm pri" data-st="done" data-id="${t.id}">✓ გაკეთდა</button>`}<button class="btn sm" data-edit="${t.id}">შეცვლა</button></div>
     </li>`; }).join('') || `<li class="empty">${filter === 'done' ? 'ბოლო 2 კვირაში დასრულებული არაფერია.' : 'გასაკეთებელი არაფერია. ახალი დავალება „+ დავალება“-თი დაამატე.'}</li>`;
-    $('#hotels').innerHTML = S.hotels.map(x => `<tr><td><b>${esc(x.name)}</b><small>${esc(x.city || '')} · ${esc(x.slug)}</small></td><td>${x.owner ? `<a href="mailto:${esc(x.owner)}">${esc(x.owner)}</a>` : '—'}</td><td>${esc(STATUS[x.status] || x.status)}${x.status === 'trial' && x.trialEnds ? `<br><small>${fmt(x.trialEnds)}-მდე</small>` : ''}</td><td><a href="${esc(x.site)}" target="_blank" rel="noopener">საიტი</a> · <a href="${esc(x.site)}admin" target="_blank" rel="noopener">ადმინი</a></td></tr>`).join('') || '<tr><td colspan="4" class="empty">სასტუმრო ჯერ არ არის.</td></tr>';
+    $('#hotels').innerHTML = S.hotels.map(x => `<tr><td><b>${esc(x.name)}</b><small>${esc(x.city || '')} · ${esc(x.slug)}</small></td><td>${x.owner ? `<a href="mailto:${esc(x.owner)}">${esc(x.owner)}</a>` : '—'}</td><td>${esc(STATUS[x.status] || x.status)}${x.status === 'trial' && x.trialEnds ? `<br><small>${fmt(x.trialEnds)}-მდე</small>` : ''}</td><td>${x.paidUntil ? `${x.paidUntil < d && x.status === 'active' ? '<b style="color:var(--warn)">ვადა გავიდა</b>' : ''}<small>${fmt(x.paidUntil)}-მდე</small>` : '<small>—</small>'}<br><small>${x.monthly}₾ / თვე</small></td><td><button class="btn sm pri" type="button" data-open="${esc(x.slug)}">მართვა</button> <a href="${esc(x.site)}" target="_blank" rel="noopener">საიტი</a></td></tr>`).join('') || '<tr><td colspan="5" class="empty">სასტუმრო ჯერ არ არის.</td></tr>';
+    $('#notes').innerHTML = S.notices.map(n => `<li><div>${esc(n.text)}<small>${fmt(n.from)} – ${fmt(n.to)}${n.to < d ? ' · დასრულდა' : n.from > d ? ' · მოგვიანებით' : ' · ახლა ჩანს'}</small></div><button class="btn sm" type="button" data-ndel="${esc(n.id)}">წაშლა</button></li>`).join('');
   }
 
   const form = $('#taskForm');
@@ -184,6 +222,98 @@ details.add>summary::-webkit-details-marker{display:none}
     const f = e.target, o = await (await api('login', { email: f.email.value, password: f.password.value })).json();
     if (!o.ok) { $('#gateMsg').textContent = o.msg || 'შესვლა ვერ მოხერხდა.'; return; }
     f.reset(); $('#gateMsg').textContent = ''; load();
+  });
+  // ---------- one hotel: everything Visit2 can do for it ----------
+  const hd = $('#hd'), METHOD = { bank: 'ბანკით', cash: 'ნაღდით', stripe: 'Stripe', other: 'სხვა' };
+  const addMonth = s => { const x = new Date(s + 'T00:00:00Z'); x.setUTCMonth(x.getUTCMonth() + 1); return x.toISOString().slice(0, 10); };
+  const when = ms => { const x = new Date(ms + 4 * 3600e3).toISOString(); return `${fmt(x.slice(0, 10))}, ${x.slice(11, 16)}`; };
+  let H = null, said = '', pw = '';
+  async function openHotel(slug) {
+    const o = await (await api('hotel?slug=' + encodeURIComponent(slug))).json();
+    if (!o.ok) return;
+    H = o.hotel; said = ''; pw = ''; drawHotel(); if (!hd.open) hd.showModal();
+  }
+  function drawHotel() {
+    const h = H, d = todayGe(), si = h.siteInfo || {};
+    const nextFrom = h.paidUntil && h.paidUntil >= d ? h.paidUntil : d;
+    $('#hdName').innerHTML = `${esc(h.name)}<small>${esc(h.city || '')} · ${esc(STATUS[h.status] || h.status)}${h.status === 'paused' && h.pausedUntil ? ' ' + fmt(h.pausedUntil) + '-მდე' : ''}</small>`;
+    $('#hdBody').innerHTML = `
+      ${said ? `<p class="ok" role="status">${esc(said)}</p>` : ''}
+      <div class="box"><dl class="facts">
+        <div><dt>მფლობელი</dt><dd>${esc((h.team.find(x => x.owner) || {}).email || '—')}</dd></div>
+        <div><dt>ბოლოს შევიდა</dt><dd>${h.lastLogin ? fmt(h.lastLogin.slice(0, 10)) : 'ჯერ არა'}</dd></div>
+        <div><dt>მოთხოვნები, 30 დღე</dt><dd>${h.requests30} · დადასტურდა ${h.confirmed30}</dd></div>
+        <div><dt>თვეში</dt><dd>${h.monthly}₾</dd></div>
+        <div><dt>მთავარი ფოტო</dt><dd>${si.photo ? '✓' : 'არ არის'}</dd></div>
+        <div><dt>ტექსტი „ჩვენ შესახებ“</dt><dd>${si.about ? '✓' : 'არ არის'}</dd></div>
+        <div><dt>გალერეა</dt><dd>${si.gallery} ფოტო</dd></div>
+        <div><dt>რუკაზე</dt><dd>${si.pin ? '✓' : 'არ არის'}</dd></div>
+      </dl><div class="row"><a class="btn sm" href="${esc(h.url)}" target="_blank" rel="noopener">საიტის ნახვა</a></div></div>
+
+      <div class="box"><h3>ადმინში შესვლა</h3>
+        ${h.helpUntil ? `<p>მფლობელმა დაგვიშვა ${esc(when(h.helpUntil))}-მდე. რასაც შეცვლი, მის ჟურნალში ჩაიწერება „Visit2 · ${esc(S.me.name)}“.</p><div class="row"><button class="btn pri" type="button" data-do="enter">ადმინში შესვლა</button></div>`
+        : `<p class="mute">შესვლა მხოლოდ მფლობელის ნებართვით შეიძლება. სთხოვე, ადმინში გახსნას „გუნდი“ და დააჭიროს „დაშვება 24 საათით“.</p>`}</div>
+
+      <div class="box"><h3>მდგომარეობა</h3>
+        <div class="row"><select id="hSt">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}"${k === h.status ? ' selected' : ''}>${v}</option>`).join('')}</select>
+        <label class="row" id="hPuL"${h.status === 'paused' ? '' : ' hidden'}>რა დღემდე<input type="date" id="hPu" value="${esc(h.pausedUntil || '')}"></label>
+        <button class="btn" type="button" data-do="status">შენახვა</button></div>
+        <p class="mute">პაუზაზე საიტი დახურულია და თვეში ${S.prices.pause}₾ ჯდება. გამორთულს საიტი არ უჩანს, მონაცემები რჩება.</p>
+        <div class="row">საცდელი${h.trialEnds ? ` (${fmt(h.trialEnds)}-მდე)` : ''}: <input type="number" id="hTd" min="1" max="180" value="14" aria-label="დღე"> დღით <button class="btn" type="button" data-do="trial">გაგრძელება</button></div></div>
+
+      <div class="box"><h3>სერვისები</h3>
+        <p class="mute">სისტემა და საიტი: ${S.prices.base}₾ / თვე.</p>
+        <label class="chk"><input type="checkbox" data-addon="catalog"${h.addons.includes('catalog') ? ' checked' : ''}> ადგილი კატალოგში +${S.prices.addons.catalog}₾ <small class="mute">(პირველი 6 თვე ისედაც ჩანს)</small></label>
+        <label class="chk"><input type="checkbox" data-addon="domain"${h.addons.includes('domain') ? ' checked' : ''}> საკუთარი დომენი +${S.prices.addons.domain}₾</label>
+        <div class="row"><button class="btn" type="button" data-do="addons">შენახვა</button></div></div>
+
+      <div class="box"><h3>გადახდები</h3>
+        <p>${h.paidUntil ? `გადახდილია <b>${fmt(h.paidUntil)}</b>-მდე${h.paidUntil < d ? ' · <b style="color:var(--warn)">ვადა გავიდა</b>' : ''}` : 'გადახდა ჯერ არ ჩაწერილა.'}</p>
+        <div class="row"><input type="number" id="pA" min="1" value="${h.monthly}" aria-label="თანხა">₾
+          <label class="row">რა დღემდე<input type="date" id="pU" value="${addMonth(nextFrom)}"></label>
+          <select id="pM">${Object.entries(METHOD).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
+        <div class="row"><input class="grow" id="pN" maxlength="200" placeholder="შენიშვნა (მაგ. ინვოისი №12)"><button class="btn pri" type="button" data-do="pay">გადახდის ჩაწერა</button></div>
+        ${h.payments.length ? `<ul class="list">${h.payments.map(p => `<li><span>${p.amount}₾ · ${fmt(p.until)}-მდე · ${esc(METHOD[p.method] || p.method)}${p.note ? ' · ' + esc(p.note) : ''}<br><small class="mute">${fmt(p.created.slice(0, 10))} · ${esc(p.by_user || '')}</small></span><button class="btn sm" type="button" data-pdel="${esc(p.id)}">წაშლა</button></li>`).join('')}</ul>` : ''}</div>
+
+      <div class="box"><h3>მფლობელის პაროლი</h3>
+        ${pw ? `<p>ახალი პაროლი. გადაეცი მფლობელს, მეორედ აღარ გამოჩნდება:</p><p class="pw">${esc(pw)}</p>` : `<p class="mute">ახალი პაროლი შეიქმნება და მფლობელი ყველა მოწყობილობიდან გავა. პაროლს ტელეფონით ან შეხვედრისას გადაეცი.</p><div class="row"><button class="btn" type="button" data-do="password">ახალი პაროლის შექმნა</button></div>`}</div>
+
+      ${h.ourLog.length ? `<div class="box"><h3>რა გავაკეთეთ ჩვენ</h3><ul class="list">${h.ourLog.map(l => `<li><span>${esc(l.op)}: ${esc(l.detail)}<br><small class="mute">${esc(String(l.at).slice(0, 10))} · ${esc(l.who)}</small></span></li>`).join('')}</ul></div>` : ''}
+
+      <div class="box danger"><h3>სასტუმროს წაშლა</h3>
+        ${h.status === 'closed' ? `<p class="mute">წაიშლება საიტი, ჯავშნები, სტუმრები და გუნდი. ამას ვეღარ დავაბრუნებთ. დასადასტურებლად ჩაწერე: <b>${esc(h.slug)}</b></p><div class="row"><input class="grow" id="dC" autocomplete="off"><button class="btn red" type="button" data-do="delete">სამუდამოდ წაშლა</button></div>`
+        : '<p class="mute">წაშლამდე სასტუმრო გამორთე (მდგომარეობა → დახურული).</p>'}</div>
+      <p class="msg" id="hdMsg" role="status"></p>`;
+  }
+  hd.addEventListener('change', e => { if (e.target.id === 'hSt') $('#hPuL').hidden = e.target.value !== 'paused'; });
+  hd.addEventListener('click', async e => {
+    if (e.target === hd || e.target.closest('#hdX')) { hd.close(); return; }
+    const b = e.target.closest('[data-do],[data-pdel]'); if (!b) return;
+    const body = { slug: H.slug, do: b.dataset.do || 'pay-del' };
+    if (body.do === 'status') { body.status = $('#hSt').value; body.pausedUntil = $('#hPu').value; }
+    if (body.do === 'trial') body.days = +$('#hTd').value;
+    if (body.do === 'addons') body.addons = [...hd.querySelectorAll('[data-addon]:checked')].map(x => x.dataset.addon);
+    if (body.do === 'pay') Object.assign(body, { amount: +$('#pA').value, until: $('#pU').value, method: $('#pM').value, note: $('#pN').value });
+    if (body.do === 'pay-del') body.id = b.dataset.pdel;
+    if (body.do === 'delete') body.confirm = $('#dC').value.trim();
+    if (body.do === 'password' && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, შევქმნა ახალი პაროლი'; return; }
+    if (body.do === 'pay-del' && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, წაშალე'; return; }
+    b.disabled = true;
+    const o = await (await api('hotel-action', body)).json();
+    if (!o.ok) { b.disabled = false; $('#hdMsg').textContent = o.msg || 'ვერ შეინახა. სცადე თავიდან.'; return; }
+    if (body.do === 'enter') { window.open(o.url, '_blank', 'noopener'); b.disabled = false; return; }
+    if (body.do === 'delete') { hd.close(); load(); return; }
+    const slug = H.slug; await openHotel(slug);
+    pw = o.password || ''; said = { status: 'მდგომარეობა შეინახა.', trial: `საცდელი გაგრძელდა ${fmt(o.until || '')}-მდე.`, addons: 'სერვისები შეინახა.', pay: 'გადახდა ჩაიწერა.', 'pay-del': 'გადახდა წაიშალა.', password: '' }[body.do] || '';
+    drawHotel(); load();
+  });
+  $('#hotels').addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b) openHotel(b.dataset.open); });
+  $('#notes').addEventListener('click', async e => { const b = e.target.closest('[data-ndel]'); if (!b) return; await api('notice-del', { id: b.dataset.ndel }); load(); });
+  $('#noteForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const o = await (await api('notice', Object.fromEntries(new FormData(e.target)))).json();
+    if (!o.ok) { $('#noteMsg').textContent = o.msg || 'ვერ შეინახა.'; return; }
+    e.target.reset(); $('#noteMsg').textContent = ''; load();
   });
   $('#out').addEventListener('click', async () => { await api('logout', {}); load(); });
   load();

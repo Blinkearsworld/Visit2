@@ -9,12 +9,14 @@ import { nights } from '../lib/time.js';
 const KINDS = ['mountain', 'sea', 'history', 'wine', 'food', 'nature', 'city'];
 const pick = v => (v == null ? '' : typeof v === 'string' ? v : v.ka || v.en || v.ru || '');
 
-// hotels listed: open (trial or active), with prices and a main photo, so no card looks broken
+// hotels listed: open (trial or active), in their first 6 months or with the catalogue service, with prices and a main photo, so no card looks broken
 export async function catalog(db, { siteOf, from = '', to = '', guests = 2 } = {}) {
   const r = await db.prepare("SELECT * FROM tenants WHERE status IN ('trial', 'active') ORDER BY created").all();
   const dated = /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to) && to > from;
-  const out = [];
+  const out = [], free = new Date(Date.now() - 183 * 864e5).toISOString();
   for (const row of r.results || []) {
+    // a place in the catalogue: free for the first 6 months, then the paid "catalog" service (switched in Visit2's admin)
+    if (!(row.created >= free || String(row.addons || '').includes('"catalog"'))) continue;
     const t = { id: row.id, slug: row.slug, name: row.name, city: row.city };
     const [{ content }, st] = await Promise.all([getContent(db, t), loadState(db, t)]);
     const s = content.site || {};

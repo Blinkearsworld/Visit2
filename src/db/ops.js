@@ -30,10 +30,14 @@ export async function opsUser(db, request, secret) {
 
 // every hotel with its owner's email (for calling), newest first
 export async function allHotels(db) {
-  const r = await db.prepare(`SELECT t.id, t.slug, t.name, t.city, t.status, t.trial_ends, t.created,
+  const r = await db.prepare(`SELECT t.id, t.slug, t.name, t.city, t.status, t.trial_ends, t.paused_until, t.paid_until, t.addons, t.created,
       (SELECT u.email FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.tenant_id = t.id AND m.role = 'owner' LIMIT 1) AS owner
     FROM tenants t ORDER BY t.created DESC`).all();
-  return (r.results || []).map(x => ({ slug: x.slug, name: x.name, city: x.city, status: x.status, trialEnds: x.trial_ends, created: x.created, owner: x.owner || '' }));
+  return (r.results || []).map(x => {
+    let addons = []; try { addons = JSON.parse(x.addons || '[]'); } catch (e) { /* none */ }
+    return { slug: x.slug, name: x.name, city: x.city, status: x.status, trialEnds: x.trial_ends, pausedUntil: x.paused_until, paidUntil: x.paid_until, addons, created: x.created, owner: x.owner || '',
+      monthly: x.status === 'paused' ? PAUSE_PRICE : BASE_PRICE + addons.reduce((s, a) => s + (ADDONS[a] || 0), 0) };
+  });
 }
 
 // tasks that come from events by themselves; INSERT OR IGNORE on auto_key keeps them single
@@ -42,6 +46,8 @@ export async function autoTasks(db, hotels, day = today()) {
   for (const h of hotels) {
     if (h.status === 'trial' && h.trialEnds && h.trialEnds >= day && h.trialEnds <= addDays(day, 3))
       st.push(['trial:' + h.slug + ':' + h.trialEnds, 'დაურეკე', h.slug, `უფასო პერიოდი მთავრდება ${h.trialEnds}-ს`, h.trialEnds, h.owner]);
+    if (h.status === 'active' && h.paidUntil && h.paidUntil < day)
+      st.push(['unpaid:' + h.slug + ':' + h.paidUntil, 'გადახდა გადაამოწმე', h.slug, `გადახდილია ${h.paidUntil}-მდე`, day, h.owner]);
     if (h.created && h.created.slice(0, 10) >= addDays(day, -2))
       st.push(['welcome:' + h.slug, 'მიესალმე და დაეხმარე დაწყებაში', h.slug, 'ახალი რეგისტრაცია', addDays(h.created.slice(0, 10), 1), h.owner]);
   }
@@ -190,7 +196,7 @@ export async function deleteHotel(db, t, confirm) {
 // ---------- notices to every hotel's admin ----------
 export async function listNotices(db, { current = false } = {}) {
   const r = current
-    ? await db.prepare('SELECT * FROM notices WHERE date_to >= ? ORDER BY date_from').bind(today()).all()
+    ? await db.prepare('SELECT * FROM notices WHERE date_from <= ? AND date_to >= ? ORDER BY date_from').bind(today(), today()).all()
     : await db.prepare('SELECT * FROM notices ORDER BY date_from DESC LIMIT 30').all();
   return (r.results || []).map(x => ({ id: x.id, text: x.text, from: x.date_from, to: x.date_to }));
 }
