@@ -207,3 +207,19 @@ export async function saveNotice(db, { text, from, to }) {
   await db.prepare('INSERT INTO notices (id, text, date_from, date_to, created) VALUES (?, ?, ?, ?, ?)').bind(crypto.randomUUID(), t, f, e, nowIso()).run();
 }
 export const deleteNotice = (db, id) => db.prepare('DELETE FROM notices WHERE id = ?').bind(String(id)).run();
+
+// ---------- the data-protection thresholds we watch (docs/BRIEF.md, section 4) ----------
+// Guests of all hotels together over 2 years; ~110 000 (about 3% of Georgia) is where a data protection officer becomes
+// necessary. Counted per hotel (the same phone at two hotels counts twice), so the number is never too low.
+export const GUEST_LIMIT = 110000;
+export async function guestCount(db) {
+  const since = new Date(Date.now() - 730 * 864e5).toISOString();
+  const r = await db.prepare("SELECT COUNT(DISTINCT tenant_id || '|' || phone) AS n FROM bookings WHERE created >= ? AND phone != ''").bind(since).first();
+  return r?.n || 0;
+}
+export async function limitTask(db, n) {
+  if (n < GUEST_LIMIT * 0.7) return;
+  const step = n >= GUEST_LIMIT * 0.9 ? 90 : n >= GUEST_LIMIT * 0.8 ? 80 : 70;
+  await db.prepare('INSERT OR IGNORE INTO tasks (id, what, hotel, why, due, how, auto_key, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+    .bind(crypto.randomUUID(), 'იურისტს დაუკავშირდი: მონაცემთა დაცვის ოფიცერი', '', `სტუმრები 2 წელში: ${n} (ზღვრის ${step}%)`, today(), `ზღვარი ~${GUEST_LIMIT}. იხ. docs/BRIEF.md, ნაწილი 4.`, 'guests:' + step, nowIso()).run();
+}

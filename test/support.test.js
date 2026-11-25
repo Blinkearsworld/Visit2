@@ -93,6 +93,13 @@ describe('Visit2 managing hotels, and entering an admin only when let in', () =>
     expect((await (await ops('hotel?slug=sup-a', null, staff)).json()).hotel.payments.length).toBe(1);
   });
 
+  it('counts guests of all hotels against the data-protection threshold', async () => {
+    const st = await (await ops('state', null, staff)).json();
+    expect(st.limits.guestLimit).toBe(110000);
+    expect(st.limits.guests).toBeGreaterThanOrEqual(0);
+    expect(st.limits.server).toBe('EU');
+  });
+
   it('shows notices in every admin only on their days, and only staff can write them', async () => {
     const d = new Date(Date.now() + 4 * 3600e3).toISOString().slice(0, 10);
     await ops('notice', { text: 'ხვალ განახლება', from: d, to: d }, staff);

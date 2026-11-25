@@ -64,6 +64,8 @@ details.add>summary::-webkit-details-marker{display:none}
 .hotels td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
 .hotels td b{display:block}
 .hotels td small{color:var(--mute)}
+.lims{display:grid;gap:10px}.lim{display:grid;gap:8px;padding:12px 14px;border:1px solid var(--line);border-radius:14px}.lim b{display:block}.lim span{font-size:14px;color:var(--mute)}
+.lim i{display:block;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--teal) var(--p),#EFE7DB var(--p))}.lim.hot{border-color:#F3DCA4;background:#FFFBF2}.lim.hot i{background:linear-gradient(90deg,var(--warn) var(--p),#EFE7DB var(--p))}
 .gate{max-width:420px;margin:8vh auto;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}
 .gate form{display:grid;gap:12px}
 .gate input{width:100%;min-height:48px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;font-size:16px}
@@ -109,6 +111,7 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
   <h1 id="hello">დილა მშვიდობისა</h1>
   <p class="sub" id="dateLine"></p>
   <div class="cards" id="cards"></div>
+  <section class="sec" aria-labelledby="lH"><h2 id="lH">მონაცემთა დაცვის ზღვრები</h2><div class="lims" id="limits"></div></section>
 
   <section class="sec" aria-labelledby="tH">
     <h2 id="tH">გასაკეთებელი</h2>
@@ -182,6 +185,9 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
       <div class="card${S.stats.trialEnding ? ' hot' : ''}"><small>უფასო პერიოდი მთავრდება</small><b>${S.stats.trialEnding}</b><span>7 დღეში</span></div>
       <div class="card"><small>თვიური შემოსავალი</small><b>${money}₾</b><span>ჩართული სასტუმროებიდან</span></div>
       <div class="card${late2 ? ' hot' : ''}"><small>გადახდის ვადა გავიდა</small><b>${late2}</b><span>სასტუმრო</span></div>`;
+    const L = S.limits, pct = Math.round(L.guests / L.guestLimit * 100);
+    $('#limits').innerHTML = `<div class="lim${pct >= 70 ? ' hot' : ''}"><div><b>სტუმრები 2 წელში: ${L.guests.toLocaleString('ka-GE')} / ${L.guestLimit.toLocaleString('ka-GE')}</b><span>${pct}%. ზღვარზე მონაცემთა დაცვის ოფიცერი გვჭირდება. 70%-ზე გასაკეთებელში დავალება თავისით გაჩნდება.</span></div><i style="--p:${Math.min(100, pct)}%"></i></div>
+      <div class="lim"><div><b>სერვერი: ევროკავშირი ✓</b><span>საქართველოში რომ გადავიდეს, წარმომადგენელი დაგვჭირდება.</span></div></div>`;
     $('#hotelSel').innerHTML = '<option value="">—</option>' + S.hotels.map(x => `<option value="${esc(x.slug)}">${esc(x.name)}</option>`).join('');
     $('#people').innerHTML = [...new Set(S.tasks.map(t => t.who).filter(Boolean))].map(w => `<option value="${esc(w)}">`).join('');
     const list = S.tasks.filter(t => (filter === 'done') === (t.status === 'done'));
