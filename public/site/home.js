@@ -26,6 +26,10 @@
     babies: ['ჩვილები', 'Infants', 'Младенцы'], babiesAge: ['2 წლამდე', 'Under 2', 'До 2 лет'], baby1: ['1 ჩვილი', '1 infant', '1 младенец'], babiesN: ['{n} ჩვილი', '{n} infants', 'младенцев: {n}'],
     pets: ['შინაური ცხოველი', 'Pets', 'Домашние животные'], petsSub: ['ვაჩვენებთ სასტუმროებს, სადაც ცხოველი შეიძლება', 'We show places where pets are welcome', 'Покажем места, где можно с животными'],
     pet1: ['ცხოველით', 'with a pet', 'с животным'], petsN: ['{n} ცხოველით', 'with {n} pets', 'с животными: {n}'],
+    sortDef: ['დალაგება: რეკომენდებული', 'Sort: recommended', 'Сортировка: рекомендуемые'], sortCheap: ['ფასი: დაბალიდან მაღლისკენ', 'Price: low to high', 'Цена: по возрастанию'],
+    sortDear: ['ფასი: მაღლიდან დაბლისკენ', 'Price: high to low', 'Цена: по убыванию'], sortNear: ['მანძილი: {p}-ის ცენტრიდან', 'Distance from {p} centre', 'Расстояние от центра: {p}'],
+    sortPoint: ['მანძილი: არჩეული წერტილიდან', 'Distance from the chosen point', 'Расстояние от выбранной точки'], regions: ['რეგიონები', 'Regions', 'Регионы'],
+    kmCentre: ['{k} კმ ცენტრიდან', '{k} km from the centre', '{k} км от центра'],
     instant: ['✓ მყისიერი დადასტურება', '✓ Instant confirmation', '✓ Мгновенное подтверждение'],
     cmpAdd: ['შედარება', 'Compare', 'Сравнить'], cmpOn: ['შედარებაშია', 'In comparison', 'В сравнении'], cmpRm: ['ამოღება', 'Remove', 'Убрать'], cmpH: ['შედარება', 'Compare', 'Сравнение'],
     cmpN: ['შედარება ({n})', 'Compare ({n})', 'Сравнить ({n})'], cmpFull: ['შეადარე ერთად მაქსიმუმ 3 სასტუმრო. ჯერ ერთი ამოიღე.', 'Compare up to 3 places. Remove one first.', 'Можно сравнить до 3 мест. Сначала уберите одно.'],
@@ -152,9 +156,10 @@
     const f = $('#townFind').value.trim().toLowerCase(), cur = st().city;
     const ok = c => !f || F.town(c).toLowerCase().includes(f) || c.toLowerCase().includes(f);
     const btn = c => `<button type="button" class="h-town" data-town="${esc(c)}" aria-pressed="${c === cur}">${esc(F.town(c))}</button>`;
-    const pop = F.cities().filter(ok), rest = F.allTowns().filter(c => ok(c) && !pop.includes(c));
+    const pop = F.cities().filter(ok), reg = F.regions().filter(ok), rest = F.allTowns().filter(c => ok(c) && !pop.includes(c));
     $('#townList').innerHTML = (f ? '' : `<button type="button" class="h-town" data-town="" aria-pressed="${!cur}">${h('anywhere')}</button>`)
-      + (pop.length ? `<h3>${h('popular')}</h3>${pop.map(btn).join('')}` : '') + (rest.length ? `<h3>${h('allPlaces')}</h3>${rest.map(btn).join('')}` : '');
+      + (pop.length ? `<h3>${h('popular')}</h3>${pop.map(btn).join('')}` : '') + (reg.length ? `<h3>${h('regions')}</h3>${reg.map(btn).join('')}` : '')
+      + (rest.length ? `<h3>${h('allPlaces')}</h3>${rest.map(btn).join('')}` : '');
   }
   $('#townFind').addEventListener('input', drawTowns);
   $('#townList').addEventListener('click', e => {
@@ -243,7 +248,7 @@
   <a href="${F.link(x, isDated ? { from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms } : {})}">
     <div class="h-card-ph">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : ''}</div>
     <h3>${esc(F.hname(x))}</h3>
-    <p class="h-card-m">${esc(shortTown(x.city))}${F.kindsOf(x).length ? ' · ' + esc(F.kindsOf(x).map(F.kindName).join(', ')) : ''}${o.d != null ? ' · ' + h('km', { k: o.d < 10 ? o.d.toFixed(1) : Math.round(o.d) }) : ''}</p>
+    <p class="h-card-m">${esc(shortTown(x.city))}${F.kindsOf(x).length ? ' · ' + esc(F.kindsOf(x).map(F.kindName).join(', ')) : ''}${o.d != null ? ' · ' + h(o.fromCentre ? 'kmCentre' : 'km', { k: o.d < 10 ? o.d.toFixed(1) : Math.round(o.d) }) : ''}</p>
     <p class="h-card-p">${price}</p>${x.instant ? `<p class="h-card-i">${esc(h('instant'))}</p>` : ''}
   </a>${heart(x.slug)}${cmpBtn(x.slug)}</article>`;
   }
@@ -361,13 +366,24 @@
   // ---------- results ----------
   let center = null, radius = 5, map = null, layer = null;
   const RADII = [1, 3, 5, 10, 25];
+  // sorting: our order, by price either way, or by distance (from the chosen point, or from the chosen town's centre)
+  let sortBy = '';
+  function drawSort(s) {
+    const near = center || F.centreOf(s.city), o = [['', h('sortDef')], ['cheap', h('sortCheap')], ['dear', h('sortDear')]];
+    if (near) o.push(['near', center ? h('sortPoint') : h('sortNear', { p: F.town(s.city) })]);
+    if (sortBy === 'near' && !near) sortBy = '';
+    $('#sortBy').innerHTML = o.map(([v, t]) => `<option value="${v}"${v === sortBy ? ' selected' : ''}>${esc(t)}</option>`).join('');
+  }
+  $('#sortBy').addEventListener('change', e => { sortBy = e.target.value; showResults(false); });
   function showResults(scroll) {
     if (dated(st())) { const s0 = st(); F.loadReal({ from: s0.from, to: s0.to, g: s0.g + s0.kids, rooms: s0.rooms }); }
-    const s = st(), rows = F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kind: curKind, center, r: radius }).filter(r => petsOk(r.h, s));
+    const s0 = st(); drawSort(s0);
+    const s = s0, near = !center && sortBy === 'near' ? F.centreOf(s.city) : null;
+    const rows = F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kind: curKind, center, r: radius, sort: sortBy, near }).filter(r => petsOk(r.h, s));
     $('#results').hidden = false;
     $('#resTitle').textContent = center ? h('within', { r: radius }) : s.city ? F.town(s.city) : curKind ? F.kindName(curKind) : h('allStays');
     $('#resNote').textContent = dated(s) ? `${range(s)} · ${guests(s)} · ${h('freeN', { n: rows.filter(r => r.o.best).length })}` : h('pickDates');
-    $('#resCards').innerHTML = rows.map(r => card(r.h, { ...r.o, d: r.d }, s)).join('') || `<p class="h-empty">${h('none')}</p>`;
+    $('#resCards').innerHTML = rows.map(r => card(r.h, { ...r.o, d: r.d, fromCentre: !!near }, s)).join('') || `<p class="h-empty">${h('none')}</p>`;
     drawMap(rows, s);
     if (scroll) $('#results').scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth' });
   }

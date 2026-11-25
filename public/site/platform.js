@@ -112,7 +112,14 @@
   // town names shown to visitors in their language (the demo towns; owners type their own)
   const PLACES = window.V2PLACES || [];
   const TOWN = Object.fromEntries(PLACES.map(p => [p[0], [p[1], p[2]]]));
-  const town = c => (lang === 'ka' || !TOWN[c] ? c : TOWN[c][lang === 'en' ? 0 : 1]);
+  const REG = Object.fromEntries((window.V2REGIONS || []).map(r => [r[0], r.slice(1)]));
+  // a region is chosen as "@kakheti"; it shows every town in that region
+  const town = c => (c && c[0] === '@' ? (REG[c.slice(1)] || [c])[L()] || REG[c.slice(1)]?.[0] || c : lang === 'ka' || !TOWN[c] ? c : TOWN[c][lang === 'en' ? 0 : 1]);
+  const PLACE = Object.fromEntries(PLACES.map(p => [p[0], p]));
+  const regionOf = c => (PLACE[c] && PLACE[c][5]) || '';
+  // the centre of a town (for "distance from the centre"); a region has none
+  const centreOf = c => (PLACE[c] && PLACE[c][6] ? { lat: PLACE[c][6], lng: PLACE[c][7] } : null);
+  const regions = () => (window.V2REGIONS || []).map(r => '@' + r[0]);
   // every town in the list plus any town an owner typed, alphabetically in the visitor's language
   const allTowns = () => {
     const own = [...new Set(pub().map(h => h.city).filter(c => !TOWN[c]))];
@@ -190,12 +197,20 @@
   const km = (a, b) => { const R = 6371, r = x => x * Math.PI / 180, dLa = r(b.lat - a.lat), dLn = r(b.lng - a.lng);
     return 2 * R * Math.asin(Math.sqrt(Math.sin(dLa / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLn / 2) ** 2)); };
   const kindsOf = h => (Array.isArray(h.kinds) && h.kinds.length ? h.kinds : h.kind ? [h.kind] : []);
-  const find = ({ city = '', from = '', to = '', g = 2, rooms = 1, kind = '', center = null, r = 5 }) => {
+  // sort: '' (our order), 'cheap', 'dear', 'near' (distance from `from` — a chosen point or the town centre)
+  const find = ({ city = '', from = '', to = '', g = 2, rooms = 1, kind = '', center = null, r = 5, sort = '', near = null }) => {
     const dated = from && to && to > from;
-    return pub().filter(h => !h.hidden && (!city || h.city === city) && (!kind || kindsOf(h).includes(kind)))
-      .map(h => ({ h, o: offer(h, from, to, g, rooms), d: center && h.lat ? km(center, h) : null }))
+    const inPlace = h => !city || h.city === city || (city[0] === '@' && regionOf(h.city) === city.slice(1));
+    const ref = center || near;
+    const price = x => (dated ? x.o.best?.total : x.o.minFrom) || null;
+    const byPrice = (a, b, dir) => (price(a) == null) - (price(b) == null) || dir * ((price(a) || 0) - (price(b) || 0));
+    return pub().filter(h => !h.hidden && inPlace(h) && (!kind || kindsOf(h).includes(kind)))
+      .map(h => ({ h, o: offer(h, from, to, g, rooms), d: ref && h.lat ? km(ref, h) : null }))
       .filter(x => !center || (x.d != null && x.d <= r))
-      .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) : 0) || (center ? a.d - b.d : 0) || (!!b.h.promo - !!a.h.promo) || (dated ? (a.o.best?.total || 0) - (b.o.best?.total || 0) : 0));
+      .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) : 0)
+        || (sort === 'cheap' ? byPrice(a, b, 1) : sort === 'dear' ? byPrice(a, b, -1) : 0)
+        || ((sort === 'near' || center) && ref ? (a.d == null) - (b.d == null) || (a.d || 0) - (b.d || 0) : 0)
+        || (!!b.h.promo - !!a.h.promo) || (dated ? (a.o.best?.total || 0) - (b.o.best?.total || 0) : 0));
   };
   // this build's stamp (from our own script tag), so a hotel page never comes from an old browser copy
   const BUILD = ((document.querySelector('script[src*="site/platform.js"]') || {}).src || '').split('?v=')[1] || '';
@@ -204,7 +219,7 @@
   // header: solid once the page scrolls, so the logo (home) and links stay readable everywhere
   const top = document.querySelector('.p-top');
   if (top) { const on = () => top.classList.toggle('scrolled', scrollY > 30); addEventListener('scroll', on, { passive: true }); on(); }
-  window.V2FIND = { kindsOf, loadReal, onReal: f => realHooks.push(f), find, offer, link, cities: popular, allTowns, town, hname, fmt, today, addDays, t, pub, nights, kindName: k => kindName(k), get lang() { return lang; } };
+  window.V2FIND = { kindsOf, loadReal, onReal: f => realHooks.push(f), find, offer, link, cities: popular, allTowns, regions, centreOf, town, hname, fmt, today, addDays, t, pub, nights, kindName: k => kindName(k), get lang() { return lang; } };
 
   // the town list: popular places first, in order of popularity, then every place alphabetically
   function fillTowns() {
