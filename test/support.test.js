@@ -3,6 +3,8 @@ import { env, exports } from 'cloudflare:workers';
 import { createTenant } from '../src/db/tenants.js';
 import { seedSample } from '../src/db/hotel.js';
 import { addMember } from '../src/db/users.js';
+import { purgeHotel, purgePlatform } from '../src/db/retention.js';
+import { tenantBySlug } from '../src/db/tenants.js';
 
 const call = (host, path, { method = 'GET', body, cookie } = {}) => exports.default.fetch(new Request(`https://${host}${path}`, {
   method, redirect: 'manual', headers: { ...(body ? { 'content-type': 'application/json' } : {}), ...(cookie ? { cookie } : {}) }, body: body ? JSON.stringify(body) : undefined,
@@ -91,6 +93,20 @@ describe('Visit2 managing hotels, and entering an admin only when let in', () =>
     expect((await (await ops('hotel-action', { slug: 'sup-b', do: 'delete', confirm: 'sup-b' }, staff)).json()).ok).toBe(true);
     expect((await ops('hotel?slug=sup-b', null, staff)).status).toBe(404);
     expect((await (await ops('hotel?slug=sup-a', null, staff)).json()).hotel.payments.length).toBe(1);
+  });
+
+  it('remembers when a hotel was closed and keeps our payment records for accounting', async () => {
+    await ops('hotel-action', { slug: 'sup-a', do: 'status', status: 'closed' }, staff);
+    let a = await tenantBySlug(env.DB, 'sup-a');
+    const row = await env.DB.prepare('SELECT closed_at FROM tenants WHERE id = ?').bind(a.id).first();
+    expect(row.closed_at).toBeTruthy();
+    await ops('hotel-action', { slug: 'sup-a', do: 'status', status: 'active' }, staff);
+    expect((await env.DB.prepare('SELECT closed_at FROM tenants WHERE id = ?').bind(a.id).first()).closed_at).toBe(null);
+    // an expired help access is removed by the daily clean-up; payments stay
+    await env.DB.prepare('INSERT OR REPLACE INTO support_access (tenant_id, until, granted_by, granted_at) VALUES (?, ?, ?, ?)').bind(a.id, Date.now() - 1000, 'x', 'x').run();
+    await purgeHotel(env.DB, a); await purgePlatform(env.DB);
+    expect(await env.DB.prepare('SELECT * FROM support_access WHERE tenant_id = ?').bind(a.id).first()).toBe(null);
+    expect((await env.DB.prepare('SELECT COUNT(*) AS n FROM subscriptions WHERE tenant_id = ?').bind(a.id).first()).n).toBe(1);
   });
 
   it('counts guests of all hotels against the data-protection threshold', async () => {

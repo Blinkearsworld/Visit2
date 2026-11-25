@@ -2,7 +2,10 @@
 //   - name, phone and requests of a stay are blanked 24 months after check-out (dates and price stay, for statistics);
 //   - declined and deleted requests are removed after 90 days; chatbot conversations after 90 days;
 //   - guest notes untouched for 24 months are removed.
-// Runs daily from the Worker's scheduled handler, one hotel at a time.
+//   - Visit2's help access ends by itself; expired rows are removed;
+// Runs daily from the Worker's scheduled handler, one hotel at a time; purgePlatform once a day for Visit2's own tables:
+//   - payment records (subscriptions) are kept 7 years for accounting, also after a hotel is deleted, then removed;
+//   - notices to hotels are removed 90 days after they end; our done to-dos after 12 months (they hold owners' emails).
 import { addDays, today } from '../lib/time.js';
 
 export async function purgeHotel(db, t, day = today()) {
@@ -14,6 +17,16 @@ export async function purgeHotel(db, t, day = today()) {
     db.prepare('DELETE FROM payments WHERE tenant_id = ? AND booking NOT IN (SELECT id FROM bookings WHERE tenant_id = ?)').bind(t.id, t.id),
     db.prepare('DELETE FROM convos WHERE tenant_id = ? AND updated < ?').bind(t.id, oldCut),
     db.prepare('DELETE FROM guest_notes WHERE tenant_id = ? AND updated < ?').bind(t.id, guestCut),
+    db.prepare('DELETE FROM support_access WHERE tenant_id = ? AND until < ?').bind(t.id, Date.now()),
   ]);
   return { blanked: r[0].meta.changes, removed: r[1].meta.changes };
+}
+
+export async function purgePlatform(db, day = today()) {
+  await db.batch([
+    // tenant_id is kept on purpose: the rows of deleted hotels stay until their 7 years are over
+    db.prepare('DELETE FROM subscriptions WHERE tenant_id IS NOT NULL AND created < ?').bind(addDays(day, -7 * 365) + 'T00:00:00Z'),
+    db.prepare('DELETE FROM notices WHERE date_to < ?').bind(addDays(day, -90)),
+    db.prepare("DELETE FROM tasks WHERE status = 'done' AND done_at < ?").bind(addDays(day, -365) + 'T00:00:00Z'),
+  ]);
 }

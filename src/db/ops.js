@@ -30,12 +30,12 @@ export async function opsUser(db, request, secret) {
 
 // every hotel with its owner's email (for calling), newest first
 export async function allHotels(db) {
-  const r = await db.prepare(`SELECT t.id, t.slug, t.name, t.city, t.status, t.trial_ends, t.paused_until, t.paid_until, t.addons, t.created,
+  const r = await db.prepare(`SELECT t.id, t.slug, t.name, t.city, t.status, t.trial_ends, t.paused_until, t.paid_until, t.addons, t.closed_at, t.created,
       (SELECT u.email FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.tenant_id = t.id AND m.role = 'owner' LIMIT 1) AS owner
     FROM tenants t ORDER BY t.created DESC`).all();
   return (r.results || []).map(x => {
     let addons = []; try { addons = JSON.parse(x.addons || '[]'); } catch (e) { /* none */ }
-    return { slug: x.slug, name: x.name, city: x.city, status: x.status, trialEnds: x.trial_ends, pausedUntil: x.paused_until, paidUntil: x.paid_until, addons, created: x.created, owner: x.owner || '',
+    return { slug: x.slug, name: x.name, city: x.city, status: x.status, trialEnds: x.trial_ends, pausedUntil: x.paused_until, paidUntil: x.paid_until, addons, closedAt: x.closed_at, created: x.created, owner: x.owner || '',
       monthly: x.status === 'paused' ? PAUSE_PRICE : BASE_PRICE + addons.reduce((s, a) => s + (ADDONS[a] || 0), 0) };
   });
 }
@@ -46,6 +46,9 @@ export async function autoTasks(db, hotels, day = today()) {
   for (const h of hotels) {
     if (h.status === 'trial' && h.trialEnds && h.trialEnds >= day && h.trialEnds <= addDays(day, 3))
       st.push(['trial:' + h.slug + ':' + h.trialEnds, 'დაურეკე', h.slug, `უფასო პერიოდი მთავრდება ${h.trialEnds}-ს`, h.trialEnds, h.owner]);
+    // the terms promise: a closed hotel's data is deleted within 90 days of closing
+    if (h.status === 'closed' && h.closedAt && h.closedAt.slice(0, 10) <= addDays(day, -75))
+      st.push(['purge:' + h.slug, 'სასტუმრო წაშალე', h.slug, `დახურულია ${h.closedAt.slice(0, 10)}-დან. პირობებით 90 დღეში უნდა წაიშალოს (${addDays(h.closedAt.slice(0, 10), 90)}).`, addDays(h.closedAt.slice(0, 10), 85), h.owner]);
     if (h.status === 'active' && h.paidUntil && h.paidUntil < day)
       st.push(['unpaid:' + h.slug + ':' + h.paidUntil, 'გადახდა გადაამოწმე', h.slug, `გადახდილია ${h.paidUntil}-მდე`, day, h.owner]);
     if (h.created && h.created.slice(0, 10) >= addDays(day, -2))
@@ -119,7 +122,7 @@ export async function setStatus(db, t, me, status, pausedUntil) {
   if (!STATUSES.includes(status)) throw new Error('ასეთი მდგომარეობა არ არის');
   const pu = status === 'paused' ? day(pausedUntil) : null;
   if (status === 'paused' && !pu) throw new Error('ჩაწერე, რა დღემდეა პაუზა');
-  await db.batch([db.prepare('UPDATE tenants SET status = ?, paused_until = ? WHERE id = ?').bind(status, pu, t.id),
+  await db.batch([db.prepare("UPDATE tenants SET status = ?, paused_until = ?, closed_at = CASE WHEN ? = 'closed' THEN COALESCE(closed_at, ?) ELSE NULL END WHERE id = ?").bind(status, pu, status, nowIso(), t.id),
     note(db, t, me, 'მდგომარეობა', { trial: 'საცდელი', active: 'ჩართული', paused: 'პაუზა ' + pu + '-მდე', closed: 'გამორთული' }[status])]);
   forgetTenants();
 }
@@ -147,7 +150,7 @@ export async function addPayment(db, t, me, { amount, until, method, note: n }) 
   await db.batch([
     db.prepare('INSERT INTO subscriptions (tenant_id, id, amount, until, method, note, by_user, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
       .bind(t.id, crypto.randomUUID(), amt, u, m, String(n || '').slice(0, 200), me.name, nowIso()),
-    db.prepare("UPDATE tenants SET paid_until = ?, status = CASE WHEN status IN ('trial', 'closed') THEN 'active' ELSE status END WHERE id = ?").bind(paid, t.id),
+    db.prepare("UPDATE tenants SET paid_until = ?, status = CASE WHEN status IN ('trial', 'closed') THEN 'active' ELSE status END, closed_at = CASE WHEN status = 'closed' THEN NULL ELSE closed_at END WHERE id = ?").bind(paid, t.id),
     note(db, t, me, 'გადახდა', `${amt}₾, ${u}-მდე`),
   ]);
   forgetTenants();
@@ -184,8 +187,8 @@ export async function grantHelp(db, t, who, hours) {
     .bind(t.id, until, who, nowIso()).run();
   return until;
 }
-// removes a hotel and everything it has; only a switched-off hotel, and only when its slug is typed again
-const HOTEL_TABLES = ['settings', 'seasons', 'types', 'rooms', 'bookings', 'payments', 'guest_notes', 'convos', 'site_content', 'media', 'actlog', 'subscriptions', 'support_access', 'meta_pages', 'domains', 'memberships'];
+// removes a hotel and everything it has, except our payment records (kept for accounting, see retention.js); only a switched-off hotel, and only when its slug is typed again
+const HOTEL_TABLES = ['settings', 'seasons', 'types', 'rooms', 'bookings', 'payments', 'guest_notes', 'convos', 'site_content', 'media', 'actlog', 'support_access', 'meta_pages', 'domains', 'memberships'];
 export async function deleteHotel(db, t, confirm) {
   if (t.status !== 'closed') throw new Error('ჯერ სასტუმრო გამორთე, მერე წაშალე');
   if (confirm !== t.slug) throw new Error(`დასადასტურებლად ჩაწერე: ${t.slug}`);

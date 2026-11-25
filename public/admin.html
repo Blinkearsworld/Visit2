@@ -394,6 +394,8 @@ dialog::backdrop,.dpick::backdrop{background:rgba(31,26,23,.45)}
 .alert{box-shadow:0 6px 18px -12px rgba(31,26,23,.4)}
 .hist th,.mt thead th,.prices th{font-weight:600}
 main select,dialog select{background-color:#fff;color:var(--ink)}
+.legbox{margin:0 0 12px}.legbox>summary{cursor:pointer;min-height:40px;display:inline-flex;align-items:center;gap:6px;color:var(--night);font-weight:600;font-size:14px}
+.legbox[open]>summary{margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -457,7 +459,7 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 <span class="seg" role="group" aria-label="ხედი"><button class="btn" type="button" data-view="14" aria-pressed="true">2 კვირა</button><button class="btn" type="button" data-view="month" aria-pressed="false">თვე</button></span>
 <button class="btn pri" id="addBtn">+ ჯავშანი</button>
 </div>
-<div class="legend"><span><i style="background:linear-gradient(90deg,#cfe3ff 33%,#d6f0dc 33% 66%,#fde2c7 66%)"></i>დადასტურებული (თითო ჯავშანი თავისი ფერით)</span><span><i style="border:1.5px solid #5b6676;border-radius:50%;background:#fff"></i>არ გადაუხდია</span><span><i style="background:#e39a12;border-radius:50%"></i>ნაწილობრივ</span><span><i style="background:#1f9d5c;border-radius:50%"></i>სრულად გადახდილი</span><span><i style="background:#fff1d9;border:1px solid #e9c98e"></i>მოთხოვნა მოლოდინში, ნომერი არ არის დაკავებული</span><span><i style="background:repeating-linear-gradient(135deg,#fff4d6 0 3px,#ffe9b0 3px 6px);border:1px solid #e9c98e"></i>მოკლე ფანჯარა (1–3 ღამე), ჩატბოტი სთავაზობს</span><span>💬 სტუმრის მოთხოვნა</span><span>📌 ჩვენი შენიშვნა</span><span>📝 სტუმარზე შენიშვნაა</span><span>👶 ბავშვებით</span></div>
+<details class="legbox" id="legBox"><summary>ფერების ახსნა</summary><div class="legend"><span><i style="background:linear-gradient(90deg,#cfe3ff 33%,#d6f0dc 33% 66%,#fde2c7 66%)"></i>დადასტურებული (თითო ჯავშანი თავისი ფერით)</span><span><i style="border:1.5px solid #5b6676;border-radius:50%;background:#fff"></i>არ გადაუხდია</span><span><i style="background:#e39a12;border-radius:50%"></i>ნაწილობრივ</span><span><i style="background:#1f9d5c;border-radius:50%"></i>სრულად გადახდილი</span><span><i style="background:#fff1d9;border:1px solid #e9c98e"></i>მოთხოვნა მოლოდინში, ნომერი არ არის დაკავებული</span><span><i style="background:repeating-linear-gradient(135deg,#fff4d6 0 3px,#ffe9b0 3px 6px);border:1px solid #e9c98e"></i>მოკლე ფანჯარა (1–3 ღამე), ჩატბოტი სთავაზობს</span><span>💬 სტუმრის მოთხოვნა</span><span>📌 ჩვენი შენიშვნა</span><span>📝 სტუმარზე შენიშვნაა</span><span>👶 ბავშვებით</span></div></details>
 <div class="scroll"><table class="cal" id="cal"></table></div>
 </section>
 
@@ -592,10 +594,10 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 </form>
 </dialog>
 
-<script src="site/hotels.js?v=20261125b"></script>
-<script src="js/i18n.js?v=20261125b"></script>
-<script src="js/store.js?v=20261125b"></script>
-<script src="js/content.js?v=20261125b"></script>
+<script src="site/hotels.js?v=20261125c"></script>
+<script src="js/i18n.js?v=20261125c"></script>
+<script src="js/store.js?v=20261125c"></script>
+<script src="js/content.js?v=20261125c"></script>
 <script>
 {
 const J=JIJI,$=id=>document.getElementById(id);
@@ -1137,11 +1139,12 @@ function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderS
 J.onChange(()=>{if(!$('app').hidden){renderAll();checkNew()}});
 }
 </script>
-<script src="js/admin-dates.js?v=20261125b"></script>
-<script src="js/admin-team.js?v=20261125b"></script>
-<script src="js/admin-v2.js?v=20261125b"></script>
-<script src="js/osm.js?v=20261125b"></script>
-<script src="js/admin-site.js?v=20261125b"></script>
-<script src="js/admin-help.js?v=20261125b"></script>
+<script src="js/admin-dates.js?v=20261125c"></script>
+<script src="js/admin-team.js?v=20261125c"></script>
+<script src="js/admin-v2.js?v=20261125c"></script>
+<script src="js/osm.js?v=20261125c"></script>
+<script src="js/admin-site.js?v=20261125c"></script>
+<script src="js/admin-help.js?v=20261125c"></script>
+<script>/* the colour key: open on a computer, folded on a phone */(()=>{const l=document.getElementById('legBox');if(l&&matchMedia('(min-width:641px)').matches)l.open=true})()</script>
 </body>
 </html>

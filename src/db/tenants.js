@@ -15,7 +15,7 @@ export const normHost = h => String(h || '').trim().toLowerCase().replace(/:\d+$
 
 const rowToTenant = r => r && ({
   id: r.id, slug: r.slug, name: r.name, city: r.city, status: r.status, plan: r.plan,
-  trialEnds: r.trial_ends, pausedUntil: r.paused_until, created: r.created,
+  trialEnds: r.trial_ends, pausedUntil: r.paused_until, closedAt: r.closed_at || null, created: r.created,
   paidUntil: r.paid_until || null, addons: (() => { try { return JSON.parse(r.addons || '[]'); } catch (e) { return []; } })(),
 });
 

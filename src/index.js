@@ -3,7 +3,7 @@
 //   visit2.ge, www., app.                  → the platform (catalog, owners' page, admin)
 //   {slug}.localhost:8787                  → local development
 import { tenantByHost, tenantBySlug, normHost, allTenants } from './db/tenants.js';
-import { purgeHotel } from './db/retention.js';
+import { purgeHotel, purgePlatform } from './db/retention.js';
 import { page, esc } from './lib/html.js';
 import { hotelApi } from './api.js';
 import { platformApi } from './platform.js';
@@ -40,6 +40,7 @@ export default {
     for (const t of await allTenants(env.DB)) {
       try { await purgeHotel(env.DB, t); } catch (e) { console.log('purge failed', t.slug, e.message); }
     }
+    try { await purgePlatform(env.DB); } catch (e) { console.log('platform purge failed', e.message); }
   },
 };
 
