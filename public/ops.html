@@ -271,6 +271,7 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
         <p class="mute">სისტემა და საიტი: ${S.prices.base}₾ / თვე.</p>
         <label class="chk"><input type="checkbox" data-addon="catalog"${h.addons.includes('catalog') ? ' checked' : ''}> ადგილი კატალოგში +${S.prices.addons.catalog}₾ <small class="mute">(პირველი 6 თვე ისედაც ჩანს)</small></label>
         <label class="chk"><input type="checkbox" data-addon="domain"${h.addons.includes('domain') ? ' checked' : ''}> საკუთარი დომენი +${S.prices.addons.domain}₾</label>
+        <label class="chk"><input type="checkbox" data-addon="pay"${h.addons.includes('pay') ? ' checked' : ''}> ონლაინ წინასწარი გადახდა სასტუმროს ბანკით${S.prices.addons.pay ? ' +' + S.prices.addons.pay + '₾' : ''} <small class="mute">(ბანკს სასტუმრო თავად აერთებს ადმინში)</small></label>
         <div class="row"><button class="btn" type="button" data-do="addons">შენახვა</button></div></div>
 
       <div class="box"><h3>გადახდები</h3>

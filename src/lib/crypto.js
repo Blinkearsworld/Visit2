@@ -1,13 +1,13 @@
 // AES-GCM for secrets we must keep in the database (a hotel's Facebook page token).
-// The key is META_ENC_KEY in Cloudflare Secrets: 32 random bytes, base64. Never in code or chat.
+// The key is ENC_KEY (or META_ENC_KEY) in Cloudflare Secrets: 32 random bytes, base64. Never in code or chat.
 const enc = new TextEncoder(), dec = new TextDecoder();
 const b64 = u => btoa(String.fromCharCode(...u));
 const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 
 async function key(secret) {
-  if (!secret) throw new Error('META_ENC_KEY is not set');
+  if (!secret) throw new Error('ENC_KEY is not set');
   const raw = unb64(secret);
-  if (raw.length !== 32) throw new Error('META_ENC_KEY must be 32 bytes (base64)');
+  if (raw.length !== 32) throw new Error('ENC_KEY must be 32 bytes (base64)');
   return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
 }
 export async function seal(secret, text) {

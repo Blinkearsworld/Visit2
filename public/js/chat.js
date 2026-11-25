@@ -328,7 +328,7 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
   function askName() {
     if (ctx.instant && !ctx.split) {
       const r = window.V2_RULES || {};
-      bot(`<b>${T('ჯავშანი დადასტურდება მაშინვე, ნომერი თქვენი იქნება.')}</b>${r.cancel ? `\n${T('გაუქმება')}: ${esc(r.cancel)}` : ''}${r.prepay ? `\n${T('წინასწარი გადახდა')}: ${esc(r.prepay)}` : ''}\n${T('დაჯავშნით ეთანხმებით სასტუმროს წესებს. ბარათი არ გჭირდებათ.')}`);
+      bot(`<b>${T('ჯავშანი დადასტურდება მაშინვე, ნომერი თქვენი იქნება.')}</b>${r.cancel ? `\n${T('გაუქმება')}: ${esc(r.cancel)}` : ''}${r.prepay ? `\n${T('წინასწარი გადახდა')}: ${esc(r.prepay)}` : ''}\n${window.V2_PAY ? T('დაჯავშნით ეთანხმებით სასტუმროს წესებს. ნომერი {m} წუთით დაგიკავდებათ, სანამ სასტუმროს ბანკის გვერდზე გადაიხდით ({part}). ფული პირდაპირ სასტუმროს ანგარიშზე შედის.', { m: window.V2_PAY.min, part: window.V2_PAY.part }) : T('დაჯავშნით ეთანხმებით სასტუმროს წესებს. ბარათი არ გჭირდებათ.')}`);
       bot(T('თქვენი სახელი?')); mode = 'name'; setInput('text', T('სახელი')); options(nav()); return;
     }
     ctx.instant = false;
@@ -352,6 +352,11 @@ ${J.fmtRange(nx.from, nx.to)} · ${esc(RN(nx.name))}<strong>${nx.total} ₾</str
     if (job.parts.some(p => !p.sent)) return sendFailed(job, res.some(r => r && r.offline), (res.find(r => r && !r.ok && r.msg) || {}).msg);
     const r = { from: job.parts[0].from, to: job.parts[job.parts.length - 1].to };
     const done = res[0] || {};
+    if (job.instant && done.instant && done.pay) {
+      // the room is held; the guest pays on the hotel's bank page, then comes back to their booking link
+      bot(`<b>${T('✓ ნომერი თქვენთვის დაკავებულია {m} წუთით.', { m: done.payMinutes || 20 })}</b>\n${J.fmtRange(r.from, r.to)} · ${esc(RN(done.typeName || job.offerName))}\n${T('ახლა გადასახდელია')}: <b>${done.payAmount} ₾</b>\n\n${T('ჯავშანი დადასტურდება გადახდისთანავე.')}\n<a class="jc-pay" href="${esc(done.pay)}">${T('გადახდა ბანკის გვერდზე')}</a>`);
+      options(nav()); return;
+    }
     if (job.instant && done.instant && done.key) {
       const link = bookLink(done.id, done.key);
       bot(`<b>${T('✓ დაჯავშნილია! ჯავშანი დადასტურებულია.')}</b>\n${J.fmtRange(r.from, r.to)} · ${esc(RN(done.typeName || job.offerName))} · ${done.total || job.total} ₾\n${T('ჯავშნის ნომერი')}: <b>${esc(String(done.id).slice(-6).toUpperCase())}</b>${(window.V2_RULES || {}).prepay ? `\n${T('წინასწარი გადახდა')}: ${esc(window.V2_RULES.prepay)}` : ''}${(window.V2_RULES || {}).cancel ? `\n${T('გაუქმება')}: ${esc(window.V2_RULES.cancel)}` : ''}\n\n${T('შეინახეთ ბმული: მასზე ნებისმიერ დროს ნახავთ თქვენს ჯავშანს.')}\n<a href="${esc(link)}">${T('ჩემი ჯავშანი')}</a>`);

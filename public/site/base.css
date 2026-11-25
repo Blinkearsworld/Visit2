@@ -262,6 +262,9 @@ main > section:nth-of-type(even):not(.hero) { background: var(--soft); }
 .booked { display: grid; gap: 8px; margin: 0 0 18px; padding: 18px 20px; border-radius: 16px; background: #F0F8F6; border: 1px solid #9FD0C8; line-height: 1.55; overflow-wrap: anywhere; }
 .booked h3 { margin: 0; font-size: 22px; }
 .booked p { margin: 0; }
+.booked .bk-pay { padding: 10px 12px; border-radius: 12px; background: #fff; border: 1px solid #eadfce; }
+.booked .bk-pay[data-s="paid"] { border-color: #9FD0C8; color: #0B7A73; }
+.booked .bk-pay[data-s="gone"], .booked .bk-pay[data-s="late"] { border-color: #E8C6A8; }
 .booked a { color: var(--accent-ink, #0B7A73); }
 .bk-st { font-weight: 700; color: #0B7A73; }
 .bk-st[data-s="pending"] { color: #8A5A00; }
@@ -280,6 +283,7 @@ html body .jc-log { background: #FFFCF7; }
 html body .jc-m.bot { background: #FFFFFF; color: #1F1A17; border: 1px solid #EFE7DB; }
 html body .jc-m.me { background: var(--accent); color: #fff; }
 html body .jc-m a { color: var(--accent); font-weight: 600; }
+html body .jc-m a.jc-pay { display: inline-block; margin-top: 8px; padding: 11px 18px; min-height: 44px; border-radius: 12px; background: var(--accent); color: #fff; text-decoration: none; font-weight: 700; }
 html body .jc-m.offer { border-color: color-mix(in srgb, var(--accent) 45%, #EFE7DB); }
 html body .jc-m.offer strong { color: #1F1A17; }
 html body .jc-opts { background: #FFFCF7; padding-top: 4px; }

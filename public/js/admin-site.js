@@ -242,16 +242,73 @@
       </div>
       <div class="card2" id="bkSureBox"${on ? ' hidden' : ''}><label class="bk-sure"><input type="checkbox" id="bkSure"> <span>ყველა ჯავშანი (Booking, Airbnb, ტელეფონით, ადგილზე) ამ კალენდარში ჩაწერილია. სხვა საიტიდან მოსულ ჯავშანს აქაც მაშინვე ვწერ, რომ ერთი ნომერი ორჯერ არ გაიყიდოს.</span></label></div>
       <div class="card2"><div class="fld"><div class="fh"><b>გაუქმების პირობა</b><span class="hint">სტუმარი ჯავშნამდე ხედავს. მაგ.: „უფასოდ შეიძლება გაუქმება ჩამოსვლამდე 3 დღით ადრე“.</span></div>${langFields(asTri(ins.cancel), { short: true, z: 'cancel' })}</div></div>
+      <div class="card2" id="bkPay"${on ? '' : ' hidden'}></div>
       <div class="card2"><div class="fld"><div class="fh"><b>წინასწარი გადახდა (თუ გინდათ)</b><span class="hint">ცარიელი — არ ჩანს. მაგ.: „ჯავშნიდან 24 საათში 30% ჩარიცხეთ: GE00TB0000000000000000“. ფული პირდაპირ თქვენ მოგდით.</span></div>${langFields(asTri(ins.prepay), { short: true, z: 'prepay' })}</div></div>`;
     const put = o => { const v = { ...(siteGet('instant') || {}), ...o }; for (const k of Object.keys(v)) if (v[k] == null || v[k] === false || (typeof v[k] === 'object' && !Object.values(v[k]).some(Boolean))) delete v[k]; sitePut('instant', Object.keys(v).length ? v : null); };
     p.onchange = e => {
       const t = e.target;
       if (t.name === 'bkMode') {
         if (t.value === 'instant' && !$('bkSure').checked) { t.checked = false; p.querySelector('[value=req]').checked = true; $('bkSure').closest('.bk-sure').scrollIntoView({ block: 'center', behavior: 'smooth' }); $('bkSure').focus(); return; }
-        put({ on: t.value === 'instant' || null }); $('bkSureBox').hidden = t.value === 'instant';
+        put({ on: t.value === 'instant' || null }); $('bkSureBox').hidden = t.value === 'instant'; $('bkPay').hidden = t.value !== 'instant';
       }
+      if (t.name === 'payOn' || t.name === 'payPart' || t.name === 'payPct') payPut();
     };
+    drawPay();
     p.oninput = e => { const i = e.target; if (!i.dataset.z) return; const v = asTri((siteGet('instant') || {})[i.dataset.z]); v[i.dataset.l] = i.value; put({ [i.dataset.z]: v }); };
+  }
+
+  // online prepayment at the hotel's own bank: Visit2 turns the service on, the owner connects the bank here,
+  // and chooses whether an instant booking asks for the whole stay or a deposit (kept in site.instant.pay)
+  let payInfo = null;
+  function payPut() {
+    const p = $('s-book'), on = p.querySelector('[name=payOn]')?.checked, part = p.querySelector('[name=payPart]:checked')?.value || 'full';
+    const pct = Math.min(100, Math.max(10, parseInt(p.querySelector('[name=payPct]')?.value) || 30));
+    const v = { ...(siteGet('instant') || {}) };
+    if (on) v.pay = part === 'deposit' ? { on: true, part, pct } : { on: true, part: 'full' }; else delete v.pay;
+    sitePut('instant', v);
+    const pc = p.querySelector('[name=payPct]'); if (pc) pc.disabled = part !== 'deposit';
+  }
+  async function drawPay() {
+    const box = $('bkPay'); if (!box) return;
+    if (!payInfo) { try { payInfo = await (await fetch('api/admin/pay', { cache: 'no-store' })).json(); } catch (e) { payInfo = { addon: false }; } }
+    const o = payInfo, me = (window.JIJI && window.JIJI.me) || {}, py = (siteGet('instant') || {}).pay || {};
+    const head = `<div class="fh"><b>ონლაინ წინასწარი გადახდა</b><span class="hint">სტუმარი ჯავშნისას თქვენი ბანკის გვერდზე იხდის, ფული პირდაპირ თქვენს ანგარიშზე შედის. ნომერი გადახდამდე 20 წუთით ნარჩუნდება, გადაუხდელი ჯავშანი თავისით უქმდება. ასე ნომრებს ვერავინ დაიკავებს ტყუილად.</span></div>`;
+    if (!o.addon) { box.innerHTML = `<div class="fld">${head}<p class="sub" style="margin:8px 0 0">ამ სერვისს Visit2.ge რთავს. თუ გინდათ, მოგვწერეთ და ჩაგირთავთ.</p></div>`; return; }
+    if (!o.ready) { box.innerHTML = `<div class="fld">${head}<p class="sub" style="margin:8px 0 0">ბანკის მიერთება მალე ჩაირთვება.</p></div>`; return; }
+    const acc = o.account, bankName = acc ? (o.banks || {})[acc.bank] || acc.bank : '';
+    const form = `<div class="pay-form" style="display:grid;gap:10px;margin-top:10px">
+        <div role="radiogroup" aria-label="ბანკი" style="display:flex;gap:16px;flex-wrap:wrap">${Object.entries(o.banks || {}).map(([k, n], i) => `<label class="chk"><input type="radio" name="payBank" value="${k}"${(acc ? acc.bank === k : !i) ? ' checked' : ''}> ${esc(n)}</label>`).join('')}</div>
+        <label class="lbl">Client ID (მერჩანტის ნომერი)<input name="payId" autocomplete="off"></label>
+        <label class="lbl">Client Secret<input name="paySecret" type="password" autocomplete="new-password"></label>
+        <label class="lbl" data-tbc>API Key (TBC-ის დეველოპერების პორტალიდან)<input name="payKey" type="password" autocomplete="new-password"></label>
+        <p class="hint" style="margin:0">ამ მონაცემებს ბანკი გაძლევთ ონლაინ გადახდების (E-Commerce) რეგისტრაციისას. ჩვენ მათ დაშიფრულად ვინახავთ და თქვენ მათ ვეღარ ნახავთ, მხოლოდ შეცვლით.</p>
+        <p><button type="button" class="btn" data-pay-save>ბანკის მიერთება</button> <span class="hint" data-pay-msg role="status"></span></p></div>`;
+    box.innerHTML = `<div class="fld">${head}
+      ${acc ? `<p style="margin:10px 0 0">✓ მიერთებულია: <b>${esc(bankName)}</b> ${esc(acc.label)}${acc.checked ? ` <span class="hint">(შემოწმდა ${esc(acc.checked.slice(0, 10))})</span>` : ''}</p>` : ''}
+      ${me.owner ? (acc ? `<details style="margin-top:8px"><summary>მონაცემების შეცვლა</summary>${form}</details><p style="margin:8px 0 0"><button type="button" class="lnk" data-pay-off>ბანკის გათიშვა</button></p>` : form)
+        : (acc ? '' : '<p class="sub" style="margin:8px 0 0">ბანკს მფლობელი აერთებს.</p>')}
+      ${acc ? `<div style="display:grid;gap:8px;margin-top:14px">
+        <label class="chk"><input type="checkbox" name="payOn"${py.on ? ' checked' : ''}> მყისიერი ჯავშნისას გადახდა მოითხოვე</label>
+        <label class="chk"><input type="radio" name="payPart" value="full"${py.part !== 'deposit' ? ' checked' : ''}> სრული თანხა</label>
+        <label class="chk"><input type="radio" name="payPart" value="deposit"${py.part === 'deposit' ? ' checked' : ''}> ავანსი <input name="payPct" type="number" min="10" max="100" step="5" value="${py.pct || 30}" style="width:80px"${py.part === 'deposit' ? '' : ' disabled'}> %</label>
+        <p class="hint" style="margin:0">არ დაგავიწყდეთ შენახვა გვერდის ქვემოთ.</p></div>` : ''}</div>`;
+    const sync = () => { const tbc = box.querySelector('[name=payBank]:checked')?.value === 'tbc'; box.querySelectorAll('[data-tbc]').forEach(x => { x.hidden = !tbc; }); };
+    box.querySelectorAll('[name=payBank]').forEach(r => r.addEventListener('change', sync)); sync();
+    box.querySelector('[data-pay-save]')?.addEventListener('click', async ev => {
+      const btn = ev.currentTarget, msg = box.querySelector('[data-pay-msg]'), q = n => box.querySelector(`[name=${n}]`);
+      btn.disabled = true; msg.textContent = 'ბანკს ვამოწმებთ…';
+      try {
+        const r = await (await fetch('api/admin/pay', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ do: 'save', bank: box.querySelector('[name=payBank]:checked')?.value, id: q('payId').value, secret: q('paySecret').value, apikey: q('payKey').value }) })).json();
+        if (r.ok) { payInfo = null; await drawPay(); return; }
+        msg.textContent = r.msg || 'ვერ მიუერთდა. სცადეთ ხელახლა.';
+      } catch (e) { msg.textContent = 'კავშირი ვერ დამყარდა. სცადეთ ხელახლა.'; }
+      btn.disabled = false;
+    });
+    box.querySelector('[data-pay-off]')?.addEventListener('click', async () => {
+      if (!confirm('ბანკი გაითიშოს? ონლაინ გადახდა აღარ იმუშავებს, სანამ ხელახლა არ მიაერთებთ.')) return;
+      await fetch('api/admin/pay', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ do: 'off' }) });
+      payInfo = null; drawPay();
+    });
   }
 
   const defFaq = () => JC.DEF.faq.map(([q, a]) => ({ q: tri(q), a: tri(a) }));

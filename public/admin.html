@@ -602,10 +602,10 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 </form>
 </dialog>
 
-<script src="site/hotels.js?v=20261125n"></script>
-<script src="js/i18n.js?v=20261125n"></script>
-<script src="js/store.js?v=20261125n"></script>
-<script src="js/content.js?v=20261125n"></script>
+<script src="site/hotels.js?v=20261125o"></script>
+<script src="js/i18n.js?v=20261125o"></script>
+<script src="js/store.js?v=20261125o"></script>
+<script src="js/content.js?v=20261125o"></script>
 <script>
 {
 const J=JIJI,$=id=>document.getElementById(id);
@@ -888,6 +888,7 @@ function drawInfo(){
  ${b.status==='confirmed'?`<details class="redit" style="margin-top:10px"><summary>თარიღის ან სტუმრების შეცვლა</summary><div class="rpick3"><label class="dpl">თარიღი<button type="button" class="btn dpb" id="iPick" data-from="${b.from}" data-to="${b.to}">📅 ${J.fmtRange(b.from,b.to)} · ${J.nights(b.from,b.to)} ღამე</button></label><label>სულ სტუმარი<input type="number" id="iGuests" min="1" max="20" step="1" inputmode="numeric" value="${b.guests||1}" style="${pin}"></label><label>მათ შორის ბავშვი (2–12)<input type="number" id="iKids" min="0" max="19" step="1" inputmode="numeric" value="${+b.children||0}" style="${pin}"></label></div><button type="button" class="btn" id="iDates" style="margin-top:8px">ცვლილების შენახვა</button></details>`:''}
  ${b.status==='confirmed'?`<label style="display:grid;gap:6px;font-size:14px;color:var(--mute);margin-top:12px">ნომერი (შეცვლა შეიძლება)<select id="iRoom" style="min-height:46px;padding:0 10px;border:1px solid var(--line);border-radius:8px;font-size:16px;max-width:320px">${roomOpts(b,b.room)}</select></label>`:''}
  <p style="margin:8px 0 0">ნომერი ${b.room||'—'} · ${esc(typeName(b.type))} · ${gTxt(b)}<br>${J.fmtRange(b.from,b.to)} · ${J.nights(b.from,b.to)} ღამე · ${SRC[b.source]||esc(b.source)}${b.note?' · '+esc(b.note):''}</p>
+ ${payLine(b)}
  ${reviewAsk(b)}
  ${b.wish?`<div class="wish"><small>სტუმრის მოთხოვნა</small>💬 ${esc(b.wish)}</div>`:''}
  ${dead?(b.remark?`<div class="remark">📌 ${esc(b.remark)}</div>`:''):`<label class="rml">ჩვენი შენიშვნა (სტუმარი ვერ ხედავს)<textarea id="iRemark" rows="2" maxlength="500" placeholder="მაგ.: ბავშვის საწოლი, გვიან ჩამოსვლა 23:00-ზე">${esc(b.remark||'')}</textarea></label>`}
@@ -1073,13 +1074,16 @@ let day=J.today();
 const tel=p=>p?`<a href="tel:${esc(p.replace(/\s/g,''))}">${esc(p)}</a>`:'';
 function item(b,extra){const p=J.payState(b);return `<div class="it"><div><b>${esc(b.name)}</b> · ნომერი ${b.room}<br>${tel(b.phone)}${b.phone?' · ':''}<span class="src">${J.fmtRange(b.from,b.to)}, ${J.nights(b.from,b.to)} ღამე${extra||''}</span>${b.wish?`<div class="wish">💬 ${esc(b.wish)}</div>`:''}${b.remark?`<div class="remark">📌 ${esc(b.remark)}</div>`:''}${J.guestNote(b.phone)?`<div class="gnote">📝 ${esc(J.guestNote(b.phone))}</div>`:''}</div><div class="r">${p.left?`<span class="owe">დარჩა ${money(p.left)}</span>`:`<span class="pill p-ok">გადახდილი</span>`}<button type="button" class="btn" data-open="${b.id}">${p.left?'გადახდა':'გახსნა'}</button></div></div>`}
 /* new instant bookings (confirmed by themselves): shown on top until someone presses "ვნახე" */
+/* online prepayment at the hotel's bank (src/db/pay.js): how it stands for one booking */
+const PAYS={waiting:'⏳ ელოდება ონლაინ გადახდას',paid:'💳 გადახდილია ონლაინ',expired:'გადახდის დრო ამოიწურა, ნომერი გათავისუფლდა',late:'⚠️ გადახდა დაგვიანებით მოვიდა, როცა ნომერი უკვე გათავისუფლებული იყო. დაუკავშირდით სტუმარს: დაუდასტურეთ ან დაუბრუნეთ თანხა თქვენი ბანკიდან.'};
+const payLine=b=>b.payState&&PAYS[b.payState]?`<span class="src" style="display:block;margin-top:4px${b.payState==='late'?';color:#9a4b14;font-weight:600':''}">${PAYS[b.payState]}${b.payAmount?' · '+money(b.payAmount):''}</span>`:'';
 const SEEN_K='v2-instant-seen:'+location.host+location.pathname;
 const seenIds=()=>{try{return JSON.parse(localStorage.getItem(SEEN_K)||'[]')}catch(e){return []}};
 function renderNew(){
  const since=new Date(Date.now()-3*864e5).toISOString(),seen=seenIds();
- const fresh=J.bookings.filter(b=>b.instant&&b.status==='confirmed'&&(b.created||'')>since&&!seen.includes(b.grp||b.id));
+ const fresh=J.bookings.filter(b=>b.instant&&(b.status==='confirmed'||b.payState==='late')&&(b.created||'')>since&&!seen.includes(b.grp||b.id));
  const groups=[...new Map(fresh.map(b=>[b.grp||b.id,fresh.filter(x=>(x.grp||x.id)===(b.grp||b.id))])).values()];
- $('dNew').innerHTML=groups.length?`<div class="pcard" style="border-color:#9FD0C8;background:#F0F8F6;margin:0 0 16px"><h2 style="margin:0 0 10px">✓ ახალი მყისიერი ჯავშანი (${groups.length})</h2><div class="dl">${groups.map(g=>{const b=g[0];return `<div class="it"><div><b>${esc(b.name)}</b> · ${J.fmtRange(b.from,b.to)} · ${g.map(x=>"№"+esc((J.ROOMS.find(r=>r.id===x.room)||{}).name||x.room||"")).join(', ')}<br><a href="tel:${esc(String(b.phone||'').replace(/[^\d+]/g,''))}">${esc(b.phone||'')}</a> · ${money(g.reduce((s,x)=>s+(+x.price||0),0))}</div><div class="r"><button class="btn" type="button" data-seen="${esc(b.grp||b.id)}">ვნახე</button></div></div>`}).join('')}</div></div>`:'';
+ $('dNew').innerHTML=groups.length?`<div class="pcard" style="border-color:#9FD0C8;background:#F0F8F6;margin:0 0 16px"><h2 style="margin:0 0 10px">✓ ახალი მყისიერი ჯავშანი (${groups.length})</h2><div class="dl">${groups.map(g=>{const b=g[0];return `<div class="it"><div><b>${esc(b.name)}</b> · ${J.fmtRange(b.from,b.to)} · ${g.map(x=>"№"+esc((J.ROOMS.find(r=>r.id===x.room)||{}).name||x.room||"")).join(', ')}<br><a href="tel:${esc(String(b.phone||'').replace(/[^\d+]/g,''))}">${esc(b.phone||'')}</a> · ${money(g.reduce((s,x)=>s+(+x.price||0),0))}${payLine(b)}</div><div class="r"><button class="btn" type="button" data-seen="${esc(b.grp||b.id)}">ვნახე</button></div></div>`}).join('')}</div></div>`:'';
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-seen]');if(!b)return;const l=seenIds();l.push(b.dataset.seen);try{localStorage.setItem(SEEN_K,JSON.stringify(l.slice(-200)))}catch(x){}renderNew()});
 function renderDay(){
@@ -1159,12 +1163,12 @@ function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderS
 J.onChange(()=>{if(!$('app').hidden){renderAll();checkNew()}});
 }
 </script>
-<script src="js/admin-dates.js?v=20261125n"></script>
-<script src="js/admin-team.js?v=20261125n"></script>
-<script src="js/admin-v2.js?v=20261125n"></script>
-<script src="js/osm.js?v=20261125n"></script>
-<script src="js/admin-site.js?v=20261125n"></script>
-<script src="js/admin-help.js?v=20261125n"></script>
+<script src="js/admin-dates.js?v=20261125o"></script>
+<script src="js/admin-team.js?v=20261125o"></script>
+<script src="js/admin-v2.js?v=20261125o"></script>
+<script src="js/osm.js?v=20261125o"></script>
+<script src="js/admin-site.js?v=20261125o"></script>
+<script src="js/admin-help.js?v=20261125o"></script>
 <script>/* the colour key: open on a computer, folded on a phone */(()=>{const l=document.getElementById('legBox');if(l&&matchMedia('(min-width:641px)').matches)l.open=true})()</script>
 </body>
 </html>

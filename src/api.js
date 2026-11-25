@@ -8,6 +8,8 @@ import { adminAction } from './db/actions.js';
 import { getSetting } from './db/settings.js';
 import { grantHelp, helpUntil, listNotices } from './db/ops.js';
 import { hotelPages, disconnectPages } from './db/meta.js';
+import { encKey, accountInfo, getAccount, saveAccount, removeAccount, holdToRequest, addOrder, findOrder, lastOrder, settleOrder, HOLD_MIN } from './db/pay.js';
+import { BANKS, checkCreds, createOrder, orderState } from './lib/banks.js';
 import { metaStartUrl, pick, pendingPages } from './meta.js';
 import {
   checkLogin, makeCookie, supportSignIn, clearCookie, sessionUser, tooManyFails, noteFail, clearFails, logAct, bookingLog, journal,
@@ -18,6 +20,27 @@ const DENIED = { ok: false, msg: 'ამის უფლება არ გა�
 
 const bookingKey = async (secret, t, id) => (await hmac(secret, 'booking|' + t.id + '|' + id)).slice(0, 20);
 
+// ---------- prepayment through the hotel's own bank ----------
+// on only where Visit2 turned the service on, the owner connected a bank and chose prepayment for instant bookings
+async function payReady(env, t, site) {
+  if (!(t.addons || []).includes('pay') || !site.instant?.on || !site.instant?.pay?.on) return null;
+  return getAccount(env.DB, t, encKey(env));
+}
+// opens the bank's payment page for a booking that holds its room; the guest comes back to their booking link
+async function openPayment(env, t, acc, { id, key, amount, origin, base, lang }) {
+  const page = new URL(base, origin); page.searchParams.set('b', id); page.searchParams.set('k', key); page.searchParams.set('paid', '1');
+  const o = await createOrder(env, acc, { amount, ref: 'V2-' + id, returnUrl: page.toString(), callbackUrl: new URL(base.replace(/\/?$/, '/') + 'api/pay/cb', origin).toString(),
+    lang, minutes: HOLD_MIN, desc: t.name });
+  await addOrder(env.DB, t, { id: o.id, booking: id, bank: acc.bank, amount });
+  return o.url;
+}
+// asks the bank about the booking's latest payment page (never trusts what the browser or the callback says)
+async function checkPayment(env, t, order) {
+  const acc = order && await getAccount(env.DB, t, encKey(env));
+  if (!acc) return null;
+  try { return await settleOrder(env.DB, t, order, await orderState(env, acc, order.id)); } catch (e) { return null; }
+}
+
 export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}) {
   const db = env.DB, url = new URL(request.url), p = url.pathname, m = request.method;
   const secret = env.SESSION_SECRET || (dev ? 'local-dev-only' : null);
@@ -26,7 +49,8 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
   if (p === '/api/state' && m === 'GET') return json({ ...(await loadState(db, t)), hotel: { name: t.name, city: t.city, slug: t.slug } });
   if (p === '/api/content' && m === 'GET') {
     const { content, ver } = await getContent(db, t);
-    return json({ content, ver, hotel: { name: t.name, city: t.city, slug: t.slug } });
+    const pay = !!(secret && await payReady(env, t, content?.site || {}));
+    return json({ content, ver, pay, payMinutes: HOLD_MIN, hotel: { name: t.name, city: t.city, slug: t.slug } });
   }
   if (p === '/api/request' && m === 'POST') {
     const body = await readJson(request);
@@ -36,8 +60,19 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
       // instant booking (booking form or chat) only if the hotel turned it on: read here, never trusted from the browser
       const site = (await getContent(db, t)).content?.site || {};
       const on = body.instant === true && !!site.instant?.on;
-      const r = await createRequest(db, t, st, { ...body, instant: on, kidRule: site.kids || null, source: body.source === 'chat' ? 'chat' : 'site' });
+      const acc = on && secret ? await payReady(env, t, site) : null;
+      const r = await createRequest(db, t, st, { ...body, instant: on, kidRule: site.kids || null, payRule: acc ? site.instant.pay : null, source: body.source === 'chat' ? 'chat' : 'site' });
       const key = r.instant && secret ? await bookingKey(secret, t, r.booking.id) : '';
+      if (r.instant && r.pay) {
+        // the room is held for a few minutes while the guest pays at the bank; no payment page → an ordinary request
+        try {
+          const pay = await openPayment(env, t, acc, { id: r.booking.id, key, amount: r.pay, origin: url.origin, base, lang: body.lang });
+          return json({ ok: true, id: r.booking.id, total: r.total, typeName: r.typeName, instant: true, key, pay, payAmount: r.pay, payMinutes: HOLD_MIN });
+        } catch (e) {
+          await holdToRequest(db, t, r.booking.id);
+          return json({ ok: true, id: r.booking.id, total: r.total, typeName: r.typeName, instant: false, key: '' });
+        }
+      }
       return json({ ok: true, id: r.booking.id, total: r.total, typeName: r.typeName, instant: !!r.instant, key });
     } catch (e) { return json({ ok: false, error: e.message }, 400); }
   }
@@ -45,8 +80,26 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
   if (p === '/api/booking' && m === 'GET') {
     const id = url.searchParams.get('id') || '', k = url.searchParams.get('k') || '';
     if (!secret || !/^[\w-]{6,40}$/.test(id) || k !== await bookingKey(secret, t, id)) return json({ ok: false }, 404);
-    const b = await guestBooking(db, t, id);
+    let b = await guestBooking(db, t, id);
+    if (b && b.pay && b.pay.state === 'waiting') { await checkPayment(env, t, await lastOrder(db, t, id)); b = await guestBooking(db, t, id); }
     return b ? json({ ok: true, booking: b }, 200, { 'cache-control': 'no-store' }) : json({ ok: false }, 404);
+  }
+  // the guest tries to pay again (closed the bank's page, card declined) while the room is still held
+  if (p === '/api/pay/again' && m === 'POST') {
+    const b = (await readJson(request)) || {}, id = String(b.id || ''), k = String(b.k || '');
+    if (!secret || !/^[\w-]{6,40}$/.test(id) || k !== await bookingKey(secret, t, id)) return json({ ok: false }, 404);
+    const g = await guestBooking(db, t, id), acc = await getAccount(db, t, encKey(env));
+    if (!g || !g.pay || g.pay.state !== 'waiting' || g.pay.until < new Date().toISOString() || !acc) return json({ ok: false, msg: 'expired' }, 409);
+    try { return json({ ok: true, pay: await openPayment(env, t, acc, { id, key: k, amount: g.pay.amount, origin: url.origin, base, lang: b.lang }) }); }
+    catch (e) { return json({ ok: false, msg: 'bank' }, 502); }
+  }
+  // the bank tells us a payment ended; we look the order up in this hotel only and ask the bank ourselves
+  if (p === '/api/pay/cb' && m === 'POST') {
+    const b = (await readJson(request)) || {};
+    const oid = String(b.PaymentId || b.paymentId || b.body?.order_id || b.order_id || '').slice(0, 80);
+    const order = oid ? await findOrder(db, t, oid) : null;
+    if (order) await checkPayment(env, t, order);
+    return json({ ok: true });
   }
   if (p.startsWith('/media/') && (m === 'GET' || m === 'HEAD')) {
     const id = p.slice(7);
@@ -103,7 +156,7 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
   }
   // Facebook / Instagram chat: status, "Connect Facebook", choosing a page, disconnecting (owner only)
   if (route === 'meta') {
-    const ready = !!(env.META_APP_ID && env.META_APP_SECRET && env.META_ENC_KEY && secret);
+    const ready = !!(env.META_APP_ID && env.META_APP_SECRET && encKey(env) && secret);
     if (m === 'GET') {
       const pages = await hotelPages(db, t);
       const choose = ready && u.owner ? (await pendingPages(env, t)).map(x => ({ id: x.id, name: x.name, ig: !!x.ig })) : [];
@@ -122,6 +175,25 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
       return json({ ok, msg: ok ? '' : 'ვერ მიუერთდა. სცადე თავიდან.' });
     }
     if (b.do === 'off') { await disconnectPages(db, t); await logAct(db, t, u, 'meta', 'visit2', 'Facebook გვერდი გამოეთიშა'); return json({ ok: true }); }
+    return json({ ok: false }, 400);
+  }
+  // the hotel's bank for prepayment: Visit2 turns the service on; the owner enters the bank's credentials here
+  if (route === 'pay') {
+    const addon = (t.addons || []).includes('pay'), ready = !!encKey(env);
+    if (m === 'GET') return json({ ok: true, addon, ready, banks: BANKS, account: await accountInfo(db, t) });
+    if (!u.owner || u.support) return json({ ok: false, msg: 'ბანკს მხოლოდ მფლობელი აერთებს' }, 403);
+    if (!addon) return json({ ok: false, msg: 'ონლაინ გადახდის სერვისს Visit2.ge რთავს. მოგვწერეთ და ჩაგირთავთ.' }, 403);
+    if (!ready) return json({ ok: false, msg: 'ბანკის მიერთება მალე ჩაირთვება.' }, 503);
+    const b = (await readJson(request)) || {};
+    if (b.do === 'off') { await removeAccount(db, t); await logAct(db, t, u, 'pay', 'visit2', 'ბანკი გამოეთიშა'); return json({ ok: true }); }
+    if (b.do === 'save') {
+      const c = { bank: BANKS[b.bank] ? b.bank : '', id: String(b.id || '').trim().slice(0, 120), secret: String(b.secret || '').trim().slice(0, 300), apikey: String(b.apikey || '').trim().slice(0, 300) };
+      if (!c.bank || !c.id || !c.secret || (c.bank === 'tbc' && !c.apikey)) return json({ ok: false, msg: 'შეავსეთ ყველა ველი, როგორც ბანკმა მოგცათ.' }, 400);
+      if (!(await checkCreds(env, c))) return json({ ok: false, msg: 'ბანკმა ეს მონაცემები ვერ მიიღო. შეამოწმეთ და სცადეთ ხელახლა.' }, 400);
+      await saveAccount(db, t, encKey(env), c);
+      await logAct(db, t, u, 'pay', 'visit2', BANKS[c.bank] + ' მიუერთდა');
+      return json({ ok: true, account: await accountInfo(db, t) });
+    }
     return json({ ok: false }, 400);
   }
   if (route === 'rev' && m === 'GET') return json({ rev: (await getSetting(db, t, 'rev')) || '0' });

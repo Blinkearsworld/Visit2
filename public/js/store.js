@@ -565,7 +565,7 @@ window.JIJI = (() => {
       if (i) await new Promise(r => setTimeout(r, 1500 * i));
       const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 12000);
       try {
-        const r = await fetch('api/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal });
+        const r = await fetch('api/request', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...body, lang: (document.documentElement.lang || 'ka').slice(0, 2) }), signal: ctl.signal });
         const out = await r.json().catch(() => ({}));
         clearTimeout(tm);
         if (r.ok && out.ok !== false) { refresh().catch(() => {}); return { ok: true, ...out }; }

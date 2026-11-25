@@ -72,6 +72,17 @@
     rulesOk: ['ვეთანხმები სასტუმროს წესებს', 'I agree to the hotel’s rules', 'Согласен с правилами отеля'], cancelT: ['გაუქმება', 'Cancellation', 'Отмена'], prepayT: ['წინასწარი გადახდა', 'Prepayment', 'Предоплата'],
     needRules: ['დაჯავშნამდე მონიშნეთ, რომ ეთანხმებით სასტუმროს წესებს.', 'Please tick that you agree to the hotel’s rules.', 'Отметьте, что согласны с правилами отеля.'],
     consentI: ['დაჯავშნით თქვენი სახელი და ტელეფონი გადაეცემა სასტუმროს. ჯავშანი თქვენსა და სასტუმროს შორისაა. <a href="privacy.html" target="_blank">კონფიდენციალურობა</a>', 'By booking, your name and phone go to the hotel. The booking is between you and the hotel. <a href="privacy.html" target="_blank">Privacy</a>', 'Бронируя, вы передаёте имя и телефон отелю. Бронь — между вами и отелем. <a href="privacy.html" target="_blank">Конфиденциальность</a>'],
+    instantPay: ['✓ ჯავშანი დადასტურდება გადახდისთანავე', '✓ Confirmed as soon as you pay', '✓ Подтверждается сразу после оплаты'],
+    bookPay: ['დაჯავშნა და გადახდა', 'Book and pay', 'Забронировать и оплатить'],
+    payFull: ['სრული თანხა', 'the full amount', 'полная сумма'], payDeposit: ['{p}% ავანსი', 'a {p}% deposit', 'предоплата {p}%'],
+    payNote: ['ნომერი {m} წუთით დაგიკავდებათ, სანამ სასტუმროს ბანკის გვერდზე გადაიხდით ({part}). ფული პირდაპირ სასტუმროს ანგარიშზე შედის. ბარათის მონაცემებს Visit2.ge ვერ ხედავს.', 'The room is held for {m} minutes while you pay on the hotel’s bank page ({part}). The money goes straight to the hotel’s account. Visit2.ge never sees your card.', 'Номер держится {m} минут, пока вы оплачиваете на странице банка отеля ({part}). Деньги идут прямо на счёт отеля. Visit2.ge не видит данные карты.'],
+    toBank: ['გადადიხართ ბანკის გვერდზე…', 'Taking you to the bank…', 'Переходим на страницу банка…'],
+    payWait: ['⏳ ელოდება გადახდას: {a} ₾. ნომერი თქვენთვის დაკავებულია {t}-მდე.', '⏳ Waiting for payment: {a} ₾. The room is held for you until {t}.', '⏳ Ожидает оплаты: {a} ₾. Номер держится до {t}.'],
+    payCheck: ['გადახდას ვამოწმებთ…', 'Checking the payment…', 'Проверяем оплату…'],
+    payNow: ['გადახდა', 'Pay now', 'Оплатить'], stHeld: ['ნომერი დაკავებულია, ელოდება გადახდას', 'Room held, waiting for payment', 'Номер удержан, ждёт оплаты'],
+    paid: ['💳 გადახდილია: {a} ₾', '💳 Paid: {a} ₾', '💳 Оплачено: {a} ₾'],
+    payExpired: ['გადახდის დრო ამოიწურა და ნომერი გათავისუფლდა. შეგიძლიათ ხელახლა დაჯავშნოთ.', 'The time to pay ran out and the room was released. You can book again.', 'Время оплаты истекло, номер освобождён. Можно забронировать снова.'],
+    payLate: ['გადახდა დაგვიანებით მოვიდა. სასტუმრო დაგიკავშირდებათ: ან დაგიდასტურებთ, ან თანხას დაგიბრუნებთ.', 'Your payment came after the time ran out. The hotel will contact you to confirm or refund.', 'Оплата пришла с опозданием. Отель свяжется: подтвердит бронь или вернёт деньги.'],
     booked: ['დაჯავშნილია ✓', 'Booked ✓', 'Забронировано ✓'], bookNo: ['ჯავშნის ნომერი', 'Booking number', 'Номер брони'], keepLink: ['შეინახეთ ბმული: მასზე ნებისმიერ დროს ნახავთ თქვენს ჯავშანს.', 'Keep the link: your booking is always there.', 'Сохраните ссылку: по ней всегда видна ваша бронь.'],
     myBooking: ['ჩემი ჯავშანი', 'My booking', 'Моя бронь'], stConfirmed: ['დადასტურებულია', 'Confirmed', 'Подтверждено'], stPending: ['სასტუმრო ადასტურებს', 'The hotel is confirming', 'Отель подтверждает'], stCancelled: ['გაუქმებულია', 'Cancelled', 'Отменено'],
     fellBack: ['ეს ნომერი ახლახან დაიჯავშნა, ამიტომ მოთხოვნა გაიგზავნა. სასტუმრო მალე დაგიკავშირდებათ.', 'That room was just taken, so we sent a request. The hotel will contact you soon.', 'Этот номер только что заняли, поэтому отправлен запрос. Отель скоро свяжется с вами.'],
@@ -144,7 +155,7 @@
     const KP = window.JC ? window.JC.K_PREVIEW : '';
     if (params.get('preview') === '1' && KP && ls(KP)) { C = ls(KP); return; }
     if (isDemo()) { if (J.hotel && J.hotel.mine) C = ls('v2-content-demo') || {}; return; }
-    try { const r = await fetch('api/content', { cache: 'no-store' }); if (r.ok) C = (await r.json()).content || {}; } catch (e) { /* keep defaults */ }
+    try { const r = await fetch('api/content', { cache: 'no-store' }); if (r.ok) { const o = await r.json(); C = o.content || {}; PAY = !!o.pay; PAYMIN = o.payMinutes || 20; } } catch (e) { /* keep defaults */ }
   }
 
   // ---------- rendering ----------
@@ -505,9 +516,13 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     document.querySelectorAll('.p-who').forEach(el => { el.textContent = guestsText(); });
   }
   const inst = () => !!(S().instant && S().instant.on);
+  // prepayment at the hotel's bank (Visit2 turned it on, the hotel connected its bank): the server says so in /api/content
+  let PAY = false, PAYMIN = 20;
+  const payOn = () => inst() && PAY;
+  const payPart = () => { const p = (S().instant || {}).pay || {}; return p.part === 'deposit' ? w('payDeposit').replace('{p}', p.pct || 30) : w('payFull'); };
   function rulesHtml() {
     const r = S().instant || {}, c = pick(r.cancel), pp = pick(r.prepay);
-    if (!inst()) return '';
+    if (!inst() || (!c && !pp)) return '';
     return `<div class="rules wide">${c ? `<p><b>${w('cancelT')}:</b> ${esc(c)}</p>` : ''}${pp ? `<p><b>${w('prepayT')}:</b> ${esc(pp)}</p>` : ''}
       ${c || pp ? `<label class="rules-ok"><input type="checkbox" name="rules"> <span>${w('rulesOk')}</span></label>` : ''}</div>`;
   }
@@ -521,9 +536,9 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     <label><span>${w('phone')}</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
     <label class="wide"><span>${w('wish')} <small>(${w('optional')})</small></span><textarea name="wish" rows="2" maxlength="500"></textarea></label>
     ${rulesHtml()}
-    ${inst() ? `<p class="inst-note wide">${w('instantNote')}</p>` : ''}
-    <button class="btn btn-accent wide" type="submit">${w(inst() ? 'bookNow' : 'send')}</button>
-    <p class="note wide">${w(inst() ? 'noPayI' : 'noPay')}</p>
+    ${inst() ? `<p class="inst-note wide">${w(payOn() ? 'instantPay' : 'instantNote')}</p>` : ''}
+    <button class="btn btn-accent wide" type="submit">${w(payOn() ? 'bookPay' : inst() ? 'bookNow' : 'send')}</button>
+    <p class="note wide">${payOn() ? w('payNote').replace('{m}', PAYMIN).replace('{part}', payPart()) : w(inst() ? 'noPayI' : 'noPay')}</p>
     <p class="note wide">${w(inst() ? 'consentI' : 'consent')}</p>
     <p class="msg wide" id="msg" role="status"></p>
   </form>
@@ -664,6 +679,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     const req = J.createRequest({ instant: inst(), kidRule: kidsRule(), from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · ') });
     const out = await req.saved;
     btn.disabled = false;
+    if (out && out.ok && out.instant && out.pay) { msg.dataset.state = 'ok'; msg.textContent = w('toBank'); location.href = out.pay; return; }
     if (out && out.ok && out.instant && out.key) { f.reset(); showBooked(out.id, out.key, true); }
     else if (out && out.ok) { msg.dataset.state = 'ok'; msg.textContent = w(inst() ? 'fellBack' : 'sent'); f.reset(); }
     else msg.textContent = out && out.free != null ? w('onlyFree').replace('{n}', out.free) : (out && out.msg) || w('err');
@@ -677,13 +693,23 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     const u = new URL(location.href); u.hash = ''; u.searchParams.set('b', id); u.searchParams.set('k', key); const link = u.toString();
     let b = null;
     if (key === 'demo') b = J.localBooking(id);
-    else try { const r = await fetch(`api/booking?id=${encodeURIComponent(id)}&k=${encodeURIComponent(key)}`); const o = await r.json(); if (o.ok) b = o.booking; } catch (e) { /* offline: show what we know */ }
+    else {
+      const load = async () => { try { const r = await fetch(`api/booking?id=${encodeURIComponent(id)}&k=${encodeURIComponent(key)}`, { cache: 'no-store' }); const o = await r.json(); if (o.ok) b = o.booking; } catch (e) { /* offline: show what we know */ } };
+      await load();
+      // back from the bank: its answer may take a few seconds to arrive
+      for (let i = 0; i < 4 && params.get('paid') && b && b.pay && b.pay.state === 'waiting'; i++) { await new Promise(r => setTimeout(r, 2500)); await load(); }
+    }
     const st = b ? { confirmed: 'stConfirmed', pending: 'stPending', cancelled: 'stCancelled' }[b.status] : 'stConfirmed';
+    const py = b && b.pay, hm = s => new Date(s).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Tbilisi' });
+    const payHtml = !py ? '' : py.state === 'paid' ? `<p class="bk-pay" data-s="paid"><b>${w('paid').replace('{a}', py.amount)}</b></p>`
+      : py.state === 'waiting' ? `<p class="bk-pay" data-s="wait">${w('payWait').replace('{a}', py.amount).replace('{t}', hm(py.until))}</p><p><button type="button" class="btn btn-accent" data-pay>${w('payNow')}</button></p>`
+      : py.state === 'expired' ? `<p class="bk-pay" data-s="gone">${w('payExpired')}</p>` : `<p class="bk-pay" data-s="late">${w('payLate')}</p>`;
     const c = S().contact || {}, phone = c.phone || '';
     const box = document.createElement('div'); box.className = 'booked'; box.setAttribute('role', 'status');
     box.innerHTML = `<h3>${fresh ? w('booked') : w('myBooking')}</h3>
-      ${b ? `<p class="bk-st" data-s="${esc(b.status)}">${w(st)}</p><p><b>${esc(b.name)}</b><br>${J.fmtRange(b.from, b.to)} · ${J.nights(b.from, b.to)} ${w('nights')}<br>${b.rooms.map(x => `${esc(typeName((J.types[x.type] && J.types[x.type].name) || x.type))} · ${w('guestsN').replace('{n}', x.guests)}`).join('<br>')}<br><b>${fmtN(b.total)}</b></p>` : ''}
+      ${b ? `<p class="bk-st" data-s="${esc(py && py.state === 'waiting' ? 'pending' : b.status)}">${w(py && py.state === 'waiting' ? 'stHeld' : st)}</p><p><b>${esc(b.name)}</b><br>${J.fmtRange(b.from, b.to)} · ${J.nights(b.from, b.to)} ${w('nights')}<br>${b.rooms.map(x => `${esc(typeName((J.types[x.type] && J.types[x.type].name) || x.type))} · ${w('guestsN').replace('{n}', x.guests)}`).join('<br>')}<br><b>${fmtN(b.total)}</b></p>` : ''}
       ${(() => { const r = S().instant || {}, c = pick(r.cancel), pp = pick(r.prepay); return pp || c ? `<p>${pp ? `<b>${w('prepayT')}:</b> ${esc(pp)}` : ''}${pp && c ? '<br>' : ''}${c ? `<b>${w('cancelT')}:</b> ${esc(c)}` : ''}</p>` : ''; })()}
+      ${payHtml}
       <p class="bk-no">${w('bookNo')}: <b>${esc(String(id).slice(-6).toUpperCase())}</b></p>
       ${fresh ? `<p>${w('keepLink')}</p><p class="bk-acts"><a class="btn btn-ghost" href="${esc(link)}">${w('myBooking')}</a><button type="button" class="btn btn-ghost" data-copy="${esc(link)}">${w('copyLink')}</button></p>` : ''}
       ${phone ? `<p>${w('callHotel')}: <a href="tel:${esc(phone.replace(/[^\d+]/g, ''))}">${esc(phone)}</a></p>` : ''}`;
@@ -698,6 +724,14 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
       box.append(again);
     }
     if (fresh) try { history.replaceState(null, '', link); } catch (e) { /* ignore */ }
+    box.querySelector('[data-pay]')?.addEventListener('click', async ev => {
+      const btn = ev.currentTarget; btn.disabled = true; btn.textContent = w('toBank');
+      try {
+        const r = await fetch('api/pay/again', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, k: key, lang: (document.documentElement.lang || 'ka').slice(0, 2) }) });
+        const o = await r.json(); if (o.ok && o.pay) { location.href = o.pay; return; }
+      } catch (e) { /* below */ }
+      showBooked(id, key, false);
+    });
     box.querySelector('[data-copy]')?.addEventListener('click', async ev => {
       const b2 = ev.currentTarget;
       try { if (navigator.share && matchMedia('(pointer: coarse)').matches) await navigator.share({ url: b2.dataset.copy }); else { await navigator.clipboard.writeText(b2.dataset.copy); b2.textContent = w('copied'); } } catch (e) { /* closed */ }
@@ -711,6 +745,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     if (params.get('b') && params.get('k')) showBooked(params.get('b'), params.get('k'), false);
     // for the chatbot: is instant booking on, the hotel's rules, and "go to the booking form" with the chosen dates
     const R = S().instant || {};
+    window.V2_PAY = payOn() ? { min: PAYMIN, part: payPart() } : null;
     window.V2_INSTANT = inst(); window.V2_RULES = { cancel: pick(R.cancel), prepay: pick(R.prepay), kids: kidsRule().mode ? kidsRule() : null };
     window.V2_GOBOOK = (from, to, g, kids) => {
       if (from && to) { sel.from = from; sel.to = to; }

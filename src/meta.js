@@ -5,7 +5,8 @@
 //   POST /api/meta/delete     Meta's data-deletion request (signed_request)
 // The talk is the same script as the site chatbot (no AI): prices, free rooms with adults 13+, children 2–12,
 // infants and rooms, then instant booking (where the hotel turned it on) or a request the hotel confirms.
-// Secrets (Cloudflare): META_APP_ID, META_APP_SECRET, META_VERIFY_TOKEN, META_ENC_KEY. Optional META_GRAPH_VERSION.
+// Secrets (Cloudflare): META_APP_ID, META_APP_SECRET, META_VERIFY_TOKEN, ENC_KEY (or META_ENC_KEY). Optional META_GRAPH_VERSION.
+import { encKey } from './db/pay.js';
 import { json } from './lib/http.js';
 import { hmacHex, sameText } from './lib/crypto.js';
 import { today, addDays, nights } from './lib/time.js';
@@ -127,7 +128,7 @@ async function send(env, token, psid, text, replies) {
 
 // ---------- one message ----------
 async function handle(env, t, pageId, channel, ev) {
-  const db = env.DB, token = env.META_DRY_RUN ? 'dry' : await pageToken(db, t, pageId, env.META_ENC_KEY);
+  const db = env.DB, token = env.META_DRY_RUN ? 'dry' : await pageToken(db, t, pageId, encKey(env));
   if (!token) return;
   // a reply typed by hotel staff in the inbox: the bot stays quiet for that guest for 12 hours
   if (ev.message?.is_echo) {
@@ -281,14 +282,14 @@ async function callback(env, url) {
   const pages = (acc.data || []).map(x => ({ id: x.id, name: x.name, token: x.access_token, ig: x.instagram_business_account?.id || '' }));
   if (!pages.length) return back(t, 'nopages');
   if (pages.length === 1) return pick(env, t, pages[0]);
-  await savePending(db, t, pages, env.META_ENC_KEY);
+  await savePending(db, t, pages, encKey(env));
   return back(t, 'choose');
 }
 // one page chosen: subscribe our app to it and keep its token sealed
 export async function pick(env, t, page) {
   const r = await fetch(`https://graph.facebook.com/${GV(env)}/${page.id}/subscribed_apps?subscribed_fields=messages,messaging_postbacks,message_echoes&access_token=${encodeURIComponent(page.token)}`, { method: 'POST' });
   if (!r.ok) return back(t, 'failed');
-  try { await connectPage(env.DB, t, { pageId: page.id, igId: page.ig, token: page.token }, env.META_ENC_KEY); } catch (e) { return back(t, 'taken'); }
+  try { await connectPage(env.DB, t, { pageId: page.id, igId: page.ig, token: page.token }, encKey(env)); } catch (e) { return back(t, 'taken'); }
   return back(t, 'connected');
 }
-export async function pendingPages(env, t) { return (await takePending(env.DB, t, env.META_ENC_KEY)) || []; }
+export async function pendingPages(env, t) { return (await takePending(env.DB, t, encKey(env))) || []; }

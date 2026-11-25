@@ -87,7 +87,7 @@ export const deleteTask = (db, id) => db.prepare('DELETE FROM tasks WHERE id = ?
 // ---------- managing one hotel: services, payments, status, help access ----------
 // Every change here is written to the hotel's own journal (actlog) as "Visit2", so the hotel sees what we did.
 
-export const ADDONS = { catalog: 20, domain: 10 };            // GEL a month on top of the system (50)
+export const ADDONS = { catalog: 20, domain: 10, pay: 0 };      // pay: prepayment through the hotel's bank (price not set yet)            // GEL a month on top of the system (50)
 export const BASE_PRICE = 50, PAUSE_PRICE = 10;
 const STATUSES = ['trial', 'active', 'paused', 'closed'];
 const day = v => (/^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : null);
@@ -188,7 +188,7 @@ export async function grantHelp(db, t, who, hours) {
   return until;
 }
 // removes a hotel and everything it has, except our payment records (kept for accounting, see retention.js); only a switched-off hotel, and only when its slug is typed again
-const HOTEL_TABLES = ['settings', 'seasons', 'types', 'rooms', 'bookings', 'payments', 'guest_notes', 'convos', 'site_content', 'media', 'actlog', 'support_access', 'meta_pages', 'domains', 'memberships'];
+const HOTEL_TABLES = ['settings', 'seasons', 'types', 'rooms', 'bookings', 'payments', 'guest_notes', 'convos', 'site_content', 'media', 'actlog', 'support_access', 'meta_pages', 'pay_accounts', 'pay_orders', 'domains', 'memberships'];
 export async function deleteHotel(db, t, confirm) {
   if (t.status !== 'closed') throw new Error('ჯერ სასტუმრო გამორთე, მერე წაშალე');
   if (confirm !== t.slug) throw new Error(`დასადასტურებლად ჩაწერე: ${t.slug}`);
