@@ -7,6 +7,8 @@ import { getContent, listVersions, getVersion, saveContent, putMedia, getMedia, 
 import { adminAction } from './db/actions.js';
 import { getSetting } from './db/settings.js';
 import { grantHelp, helpUntil, listNotices } from './db/ops.js';
+import { hotelPages, disconnectPages } from './db/meta.js';
+import { metaStartUrl, pick, pendingPages } from './meta.js';
 import {
   checkLogin, makeCookie, supportSignIn, clearCookie, sessionUser, tooManyFails, noteFail, clearFails, logAct, bookingLog, journal,
   can, teamList, addMember, updateStaff, setStaffPassword, removeStaff, renameMe, PERMS, hmac,
@@ -98,6 +100,29 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
     const until = await grantHelp(db, t, u.name, b.hours);
     await logAct(db, t, u, 'help', 'visit2', until ? `დახმარება დაშვებულია ${b.hours} საათით` : 'დახმარება გაუქმდა');
     return json({ ok: true, until });
+  }
+  // Facebook / Instagram chat: status, "Connect Facebook", choosing a page, disconnecting (owner only)
+  if (route === 'meta') {
+    const ready = !!(env.META_APP_ID && env.META_APP_SECRET && env.META_ENC_KEY && secret);
+    if (m === 'GET') {
+      const pages = await hotelPages(db, t);
+      const choose = ready && u.owner ? (await pendingPages(env, t)).map(x => ({ id: x.id, name: x.name, ig: !!x.ig })) : [];
+      return json({ ok: true, ready, pages, choose });
+    }
+    if (!u.owner || u.support) return json({ ok: false, msg: 'Facebook-ს მხოლოდ მფლობელი აერთებს' }, 403);
+    if (!ready) return json({ ok: false, msg: 'Facebook-ის მიერთება მალე ჩაირთვება.' }, 503);
+    const b = (await readJson(request)) || {};
+    if (b.do === 'start') return json({ ok: true, url: await metaStartUrl(env, t) });
+    if (b.do === 'pick') {
+      const pg = (await pendingPages(env, t)).find(x => x.id === String(b.id || ''));
+      if (!pg) return json({ ok: false, msg: 'სია ძველია. დააჭირე „Facebook-ის მიერთებას“ თავიდან.' }, 400);
+      const r = await pick(env, t, pg);
+      const ok = /meta=connected/.test(r.headers.get('location') || '');
+      if (ok) await logAct(db, t, u, 'meta', 'visit2', 'Facebook გვერდი მიუერთდა: ' + pg.name);
+      return json({ ok, msg: ok ? '' : 'ვერ მიუერთდა. სცადე თავიდან.' });
+    }
+    if (b.do === 'off') { await disconnectPages(db, t); await logAct(db, t, u, 'meta', 'visit2', 'Facebook გვერდი გამოეთიშა'); return json({ ok: true }); }
+    return json({ ok: false }, 400);
   }
   if (route === 'rev' && m === 'GET') return json({ rev: (await getSetting(db, t, 'rev')) || '0' });
   if (route === 'action' && m === 'POST') {

@@ -13,6 +13,7 @@ import { tenantBySlug } from './db/tenants.js';
 import { supportToken } from './db/users.js';
 import { today, addDays } from './lib/time.js';
 import { catalog } from './db/catalog.js';
+import { metaApi } from './meta.js';
 
 export async function platformApi(request, env, { preview = false } = {}) {
   const url = new URL(request.url), p = url.pathname, m = request.method, db = env.DB;
@@ -35,6 +36,7 @@ export async function platformApi(request, env, { preview = false } = {}) {
     const hotels = await catalog(db, { siteOf, from, to, guests: g, rooms, kids });
     return json({ hotels }, 200, { 'cache-control': 'public, max-age=60' });
   }
+  if (p === '/api/meta' || p.startsWith('/api/meta/')) return metaApi(request, env, url);
   if (p.startsWith('/api/ops/')) return opsApi(request, env, url, preview);
   return json({ error: 'not found' }, 404);
 }

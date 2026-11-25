@@ -29,7 +29,33 @@
       <div class="v2acts">${[[24, '24 საათით'], [72, '3 დღით'], [168, '7 დღით']].map(([n, t]) => `<button type="button" class="btn${on ? '' : ' pri'}" data-help="${n}">${on ? 'გაგრძელება ' : 'დაშვება '}${t}</button>`).join('')}${on ? '<button type="button" class="btn" data-help="0">უფლების გაუქმება</button>' : ''}</div>`;
   }
 
-  function draw() { if (!J.me) return; bar(); helpCard(); }
+  // Facebook / Instagram chat: connect the hotel's page with one button (owner only)
+  let metaState = null;
+  async function metaCard() {
+    const area = $('teamArea'); if (!area || J.mode !== 'api') return;
+    let el = $('v2Meta');
+    if (!el) { el = document.createElement('section'); el.id = 'v2Meta'; el.className = 'panel v2help'; ($('v2Help') || area.querySelector('main').firstChild).after(el); }
+    if (!metaState) { try { metaState = await (await fetch('api/admin/meta', { cache: 'no-store' })).json(); } catch (e) { metaState = { ready: false, pages: [], choose: [] }; } }
+    const me = J.me || {}, M = metaState, fb = (M.pages || []).find(x => x.channel === 'fb'), ig = (M.pages || []).some(x => x.channel === 'ig');
+    const said = { connected: '✓ გვერდი მიუერთდა.', cancelled: 'მიერთება გაუქმდა.', failed: 'ვერ მიუერთდა. სცადე თავიდან.', nopages: 'ამ Facebook-ზე გვერდი ვერ ვიპოვეთ. შედი იმ ანგარიშით, რომელიც გვერდს მართავს.', taken: 'ეს გვერდი სხვა სასტუმროს უკვე მიერთებული აქვს. მოგვწერე და გავარკვევთ.' }[new URLSearchParams(location.search).get('meta')] || '';
+    el.innerHTML = `<h2>Facebook და Instagram ჩატი</h2>
+      <p class="sub">მიუერთეთ თქვენი Facebook გვერდი და სტუმრები მესენჯერში (და Instagram-ზე, თუ გვერდთან არის მიბმული) იმავე ასისტენტს ნახავენ, რაც საიტზე: ფასები, თავისუფალი ნომრები და ჯავშანი.</p>
+      ${said ? `<p class="v2on">${esc(said)}</p>` : ''}
+      ${!M.ready ? '<p class="sub"><b>მალე.</b> ამ ღილაკს ჩავრთავთ, როგორც კი Meta შემოწმებას დაასრულებს.</p>'
+        : fb ? `<p class="v2on">✓ მიერთებულია: Facebook${ig ? ' და Instagram' : ''}</p>${me.owner && !me.support ? '<div class="v2acts"><button type="button" class="btn" data-meta="off">გამორთვა</button></div>' : ''}`
+        : (M.choose || []).length ? `<p>აირჩიეთ გვერდი:</p><div class="v2acts">${M.choose.map(x => `<button type="button" class="btn pri" data-meta="pick" data-id="${esc(x.id)}">${esc(x.name)}${x.ig ? ' + Instagram' : ''}</button>`).join('')}</div>`
+        : me.owner && !me.support ? '<div class="v2acts"><button type="button" class="btn pri" data-meta="start">Facebook-ის მიერთება</button></div>' : '<p class="sub">მიერთება მფლობელს შეუძლია.</p>'}`;
+  }
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('[data-meta]'); if (!b) return;
+    b.disabled = true;
+    try {
+      const o = await (await fetch('api/admin/meta', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ do: b.dataset.meta, id: b.dataset.id }) })).json();
+      if (o.url) { location.href = o.url; return; }
+      metaState = null; await metaCard();
+    } catch (x) { b.disabled = false; }
+  });
+  function draw() { if (!J.me) return; bar(); helpCard(); metaCard(); }
   document.addEventListener('click', async e => {
     const off = e.target.closest('[data-off]');
     if (off) { const l = hidden(); l.push(off.dataset.off); try { localStorage.setItem('v2-notice-off', JSON.stringify(l.slice(-30))); } catch (x) { /* private mode */ } bar(); return; }
