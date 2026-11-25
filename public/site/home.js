@@ -303,9 +303,11 @@
     fireplace: ['ბუხარი', 'Fireplace', 'Камин'], pool: ['აუზი', 'Pool', 'Бассейн'], garden: ['ეზო', 'Garden', 'Сад'], bbq: ['მაყალი', 'BBQ', 'Мангал'], pets: ['ცხოველით', 'Pets allowed', 'С животными'],
     ski: ['საბაგიროსთან', 'Near ski lifts', 'У подъёмника'], balcony: ['აივანი', 'Balcony', 'Балкон'], kids: ['საბავშვო კუთხე', 'Kids corner', 'Детский уголок'], transfer: ['ტრანსფერი', 'Transfer', 'Трансфер'],
     sea: ['ზღვასთან', 'Near the sea', 'У моря'], center: ['ცენტრში', 'City centre', 'В центре'] };
-  const nameOf = n => (typeof n === 'string' ? n : n ? n[F.lang] || n.ka || n.en || '' : '');
+  // the sample hotels' room types are written in Georgian; the same names as on the hotel page (site/site.js TYPE_TR)
+  const TYPE_TR = { 'სტანდარტული ორადგილიანი': ['Standard double', 'Стандартный двухместный'], 'საოჯახო, 1 საძინებლით (4+1)': ['Family, 1 bedroom (4+1)', 'Семейный, 1 спальня (4+1)'], 'ლუქსი, 2 საძინებლით': ['Suite, 2 bedrooms', 'Люкс, 2 спальни'] };
+  const nameOf = n => { const v = typeof n === 'string' ? n : n ? n[F.lang] || n.ka || n.en || '' : ''; return F.lang !== 'ka' && TYPE_TR[v] ? TYPE_TR[v][F.lang === 'en' ? 0 : 1] : v; };
   function cmpFacts(x) {
-    const types = x.real ? (x.roomTypes || []) : Object.values(x.types || {}).map(t => nameOf(t.name));
+    const types = (x.real ? (x.roomTypes || []) : Object.values(x.types || {}).map(t => t.name)).map(nameOf);
     const cap = x.real ? x.cap : Math.max(0, ...Object.values(x.types || {}).flatMap(t => (t.rates || []).map(r => r.guests)));
     const k = x.real ? x.kids : x.site?.kids;
     return { types, cap, rooms: x.real ? x.rooms : (D && D.ROOMS ? D.ROOMS.length : null), amen: x.site?.amenities || x.amenities || [],

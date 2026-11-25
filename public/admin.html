@@ -342,6 +342,58 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:var(--teal)!impor
 .bar .out{margin-left:6px}
 @media(max-width:640px){.bar .v2logo{height:22px}.bar b{font-size:16px;padding-left:10px}.bar .in{gap:8px;padding:0 12px}.bar .out{padding:0 10px}}
 body:has(#gate:not([hidden])) .v2h-btn{display:none}
+/* ===== Visit2.ge look for ჯავშნები (25 Nov 2026): the same calm style as Visit2.ge and საიტის მართვა =====
+   tabs as soft pills, rounded white panels and cards, teal actions, warm greys instead of the old blue ones */
+:root{--ok:#0B7A73;--okbg:#E3F1EF;--lamp:#F6D9A8}
+.tabs,.stabs{gap:8px;padding:14px 16px 6px;scroll-padding:0 16px}
+.tab,.stab{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--mute);font-weight:600}
+.tab:hover,.stab:hover{color:var(--ink);border-color:#D6CBBB}
+.tab[aria-selected=true],.stab[aria-selected=true]{background:#E3F1EF;border-color:#BFE0DC;color:var(--night);box-shadow:none;font-weight:700}
+.tab .badge,.badge{background:#F6D9A8;color:var(--ink)}
+.panel{border-radius:20px;margin-top:8px;box-shadow:0 1px 0 rgba(31,26,23,.03)}
+main{max-width:1240px}
+h1{font-size:clamp(20px,3vw,24px);font-weight:700}
+h2{font-weight:700}
+.btn.okb{background:var(--night);border-color:var(--night);color:#fff}
+.btn.okb:hover{background:var(--teal);border-color:var(--teal)}
+.btn.nob{color:#9B2C1F;border-color:#EBD3CC}
+.btn:focus-visible,.tab:focus-visible,input:focus-visible,select:focus-visible,.cell:focus-visible,.meth input:focus-visible+span{outline:3px solid var(--teal);outline-offset:2px}
+.lnk,.redit>summary,.padd>summary{color:var(--night)}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(min(100%,168px),1fr))}
+.kpi{background:#fff;border-radius:16px}
+.kpi.main{background:var(--teal);border-color:var(--teal)}
+.kpi.main small,.kpi.main span{color:rgba(255,255,255,.82)}
+.req,.pcard{background:#fff;border-radius:16px}
+.req{gap:12px;padding:18px}
+.wish{background:#FFF8EE;border-color:#F0DDBF}
+.remark{background:#E3F1EF;border-color:#BFE0DC}
+.gnote{background:#FFF8EE;border-color:#F0DDBF}
+.p-back{background:#E3F1EF;color:var(--night)}
+.p-none{background:#F1ECE4}
+.p-gap{background:#FFF1D9;color:#7A5200}
+.empty{border-radius:16px;background:#FFFCF7}
+.dl .it,.rt,.gi2{border-radius:14px}
+.rt.busy{background:#F7F3EC}
+.rt.in{border-color:#9FD0C8;background:#F0F8F6}
+.rt.out{border-color:#EBD3A6;background:#FFF8EE}
+button.rt:hover{border-color:#D6CBBB}
+.money div{background:#F7F3EC;border-radius:12px}
+.bar2{background:#EFE7DB}
+#gTable tr[data-g]:hover td,.mt tr[data-open]:hover td,.jlog li.go:hover{background:#FAF6F0}
+.seg .btn{border-radius:0}.seg .btn:first-child{border-radius:999px 0 0 999px}.seg .btn:last-child{border-radius:0 999px 999px 0}
+main input,main select,main textarea,dialog input,dialog select,dialog textarea,.rpick select,.rpick input,.rml textarea,.range input,.prices input,.gctl select,.gctl input{border-radius:12px}
+.cal th,.cal td{border-right-color:#EFE7DB}
+.cal thead th.td{background:#F6D9A8}
+.cell:hover{background:#F7F3EC}
+.pend td,.pend th.room{background:#FFF8EE}
+.dp-d{border-radius:10px}.dp-d.in{background:#DCEFEC}.dp-d.full{background:#F1ECE4;color:#A79C8F}.dp-d.past{color:#CFC6BA}
+.dp-nav{border-radius:999px}
+dialog{border-radius:20px;box-shadow:0 30px 80px rgba(31,26,23,.3)}
+dialog::backdrop,.dpick::backdrop{background:rgba(31,26,23,.45)}
+.toast{background:var(--ink);box-shadow:0 10px 30px rgba(31,26,23,.3);border-radius:14px}
+.alert{box-shadow:0 6px 18px -12px rgba(31,26,23,.4)}
+.hist th,.mt thead th,.prices th{font-weight:600}
+main select,dialog select{background-color:#fff;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -540,10 +592,10 @@ body:has(#gate:not([hidden])) .v2h-btn{display:none}
 </form>
 </dialog>
 
-<script src="site/hotels.js?v=20261125a"></script>
-<script src="js/i18n.js?v=20261125a"></script>
-<script src="js/store.js?v=20261125a"></script>
-<script src="js/content.js?v=20261125a"></script>
+<script src="site/hotels.js?v=20261125b"></script>
+<script src="js/i18n.js?v=20261125b"></script>
+<script src="js/store.js?v=20261125b"></script>
+<script src="js/content.js?v=20261125b"></script>
 <script>
 {
 const J=JIJI,$=id=>document.getElementById(id);
@@ -1085,11 +1137,11 @@ function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderS
 J.onChange(()=>{if(!$('app').hidden){renderAll();checkNew()}});
 }
 </script>
-<script src="js/admin-dates.js?v=20261125a"></script>
-<script src="js/admin-team.js?v=20261125a"></script>
-<script src="js/admin-v2.js?v=20261125a"></script>
-<script src="js/osm.js?v=20261125a"></script>
-<script src="js/admin-site.js?v=20261125a"></script>
-<script src="js/admin-help.js?v=20261125a"></script>
+<script src="js/admin-dates.js?v=20261125b"></script>
+<script src="js/admin-team.js?v=20261125b"></script>
+<script src="js/admin-v2.js?v=20261125b"></script>
+<script src="js/osm.js?v=20261125b"></script>
+<script src="js/admin-site.js?v=20261125b"></script>
+<script src="js/admin-help.js?v=20261125b"></script>
 </body>
 </html>
