@@ -16,12 +16,14 @@
     gNoTown: ['ეს ადგილი ვერ ვიპოვე. აირჩიე ღილაკით ან სხვანაირად ჩაწერე.', 'I could not find that place. Pick a button or try another spelling.', 'Не нашёл такое место. Выберите кнопку или напишите иначе.'],
     gWhere2: ['ან ჩაწერე ქალაქის ან სასტუმროს სახელი', 'or type a town or a hotel name', 'или напишите город или название отеля'],
     gNoTownHotel: ['ასეთი ადგილი ან სასტუმრო ვერ ვიპოვე. აირჩიე ღილაკით ან სხვანაირად ჩაწერე.', 'I could not find that place or hotel. Pick a button or try another spelling.', 'Не нашёл такое место или отель. Выберите кнопку или напишите иначе.'],
-    gHotelIs: ['ვიპოვე: {h}, {c}. რა თარიღებზე გინდა?', 'Found it: {h}, {c}. Which dates?', 'Нашёл: {h}, {c}. На какие даты?'],
+    gHotelIs: ['ვიპოვე: {h}, {c}.', 'Found it: {h}, {c}.', 'Нашёл: {h}, {c}.'],
     gWhichHotel: ['რომელი სასტუმრო?', 'Which hotel?', 'Какой отель?'],
     gOpenHotel: ['სასტუმროს გვერდი', 'Hotel page', 'Страница отеля'],
     gHotelBusy: ['{h}: ამ თარიღებზე თავისუფალი ნომერი არ ჩანს. სცადე სხვა თარიღი ან ნახე სასტუმროს გვერდი.', '{h}: no free room on these dates. Try other dates or see the hotel page.', '{h}: на эти даты свободных номеров нет. Попробуйте другие даты или страницу отеля.'],
     gWhen: ['როდის?', 'When?', 'Когда?'], gThisWk: ['ამ შაბათ-კვირას', 'This weekend', 'В эти выходные'], gNextWk: ['შემდეგ შაბათ-კვირას', 'Next weekend', 'В следующие выходные'],
-    gOther: ['სხვა თარიღი', 'Other dates', 'Другие даты'], gAskDates: ['ჩაწერე თარიღები ასე: 15.01–18.01', 'Type the dates like this: 15.01–18.01', 'Напишите даты так: 15.01–18.01'],
+    gOther: ['სხვა თარიღი', 'Other dates', 'Другие даты'], gAskDates: ['აირჩიე შესვლის და გასვლის დღე', 'Pick the arrival and departure day', 'Выберите дни заезда и выезда'],
+    gIn: ['შესვლა', 'Arrival', 'Заезд'], gOut: ['გასვლა', 'Departure', 'Выезд'], gGo: ['გაგრძელება', 'Continue', 'Продолжить'],
+    gPickOut: ['ახლა აირჩიე გასვლის დღე', 'Now pick the departure day', 'Теперь выберите день выезда'],
     gBadDates: ['ვერ გავიგე. ჩაწერე ასე: 15.01–18.01', 'I did not get that. Type like: 15.01–18.01', 'Не понял. Напишите так: 15.01–18.01'],
     gWho: ['რამდენი ზრდასრული? (13 წლიდან)', 'How many adults? (13 and over)', 'Сколько взрослых? (от 13 лет)'],
     gKids: ['ბავშვები (2–12 წლის)?', 'Children (2–12)?', 'Дети (2–12 лет)?'], gNoKids: ['ბავშვის გარეშე', 'No children', 'Без детей'],
@@ -60,6 +62,7 @@
 .vc-x{background:none;border:0;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:4px 8px}.vc-log{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#FFF8EE}
 .vc-m{max-width:88%;padding:9px 12px;border-radius:14px;background:#fff;box-shadow:0 1px 0 #eadfce;white-space:pre-line}.vc-m.me{align-self:flex-end;background:#0E857D;color:#fff}
 .vc-m a{color:#0B7A73;font-weight:700}.vc-hot{display:block;margin-top:6px;padding:8px 10px;border:1px solid #eadfce;border-radius:10px;text-decoration:none;color:#1F1A17}.vc-hot b{display:block}
+.vc-cal{align-self:stretch;background:#fff;border:1px solid #eadfce;border-radius:14px;padding:10px}.vc-cal-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 6px}.vc-cal-h b{font-size:15px}.vc-cal-h button{width:44px;height:40px;border:0;border-radius:10px;background:#F0F8F6;color:#0B7A73;font-size:20px;cursor:pointer}.vc-cal-h button:disabled{opacity:.3;cursor:default}.vc-cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}.vc-cal-g i{font-style:normal;font-size:12px;color:#8a7f76;padding:4px 0}.vc-cal-g button{height:40px;border:0;border-radius:10px;background:none;font:inherit;font-size:15px;color:#1F1A17;cursor:pointer}.vc-cal-g button:disabled{color:#cfc5b8;cursor:default}.vc-cal-g button.mid{background:#E3F2EF}.vc-cal-g button.on{background:#0E857D;color:#fff;font-weight:700}.vc-cal-s{margin:8px 2px;font-size:14px;color:#5f5650;min-height:20px}.vc-cal-go{width:100%;min-height:44px;border:0;border-radius:12px;background:#0B7A73;color:#fff;font:inherit;font-weight:700;cursor:pointer}.vc-cal-go:disabled{opacity:.4;cursor:default}
 .vc-opts{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-top:1px solid #f0e6d8}.vc-opts button,.vc-opts a{min-height:44px;padding:0 16px;border:1.5px solid #0E857D;border-radius:999px;background:#fff;color:#0B7A73;font-family:inherit;font-size:15px;font-weight:600;line-height:1.2;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
 .vc-in{display:flex;gap:6px;padding:10px 12px;border-top:1px solid #f0e6d8}.vc-in input{flex:1;min-height:42px;padding:0 12px;border:1px solid #eadfce;border-radius:10px;font-family:inherit;font-size:16px;font-weight:500}.vc-in button{min-height:42px;padding:0 14px;border:0;border-radius:10px;background:#0E857D;color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}`;
   document.head.insertAdjacentHTML('beforeend', `<style>${css}</style>`);
@@ -136,7 +139,44 @@
   function gWhen() {
     say(esc(m('gWhen')));
     choose([{ t: m('gThisWk'), f: () => { [q.from, q.to] = weekend(0); gWho(); } }, { t: m('gNextWk'), f: () => { [q.from, q.to] = weekend(1); gWho(); } },
-      { t: m('gOther'), f: () => { choose([{ t: m('back'), f: start }]); ask(m('gAskDates'), parseDates); } }]);
+      { t: m('gOther'), f: pickDates }]);
+  }
+  // dates by tapping a calendar (typing 15.01–18.01 still works for those who prefer it)
+  const MON = { ka: ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'],
+    en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    ru: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'] };
+  const WD = { ka: ['ორ', 'სა', 'ოთ', 'ხუ', 'პა', 'შა', 'კვ'], en: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'], ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] };
+  const LK = () => ['ka', 'en', 'ru'][L()] || 'ka';
+  function pickDates() {
+    say(esc(m('gAskDates')));
+    const box = document.createElement('div'); box.className = 'vc-cal'; log.appendChild(box);
+    const t0 = F.today(); let ym = t0.slice(0, 7), a = '', b = '';
+    const p2 = n => String(n).padStart(2, '0');
+    const draw = () => {
+      const [y, mo] = ym.split('-').map(Number), first = new Date(Date.UTC(y, mo - 1, 1)), days = new Date(Date.UTC(y, mo, 0)).getUTCDate();
+      const lead = (first.getUTCDay() + 6) % 7, cells = [];
+      for (let i = 0; i < lead; i++) cells.push('<span></span>');
+      for (let d = 1; d <= days; d++) {
+        const ds = `${y}-${p2(mo)}-${p2(d)}`, past = ds < t0, on = ds === a || ds === b, mid = a && b && ds > a && ds < b;
+        cells.push(`<button type="button" data-d="${ds}"${past ? ' disabled' : ''} class="${on ? 'on' : mid ? 'mid' : ''}">${d}</button>`);
+      }
+      const prev = ym > t0.slice(0, 7);
+      box.innerHTML = `<div class="vc-cal-h"><button type="button" data-nav="-1" aria-label="‹"${prev ? '' : ' disabled'}>‹</button><b>${MON[LK()][mo - 1]} ${y}</b><button type="button" data-nav="1" aria-label="›">›</button></div>
+        <div class="vc-cal-g">${WD[LK()].map(x => `<i>${x}</i>`).join('')}${cells.join('')}</div>
+        <p class="vc-cal-s">${a ? `${m('gIn')}: <b>${F.fmt(a)}</b>` : ''}${b ? ` · ${m('gOut')}: <b>${F.fmt(b)}</b>` : a ? ` · ${esc(m('gPickOut'))}` : ''}</p>
+        <button type="button" class="vc-cal-go"${a && b ? '' : ' disabled'}>${m('gGo')}</button>`;
+      log.scrollTop = log.scrollHeight;
+    };
+    box.addEventListener('click', e => {
+      const x = e.target.closest('button'); if (!x || x.disabled) return;
+      if (x.dataset.nav) { const [y, mo] = ym.split('-').map(Number), d = new Date(Date.UTC(y, mo - 1 + +x.dataset.nav, 1)); ym = d.toISOString().slice(0, 7); draw(); return; }
+      if (x.dataset.d) { const d = x.dataset.d; if (!a || b || d <= a) { a = d; b = ''; } else b = d; draw(); return; }
+      if (x.classList.contains('vc-cal-go') && a && b) { box.remove(); say(esc(`${F.fmt(a)} – ${F.fmt(b)}`), true); q.from = a; q.to = b; onText = null; gWho(); }
+    });
+    draw();
+    choose([{ t: m('back'), f: start }]);
+    onText = parseDates;
+    $('vcText').blur();
   }
   function parseDates(v) {
     const x = v.match(/(\d{1,2})[./](\d{1,2})\D+(\d{1,2})[./](\d{1,2})/);
