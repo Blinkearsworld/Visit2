@@ -1,0 +1,16 @@
+{
+  "name": "Visit2.ge",
+  "short_name": "Visit2.ge",
+  "description": "სასტუმროები საქართველოში, პირდაპირ ჯავშნით",
+  "lang": "ka",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFF8EE",
+  "theme_color": "#0E857D",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
