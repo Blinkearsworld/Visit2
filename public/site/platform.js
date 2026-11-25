@@ -11,10 +11,10 @@
   // asks the server once per set of dates; the answer says which real hotels are free and their price
   function loadReal(q = {}) {
     if (!HAS_SERVER) return Promise.resolve(REAL);
-    const dated = q.from && q.to && q.to > q.from, rooms = q.rooms > 1 ? +q.rooms : 1, key = dated ? `${q.from}|${q.to}|${q.g || 2}|${rooms}` : '';
+    const dated = q.from && q.to && q.to > q.from, rooms = q.rooms > 1 ? +q.rooms : 1, key = dated ? `${q.from}|${q.to}|${q.g || 2}|${rooms}|${q.kids || 0}` : '';
     if (key === realKey) return realWait || Promise.resolve(REAL);
     realKey = key;
-    realWait = fetch('api/catalog' + (dated ? `?from=${q.from}&to=${q.to}&g=${q.g || 2}${rooms > 1 ? '&rooms=' + rooms : ''}` : ''))
+    realWait = fetch('api/catalog' + (dated ? `?from=${q.from}&to=${q.to}&g=${q.g || 2}${rooms > 1 ? '&rooms=' + rooms : ''}${q.kids ? '&k=' + q.kids : ''}` : ''))
       .then(r => (r.ok ? r.json() : { hotels: [] })).then(d => {
         REAL = (d.hotels || []).map(h => ({ ...h, offerKey: key, types: {}, site: { amenities: h.amenities || [] } }));
         realHooks.forEach(f => { try { f(); } catch (e) { console.error(e); } });
@@ -155,11 +155,11 @@
 
   // ---------- guests: search (also used by the chatbot) ----------
   const booked = h => { try { const st = JSON.parse(localStorage.getItem('v2-demo-' + h.slug) || 'null'); return st ? st.bookings.filter(b => b.status === 'confirmed') : []; } catch (e) { return []; } };
-  function offer(h, from, to, g, rooms = 1) {
+  function offer(h, from, to, g, rooms = 1, kids = 0) {
     if (h.real) {
       const dated = from && to && to > from;
       if (!dated) return { minFrom: h.minFrom };
-      const fresh = h.offerKey === `${from}|${to}|${g}|${rooms}`;
+      const fresh = h.offerKey === `${from}|${to}|${g}|${rooms}|${kids}`;
       return { minFrom: h.minFrom, best: fresh && h.offer ? { total: h.offer.total, type: h.offer.type } : null, n: nights(from, to), unknown: !fresh, freeRooms: h.freeRooms };
     }
     const rate = ty => (h.types[ty]?.rates || []).find(r => r.guests >= g);
@@ -198,14 +198,14 @@
     return 2 * R * Math.asin(Math.sqrt(Math.sin(dLa / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLn / 2) ** 2)); };
   const kindsOf = h => (Array.isArray(h.kinds) && h.kinds.length ? h.kinds : h.kind ? [h.kind] : []);
   // sort: '' (our order), 'cheap', 'dear', 'near' (distance from `from` — a chosen point or the town centre)
-  const find = ({ city = '', from = '', to = '', g = 2, rooms = 1, kind = '', center = null, r = 5, sort = '', near = null }) => {
+  const find = ({ city = '', from = '', to = '', g = 2, rooms = 1, kids = 0, kind = '', center = null, r = 5, sort = '', near = null }) => {
     const dated = from && to && to > from;
     const inPlace = h => !city || h.city === city || (city[0] === '@' && regionOf(h.city) === city.slice(1));
     const ref = center || near;
     const price = x => (dated ? x.o.best?.total : x.o.minFrom) || null;
     const byPrice = (a, b, dir) => (price(a) == null) - (price(b) == null) || dir * ((price(a) || 0) - (price(b) || 0));
     return pub().filter(h => !h.hidden && inPlace(h) && (!kind || kindsOf(h).includes(kind)))
-      .map(h => ({ h, o: offer(h, from, to, g, rooms), d: ref && h.lat ? km(ref, h) : null }))
+      .map(h => ({ h, o: offer(h, from, to, g, rooms, kids), d: ref && h.lat ? km(ref, h) : null }))
       .filter(x => !center || (x.d != null && x.d <= r))
       .sort((a, b) => (dated ? (!!b.o.best - !!a.o.best) : 0)
         || (sort === 'cheap' ? byPrice(a, b, 1) : sort === 'dear' ? byPrice(a, b, -1) : 0)

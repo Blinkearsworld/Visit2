@@ -29,10 +29,10 @@ export async function platformApi(request, env, { preview = false } = {}) {
     return json({ ok: true, slug: r.tenant.slug, site, admin: site + 'admin' });
   }
   if (p === '/api/catalog' && m === 'GET') {
-    const q = url.searchParams, from = q.get('from') || '', to = q.get('to') || '', g = Math.max(1, Math.min(20, +q.get('g') || 2)), rooms = Math.max(1, Math.min(10, +q.get('rooms') || 1));
+    const q = url.searchParams, from = q.get('from') || '', to = q.get('to') || '', g = Math.max(1, Math.min(20, +q.get('g') || 2)), rooms = Math.max(1, Math.min(10, +q.get('rooms') || 1)), kids = Math.max(0, Math.min(10, +q.get('k') || 0));
     // a hotel's address: its own subdomain, or /h/{slug}/ on the preview address
     const siteOf = t => (preview ? `${url.origin}/h/${t.slug}/` : `https://${t.slug}.${ROOT_DOMAIN}/`);
-    const hotels = await catalog(db, { siteOf, from, to, guests: g, rooms });
+    const hotels = await catalog(db, { siteOf, from, to, guests: g, rooms, kids });
     return json({ hotels }, 200, { 'cache-control': 'public, max-age=60' });
   }
   if (p.startsWith('/api/ops/')) return opsApi(request, env, url, preview);

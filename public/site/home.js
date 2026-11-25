@@ -37,6 +37,7 @@
     cmpCap: ['ერთ ნომერში', 'In one room', 'В одном номере'], cmpCapN: ['{n} სტუმრამდე', 'up to {n} guests', 'до {n} гостей'], cmpRoomsN: ['სულ {n} ნომერი', '{n} rooms in all', 'всего номеров: {n}'],
     cmpAmen: ['რა არის ადგილზე', 'Amenities', 'Удобства'], cmpKids: ['ბავშვის ფასი (2–12)', 'Child price (2–12)', 'Цена за ребёнка (2–12)'],
     kidAdult: ['როგორც უფროსის', 'Same as adults', 'Как за взрослого'], kidFree: ['უფასოა', 'Free', 'Бесплатно'], kidFixed: ['{p} ₾ ღამეში', '{p} ₾ a night', '{p} ₾ за ночь'],
+    roomsAll: ['{n}-ვე ნომერი', 'all {n} rooms', 'за {n} номера'],
     rooms: ['ნომრები', 'Rooms', 'Номера'], roomsSub: ['ერთ ჯავშანში, მთელი ჯგუფისთვის', 'In one booking, for the whole group', 'В одной брони, на всю группу'], roomsN: ['{n} ნომერი', '{n} rooms', 'номеров: {n}'],
     onlyFree: ['თავისუფალია მხოლოდ {n} ნომერი', 'Only {n} rooms free', 'Свободно только {n}'],
     guestsN: ['{n} სტუმარი', '{n} guests', 'Гостей: {n}'], guest1: ['1 სტუმარი', '1 guest', '1 гость'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], kid1: ['1 ბავშვი', '1 child', '1 ребёнок'],
@@ -242,10 +243,10 @@
   function card(x, o, s) {
     const img = x.img || (x.cover ? `img/h/${x.cover}-s.jpg` : x.site?.hero?.img || '');
     const isDated = dated(s);
-    const price = isDated && o.unknown ? `<b>${h('fromP', { p: o.minFrom })}</b> / ${h('perNight')}` : isDated ? (o.best ? `<b>${o.best.total} ₾</b> · ${h('totalN', { n: o.n })}${s.rooms > 1 ? ' · ' + h('roomsN', { n: s.rooms }) : ''}` : `<span class="h-busy">${o.freeRooms != null && s.rooms > 1 ? h('onlyFree', { n: o.freeRooms }) : h('busy')}</span>`)
+    const price = isDated && o.unknown ? `<b>${h('fromP', { p: o.minFrom })}</b> / ${h('perNight')}` : isDated ? (o.best ? `<b>${o.best.total} ₾</b> · ${h('totalN', { n: o.n })}${s.rooms > 1 ? ' · ' + h('roomsAll', { n: s.rooms }) : ''}` : `<span class="h-busy">${o.freeRooms != null && s.rooms > 1 ? h('onlyFree', { n: o.freeRooms }) : h('busy')}</span>`)
       : `<b>${h('fromP', { p: o.minFrom })}</b> / ${h('perNight')}`;
     return `<article class="h-card${isDated && !o.best && !o.unknown ? ' busy' : ''}">
-  <a href="${F.link(x, isDated ? { from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms } : {})}">
+  <a href="${F.link(x, isDated ? { from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kids: s.kids } : {})}">
     <div class="h-card-ph">${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async">` : ''}</div>
     <h3>${esc(F.hname(x))}</h3>
     <p class="h-card-m">${esc(shortTown(x.city))}${F.kindsOf(x).length ? ' · ' + esc(F.kindsOf(x).map(F.kindName).join(', ')) : ''}${o.d != null ? ' · ' + h(o.fromCentre ? 'kmCentre' : 'km', { k: o.d < 10 ? o.d.toFixed(1) : Math.round(o.d) }) : ''}</p>
@@ -321,20 +322,20 @@
   }
   function drawCompare() {
     const s = st(), isDated = dated(s), list = cmpList();
-    if (isDated) F.loadReal({ from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms });
-    const rows = list.map(slug => F.find({ from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms }).find(r => r.h.slug === slug) || F.find({ g: 2 }).find(r => r.h.slug === slug)).filter(Boolean);
+    if (isDated) F.loadReal({ from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kids: s.kids });
+    const rows = list.map(slug => F.find({ from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kids: s.kids }).find(r => r.h.slug === slug) || F.find({ g: 2 }).find(r => r.h.slug === slug)).filter(Boolean);
     const bar = $('#cmpBar');
     bar.hidden = !rows.length;
     $('#cmpN').textContent = h('cmpN', { n: rows.length });
     if (!rows.length) { if ($('#cmp').open) $('#cmp').close(); return; }
-    const price = o => isDated ? (o.unknown ? h('fromP', { p: o.minFrom }) + ' / ' + h('perNight') : o.best ? `<b>${o.best.total} ₾</b><small>${h('totalN', { n: o.n })}${s.rooms > 1 ? ' · ' + h('roomsN', { n: s.rooms }) : ''}</small>` : `<span class="h-busy">${o.freeRooms != null && s.rooms > 1 ? h('onlyFree', { n: o.freeRooms }) : h('busy')}</span>`)
+    const price = o => isDated ? (o.unknown ? h('fromP', { p: o.minFrom }) + ' / ' + h('perNight') : o.best ? `<b>${o.best.total} ₾</b><small>${h('totalN', { n: o.n })}${s.rooms > 1 ? ' · ' + h('roomsAll', { n: s.rooms }) : ''}</small>` : `<span class="h-busy">${o.freeRooms != null && s.rooms > 1 ? h('onlyFree', { n: o.freeRooms }) : h('busy')}</span>`)
       : `<b>${h('fromP', { p: o.minFrom })}</b><small>${h('perNight')}</small>`;
     const F2 = rows.map(r => ({ r, f: cmpFacts(r.h) }));
     const line = (label, cell) => `<tr><th scope="row">${esc(h(label))}</th>${F2.map(({ r, f }) => `<td>${cell(r, f)}</td>`).join('')}</tr>`;
     $('#cmpBody').innerHTML = `<p class="h-cmp-note">${isDated ? esc(`${range(s)} · ${guests(s)}`) : esc(h('pickDates'))}</p>
       <div class="h-cmp-scroll"><table class="h-cmp-t" style="min-width:${104 + F2.length * 156}px"><thead><tr><th></th>${F2.map(({ r }) => {
         const x = r.h, img = x.img || (x.cover ? `img/h/${x.cover}-s.jpg` : '');
-        return `<th scope="col"><a href="${F.link(x, isDated ? { from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms } : {})}"><span class="h-cmp-ph">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : ''}</span><b>${esc(F.hname(x))}</b></a><button type="button" class="h-cmp-rm" data-cmp="${esc(x.slug)}">${esc(h('cmpRm'))}</button></th>`;
+        return `<th scope="col"><a href="${F.link(x, isDated ? { from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kids: s.kids } : {})}"><span class="h-cmp-ph">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : ''}</span><b>${esc(F.hname(x))}</b></a><button type="button" class="h-cmp-rm" data-cmp="${esc(x.slug)}">${esc(h('cmpRm'))}</button></th>`;
       }).join('')}</tr></thead><tbody>
       ${line('cmpPrice', r => price(r.o))}
       ${line('cmpTown', r => esc(shortTown(r.h.city)))}
@@ -376,10 +377,10 @@
   }
   $('#sortBy').addEventListener('change', e => { sortBy = e.target.value; showResults(false); });
   function showResults(scroll) {
-    if (dated(st())) { const s0 = st(); F.loadReal({ from: s0.from, to: s0.to, g: s0.g + s0.kids, rooms: s0.rooms }); }
+    if (dated(st())) { const s0 = st(); F.loadReal({ from: s0.from, to: s0.to, g: s0.g + s0.kids, rooms: s0.rooms, kids: s0.kids }); }
     const s0 = st(); drawSort(s0);
     const s = s0, near = !center && sortBy === 'near' ? F.centreOf(s.city) : null;
-    const rows = F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kind: curKind, center, r: radius, sort: sortBy, near }).filter(r => petsOk(r.h, s));
+    const rows = F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kids: s.kids, kind: curKind, center, r: radius, sort: sortBy, near }).filter(r => petsOk(r.h, s));
     $('#results').hidden = false;
     $('#resTitle').textContent = center ? h('within', { r: radius }) : s.city ? F.town(s.city) : curKind ? F.kindName(curKind) : h('allStays');
     $('#resNote').textContent = dated(s) ? `${range(s)} · ${guests(s)} · ${h('freeN', { n: rows.filter(r => r.o.best).length })}` : h('pickDates');
@@ -407,14 +408,14 @@
       L.circle([center.lat, center.lng], { radius: radius * 1000, color: '#0E857D', weight: 2, fillColor: '#0E857D', fillOpacity: .1 }).addTo(layer);
       L.circleMarker([center.lat, center.lng], { radius: 6, color: '#fff', weight: 2, fillColor: '#0A3A37', fillOpacity: 1 }).addTo(layer);
     }
-    const pins = center ? rows : F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kind: curKind });
+    const pins = center ? rows : F.find({ city: s.city, from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kids: s.kids, kind: curKind });
     const pts = [];
     for (const { h: x, o } of pins) {
       if (!x.lat) continue;
       const price = dated(s) ? (o.best ? o.best.total + ' ₾' : '—') : h('fromP', { p: o.minFrom });
       const icon = L.divIcon({ className: '', html: `<span class="pin${dated(s) && !o.best ? ' no' : ''}">${esc(price)}</span>`, iconSize: null });
       L.marker([x.lat, x.lng], { icon, title: F.hname(x) }).addTo(layer)
-        .bindPopup(`<a class="pop" href="${F.link(x, dated(s) ? { from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms } : {})}"><img src="${esc(x.img || `img/h/${x.cover}-s.jpg`)}" alt=""><b>${esc(F.hname(x))}</b><span>${esc(shortTown(x.city))} · ${esc(price)}</span></a>`);
+        .bindPopup(`<a class="pop" href="${F.link(x, dated(s) ? { from: s.from, to: s.to, g: s.g + s.kids, rooms: s.rooms, kids: s.kids } : {})}"><img src="${esc(x.img || `img/h/${x.cover}-s.jpg`)}" alt=""><b>${esc(F.hname(x))}</b><span>${esc(shortTown(x.city))} · ${esc(price)}</span></a>`);
       pts.push([x.lat, x.lng]);
     }
     if (!center && pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.2), { maxZoom: 13 });

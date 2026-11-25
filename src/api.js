@@ -32,8 +32,9 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
     try {
       const st = await loadState(db, t);
       // instant booking (booking form or chat) only if the hotel turned it on: read here, never trusted from the browser
-      const on = body.instant === true && !!(await getContent(db, t)).content?.site?.instant?.on;
-      const r = await createRequest(db, t, st, { ...body, instant: on, source: body.source === 'chat' ? 'chat' : 'site' });
+      const site = (await getContent(db, t)).content?.site || {};
+      const on = body.instant === true && !!site.instant?.on;
+      const r = await createRequest(db, t, st, { ...body, instant: on, kidRule: site.kids || null, source: body.source === 'chat' ? 'chat' : 'site' });
       const key = r.instant && secret ? await bookingKey(secret, t, r.booking.id) : '';
       return json({ ok: true, id: r.booking.id, total: r.total, typeName: r.typeName, instant: !!r.instant, key });
     } catch (e) { return json({ ok: false, error: e.message }, 400); }

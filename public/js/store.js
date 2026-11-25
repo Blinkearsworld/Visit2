@@ -150,23 +150,32 @@ window.JIJI = (() => {
     return best;
   }
   // Several rooms at once (same as src/lib/availability.js roomsOffer): guests spread evenly, each part in the cheapest free room that holds it.
-  function roomsOffer(from, to, guests, n) {
+  function roomsOffer(from, to, guests, n, kids = 0, rule = null) {
     const free = ROOMS.filter(r => roomFree(r.id, from, to));
     n = Math.max(1, Math.min(n, guests));
     if (free.length < n) return { free: free.length };
-    const sizes = Array.from({ length: n }, (_, i) => Math.floor(guests / n) + (i < guests % n ? 1 : 0));
+    // adults spread evenly over the rooms, then the children: a family keeps grown-ups in every room
+    kids = Math.max(0, Math.min(kids, guests - n));
+    const even = (x, i) => Math.floor(x / n) + (i < x % n ? 1 : 0);
+    const split = Array.from({ length: n }, (_, i) => ({ a: even(guests - kids, i), k: even(kids, n - 1 - i) }));
     const used = new Set(), parts = [];
-    for (const g of sizes) {
+    for (const { a, k } of split) {
+      const g = a + k;
       let best = null;
       for (const r of free) {
         if (used.has(r.id) || !rateFor(r.type, g)) continue;
-        const total = quote(r.type, from, to, g);
-        if (!best || total < best.total) best = { room: r.id, type: r.type, name: state.types[r.type].name, guests: g, total };
+        const total = kidPrice(r.type, from, to, g, k, rule);
+        if (!best || total < best.total) best = { room: r.id, type: r.type, name: state.types[r.type].name, guests: g, kids: k, total };
       }
       if (!best) return { free: free.length };
       used.add(best.room); parts.push(best);
     }
     return { total: parts.reduce((s, x) => s + x.total, 0), parts, free: free.length };
+  }
+  // one room's price with the hotel's child rule (same as src/lib/availability.js kidPrice)
+  function kidPrice(type, from, to, guests, kids = 0, rule = null) {
+    const apart = rule && (rule.mode === 'free' || rule.mode === 'fixed');
+    return quote(type, from, to, Math.max(1, guests - (apart ? kids : 0))) + (rule && rule.mode === 'fixed' ? (+rule.price || 0) * kids * nights(from, to) : 0);
   }
   // A group too big for any single room: the cheapest pair of free rooms that holds everyone.
   const fitsOne = guests => Object.keys(state.types).some(t => rateFor(t, guests));
@@ -289,11 +298,11 @@ window.JIJI = (() => {
   }
 
   // ---------- actions ----------
-  function createRequest({ from, to, guests, name, phone, source, type, price, note, wish, deal, children, rooms, instant }) {
+  function createRequest({ from, to, guests, name, phone, source, type, price, note, wish, deal, children, rooms, instant, kidRule }) {
     rooms = Math.max(1, Math.min(10, guests, parseInt(rooms) || 1));
     if (rooms > 1) {
       // several rooms: one row per room, tied by grp (the server builds the same rows)
-      const o = roomsOffer(from, to, guests, rooms);
+      const o = roomsOffer(from, to, guests, rooms, Math.max(0, parseInt(children) || 0), kidRule || null);
       if (!o.parts) return { saved: Promise.resolve({ ok: false, free: o.free }) };
       const grp = uid(), created = new Date().toISOString(); let kids = Math.max(0, parseInt(children) || 0);
       const rows = o.parts.map(x => { const c = Math.min(kids, x.guests - 1); kids -= c;
@@ -624,7 +633,7 @@ window.JIJI = (() => {
   if (needPayments) { demoPayments(); save(); }
   return {
     ROOMS, SEASONS, get hotel() { return hotel; }, priceTable, get settings() { return state.settings; }, setSetting, siteSeason, get types() { return state.types; }, get bookings() { return state.bookings; },
-    today, addDays, nights, fmt, fmtRange, weekday, seasonOf, quote, rateFor, fromPrice, findOffer, roomsOffer, nextOffer, partialOffer, splitOffer, groupOffer, fitsOne, gaps, gapDiscount, deals, dealTotal, dealNote, gapKey, gapEdits, promos, setJSON, bestRoom, roomFree,
+    today, addDays, nights, fmt, fmtRange, weekday, seasonOf, quote, rateFor, fromPrice, findOffer, roomsOffer, kidPrice, nextOffer, partialOffer, splitOffer, groupOffer, fitsOne, gaps, gapDiscount, deals, dealTotal, dealNote, gapKey, gapEdits, promos, setJSON, bestRoom, roomFree,
     get payments() { return state.payments; }, METHODS, priceOf, paymentsOf, paidOf, payState, setPrice, addPayment, removePayment,
     createRequest, confirm, setRemark, editBooking, moveRoom, decline, addManual, restore, purge, wipe, guests, guestBefore, guestNote, setGuestNote, setGuest, daysToBday, guestKey, setRate, addRate, removeRate, remove, reset, onChange, onError, reload: load,
     get me() { return me; }, get actlog() { return actlog; }, can: p => me.owner || (me.perms || []).includes(p),

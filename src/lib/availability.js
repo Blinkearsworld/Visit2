@@ -32,23 +32,34 @@ export function findOffer(st, from, to, guests) {
 }
 // Several rooms at once: guests spread as evenly as possible over n free rooms, each part in the cheapest free room
 // that holds it (any type). Returns { total, parts: [{room, type, name, guests, total}], free } or { free } when it cannot.
-export function roomsOffer(st, from, to, guests, n) {
+export function roomsOffer(st, from, to, guests, n, kids = 0, rule = null) {
   const free = st.rooms.filter(r => roomFree(st, r.id, from, to));
   n = Math.max(1, Math.min(n, guests));
   if (free.length < n) return { free: free.length };
-  const sizes = Array.from({ length: n }, (_, i) => Math.floor(guests / n) + (i < guests % n ? 1 : 0));
+  // adults spread evenly over the rooms, then the children: a family keeps grown-ups in every room
+  kids = Math.max(0, Math.min(kids, guests - n));
+  const even = (x, i) => Math.floor(x / n) + (i < x % n ? 1 : 0);
+  const split = Array.from({ length: n }, (_, i) => ({ a: even(guests - kids, i), k: even(kids, n - 1 - i) }));
   const used = new Set(), parts = [];
-  for (const g of sizes) {
+  for (const { a, k } of split) {
+    const g = a + k;
     let best = null;
     for (const r of free) {
       if (used.has(r.id) || !rateFor(st, r.type, g)) continue;
-      const total = quote(st, r.type, from, to, g);
-      if (!best || total < best.total) best = { room: r.id, type: r.type, name: st.types[r.type].name, guests: g, total };
+      const total = kidPrice(st, r.type, from, to, g, k, rule);
+      if (!best || total < best.total) best = { room: r.id, type: r.type, name: st.types[r.type].name, guests: g, kids: k, total };
     }
     if (!best) return { free: free.length };
     used.add(best.room); parts.push(best);
   }
   return { total: parts.reduce((s, x) => s + x.total, 0), parts, free: free.length };
+}
+// The price of one room for `guests`, of whom `kids` are 2–12 years old, under the hotel's child rule
+// (site content kids: { mode: 'free' | 'fixed', price }); without a rule children pay like adults.
+export function kidPrice(st, type, from, to, guests, kids = 0, rule = null) {
+  const apart = rule && (rule.mode === 'free' || rule.mode === 'fixed');
+  const base = quote(st, type, from, to, Math.max(1, guests - (apart ? kids : 0)));
+  return base + (rule && rule.mode === 'fixed' ? (+rule.price || 0) * kids * nights(from, to) : 0);
 }
 // A group too big for any single room: the cheapest pair of free rooms that holds everyone.
 export const fitsOne = (st, guests) => Object.keys(st.types).some(t => rateFor(st, t, guests));

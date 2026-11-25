@@ -75,7 +75,8 @@
     booked: ['დაჯავშნილია ✓', 'Booked ✓', 'Забронировано ✓'], bookNo: ['ჯავშნის ნომერი', 'Booking number', 'Номер брони'], keepLink: ['შეინახეთ ბმული: მასზე ნებისმიერ დროს ნახავთ თქვენს ჯავშანს.', 'Keep the link: your booking is always there.', 'Сохраните ссылку: по ней всегда видна ваша бронь.'],
     myBooking: ['ჩემი ჯავშანი', 'My booking', 'Моя бронь'], stConfirmed: ['დადასტურებულია', 'Confirmed', 'Подтверждено'], stPending: ['სასტუმრო ადასტურებს', 'The hotel is confirming', 'Отель подтверждает'], stCancelled: ['გაუქმებულია', 'Cancelled', 'Отменено'],
     fellBack: ['ეს ნომერი ახლახან დაიჯავშნა, ამიტომ მოთხოვნა გაიგზავნა. სასტუმრო მალე დაგიკავშირდებათ.', 'That room was just taken, so we sent a request. The hotel will contact you soon.', 'Этот номер только что заняли, поэтому отправлен запрос. Отель скоро свяжется с вами.'],
-    callHotel: ['სასტუმრო', 'Hotel', 'Отель'], another: ['კიდევ ერთი ჯავშანი', 'Another booking', 'Ещё одна бронь'], copyLink: ['ბმულის კოპირება', 'Copy link', 'Копировать ссылку'], copied: ['დაკოპირდა ✓', 'Copied ✓', 'Скопировано ✓'],
+    callHotel: ['სასტუმრო', 'Hotel', 'Отель'], roomsTogether: ['{n} ნომერი ერთად', '{n} rooms together', 'Номеров вместе: {n}'], roomNo: ['ნომერი {i}', 'Room {i}', 'Номер {i}'],
+    allRooms: ['სულ, {n}-ვე ნომერი', 'Total for all {n} rooms', 'Итого за все номера ({n})'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], another: ['კიდევ ერთი ჯავშანი', 'Another booking', 'Ещё одна бронь'], copyLink: ['ბმულის კოპირება', 'Copy link', 'Копировать ссылку'], copied: ['დაკოპირდა ✓', 'Copied ✓', 'Скопировано ✓'],
     sent: ['მოთხოვნა გაიგზავნა. სასტუმრო მალე დაგიკავშირდებათ.', 'Request sent. The hotel will contact you soon.', 'Запрос отправлен. Отель скоро свяжется с вами.'],
     needName: ['ჩაწერეთ სახელი და ტელეფონი', 'Enter your name and phone', 'Укажите имя и телефон'], err: ['ვერ გაიგზავნა. სცადეთ ხელახლა ან დაგვირეკეთ.', 'Could not send. Try again or call us.', 'Не удалось отправить. Попробуйте ещё раз или позвоните.'],
     call: ['დარეკვა', 'Call', 'Позвонить'], map: ['რუკაზე ნახვა', 'Open map', 'На карте'], estimate: ['საორიენტაციო ფასი', 'Estimated price', 'Ориентировочная цена'],
@@ -565,10 +566,10 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     const n = J.nights(from, to), free = k => roomsOf(k).filter(r => J.roomFree(r.id, from, to)).length;
     if (sel.rooms > 1) {
       availability();
-      const o = J.roomsOffer(from, to, g, Math.min(sel.rooms, g)), kidsExtra = kidsRule().mode === 'fixed' ? (+kidsRule().price || 0) * sel.kids * n : 0;
+      const o = J.roomsOffer(from, to, g, Math.min(sel.rooms, g), sel.kids, kidsRule());
       if (!o.parts) { el.innerHTML = `<b>${o.free < Math.min(sel.rooms, g) ? w('onlyFree').replace('{n}', o.free) : w('roomsFit')}</b>`; sel.offer = ''; return; }
       sel.offer = '';
-      el.innerHTML = `<b>${w('roomsN').replace('{n}', o.parts.length)}</b><br>${o.parts.map(x => `${esc(typeName(x.name))} · ${w('guestsN').replace('{n}', x.guests)}`).join('<br>')}<br>${J.fmtRange(from, to)} · ${n} ${w('nights')}<br><span class="sum-total">${w('estimate')}: ${fmtN(o.total + kidsExtra)}</span>`;
+      el.innerHTML = `<b>${w('roomsTogether').replace('{n}', o.parts.length)}</b><br>${o.parts.map((x, i) => `${w('roomNo').replace('{i}', i + 1)}: ${esc(typeName(x.name))} · ${w('guestsN').replace('{n}', x.guests)}${x.kids ? ` (${w('kidsN').replace('{n}', x.kids)})` : ''} · ${fmtN(x.total)}`).join('<br>')}<br>${J.fmtRange(from, to)} · ${n} ${w('nights')}<br><span class="sum-total">${w('allRooms').replace('{n}', o.parts.length)}: ${fmtN(o.total)}</span>`;
       return;
     }
     let type = sel.type && free(sel.type) && J.rateFor(sel.type, g) ? sel.type : null;
@@ -660,7 +661,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     if (!name || phone.replace(/\D/g, '').length < 9) { msg.textContent = w('needName'); (name ? f.phone : f.name).focus(); return; }
     if (f.rules && !f.rules.checked) { msg.textContent = w('needRules'); f.rules.focus(); return; }
     const btn = f.querySelector('button[type=submit]'); btn.disabled = true;
-    const req = J.createRequest({ instant: inst(), from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · ') });
+    const req = J.createRequest({ instant: inst(), kidRule: kidsRule(), from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · ') });
     const out = await req.saved;
     btn.disabled = false;
     if (out && out.ok && out.instant && out.key) { f.reset(); showBooked(out.id, out.key, true); }

@@ -48,3 +48,23 @@ describe('several rooms in one request', () => {
     expect((await env.DB.prepare('SELECT COUNT(*) AS n FROM bookings WHERE phone = ?').bind('+995 555 333 444').first()).n).toBe(0);
   });
 });
+
+describe('the price of several rooms with children', () => {
+  it('uses the hotel child rule, room by room, the same on the site, in the catalogue and in the stored booking', async () => {
+    const { saveContent } = await import('../src/db/content.js');
+    const { kidPrice } = await import('../src/lib/availability.js');
+    const C = await createTenant(env.DB, { slug: 'grp-kids', name: 'Kids' });
+    await seedSample(env.DB, C);
+    await saveContent(env.DB, C, { site: { kids: { mode: 'fixed', price: 20 } } });
+    const from = addDays(today(), 30), to = addDays(today(), 32);
+    const st = await loadState(env.DB, C);
+    const o = roomsOffer(st, from, to, 7, 2, 3, { mode: 'fixed', price: 20 });
+    expect(o.parts.reduce((s, p) => s + p.kids, 0)).toBe(3);
+    expect(o.parts.every(p => p.guests - p.kids >= 1)).toBe(true);
+    expect(o.total).toBe(o.parts.reduce((s, p) => s + kidPrice(st, p.type, from, to, p.guests, p.kids, { mode: 'fixed', price: 20 }), 0));
+    const r = await (await post('grp-kids.visit2.ge', '/api/request', { from, to, guests: 7, children: 3, rooms: 2, name: 'Family', phone: '+995 555 777 001' })).json();
+    const rows = (await env.DB.prepare('SELECT price, children FROM bookings WHERE tenant_id = ? AND grp = ?').bind(C.id, r.id).all()).results;
+    expect(rows.reduce((s, x) => s + x.price, 0)).toBe(o.total);
+    expect(rows.reduce((s, x) => s + x.children, 0)).toBe(3);
+  });
+});

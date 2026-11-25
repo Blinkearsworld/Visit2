@@ -3,14 +3,14 @@
 // whether a room is free and what it costs. Bookings themselves (names, phones, dates of others) never do.
 import { loadState } from './hotel.js';
 import { getContent } from './content.js';
-import { findOffer, roomsOffer } from '../lib/availability.js';
+import { findOffer, roomsOffer, kidPrice } from '../lib/availability.js';
 import { nights } from '../lib/time.js';
 
 const KINDS = ['mountain', 'sea', 'history', 'wine', 'food', 'nature', 'city'];
 const pick = v => (v == null ? '' : typeof v === 'string' ? v : v.ka || v.en || v.ru || '');
 
 // hotels listed: open (trial or active), in their first 6 months or with the catalogue service, with prices and a main photo, so no card looks broken
-export async function catalog(db, { siteOf, from = '', to = '', guests = 2, rooms = 1 } = {}) {
+export async function catalog(db, { siteOf, from = '', to = '', guests = 2, rooms = 1, kids = 0 } = {}) {
   const r = await db.prepare("SELECT * FROM tenants WHERE status IN ('trial', 'active') ORDER BY created").all();
   const dated = /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to) && to > from;
   const out = [], free = new Date(Date.now() - 183 * 864e5).toISOString();
@@ -40,12 +40,12 @@ export async function catalog(db, { siteOf, from = '', to = '', guests = 2, room
     };
     if (dated) {
       if (rooms > 1) {
-        const o = roomsOffer(st, from, to, guests, rooms);
+        const o = roomsOffer(st, from, to, guests, rooms, kids, s.kids || null);
         h.offer = o.parts ? { total: o.total, type: o.parts.map(x => x.name).join(', '), n: nights(from, to), rooms: o.parts.length } : null;
         if (!o.parts) h.freeRooms = o.free;
       } else {
         const o = findOffer(st, from, to, guests);
-        h.offer = o ? { total: o.total, type: o.name, n: nights(from, to) } : null;
+        h.offer = o ? { total: kidPrice(st, o.type, from, to, guests, Math.min(kids, guests - 1), s.kids || null), type: o.name, n: nights(from, to) } : null;
       }
     }
     out.push(h);

@@ -2,7 +2,7 @@
 // Ported from Villa JIJI functions/_lib/core.js (loadState, createRequest, bumpRev).
 import { today, addDays, nights, isDate, nowIso } from '../lib/time.js';
 import { getSeasons } from './settings.js';
-import { deals, rateFor, freeRooms, quote, findOffer, roomsOffer, roomFree, bestRoom, dealTotal, dealNote } from '../lib/availability.js';
+import { deals, rateFor, freeRooms, quote, findOffer, roomsOffer, roomFree, bestRoom, kidPrice, dealTotal, dealNote } from '../lib/availability.js';
 
 export const DEFAULT_SETTINGS = { seasonMode: 'auto', winterFrom: '11-15', winterTo: '03-31', gapDiscount: '10' };
 export const uid = () => crypto.randomUUID().replace(/-/g, '').slice(0, 12);
@@ -75,7 +75,7 @@ export const bumpRev = (db, t) => db.prepare("INSERT INTO settings (tenant_id, k
   .bind(t.id, String(Date.now())).run();
 
 // ---------- booking request from the site or the chatbot ----------
-export async function createRequest(db, t, st, { from, to, guests, name, phone, source, type: wanted, gap, deal, wish, children, rooms, instant }) {
+export async function createRequest(db, t, st, { from, to, guests, name, phone, source, type: wanted, gap, deal, wish, children, rooms, instant, kidRule }) {
   if (!isDate(from) || !isDate(to) || to <= from || from < today()) throw new Error('bad dates');
   if (nights(from, to) > 30) throw new Error('too long');
   guests = Math.max(1, Math.min(12, parseInt(guests) || 1));
@@ -88,14 +88,14 @@ export async function createRequest(db, t, st, { from, to, guests, name, phone, 
   // several rooms at once (a family or a group): one row per room, tied together by grp
   rooms = Math.max(1, Math.min(10, guests, parseInt(rooms) || 1));
   if (instant && await instantToday(db, t, phone) >= 3) instant = false; // a few a day per phone; more go as requests
-  if (rooms > 1) return createGroup(db, t, st, { from, to, guests, name, phone, source, wish, children, rooms, instant });
+  if (rooms > 1) return createGroup(db, t, st, { from, to, guests, name, phone, source, wish, children, rooms, instant, kidRule });
   // a short offer (gap or promotion): the server takes its price, never the browser's
   const D = deals(st).find(x => (deal ? x.key === deal : gap && x.type === wanted) && x.from === from && x.to === to && rateFor(st, x.type, guests));
   if (D) wanted = D.type;
   const fits = wanted && st.types[wanted] && rateFor(st, wanted, guests) && freeRooms(st, wanted, from, to).length;
   const offer = fits ? { type: wanted, total: quote(st, wanted, from, to, guests) } : findOffer(st, from, to, guests);
   const type = offer ? offer.type : (Object.keys(st.types).find(k => rateFor(st, k, guests)) || Object.keys(st.types)[0]);
-  const full = offer ? offer.total : quote(st, type, from, to, guests);
+  const full = kidPrice(st, type, from, to, guests, children, kidRule); // the same price the guest saw on the site
   const price = D ? dealTotal(st, D, guests) : full;
   const note = D ? dealNote(D) : '';
   // the same request sent again (a retry after a lost connection) is not stored twice
@@ -118,16 +118,14 @@ export async function createRequest(db, t, st, { from, to, guests, name, phone, 
   return { booking: b, total: price, typeName: st.types[type]?.name };
 }
 
-async function createGroup(db, t, st, { from, to, guests, name, phone, source, wish, children, rooms, instant }) {
-  const o = roomsOffer(st, from, to, guests, rooms);
+async function createGroup(db, t, st, { from, to, guests, name, phone, source, wish, children, rooms, instant, kidRule }) {
+  const o = roomsOffer(st, from, to, guests, rooms, children, kidRule);
   if (!o.parts) throw new Error(`only ${o.free} rooms free`);
   if (instant) {
     // every room of the group taken now, or none (then the group goes as a request)
     const grp = uid(), created = nowIso(), src = String(source || 'site').slice(0, 20), got = [];
-    let kids = children;
     for (const x of o.parts) {
-      const c = Math.min(kids, x.guests - 1); kids -= c;
-      const b = { id: uid(), room: x.room, type: x.type, from, to, guests: x.guests, name, phone, source: src, created, price: x.total, note: '', wish, children: c, grp };
+      const b = { id: uid(), room: x.room, type: x.type, from, to, guests: x.guests, name, phone, source: src, created, price: x.total, note: '', wish, children: x.kids, grp };
       if (!(await grabRoom(db, t, b))) break;
       got.push(b.id);
     }
@@ -138,8 +136,7 @@ async function createGroup(db, t, st, { from, to, guests, name, phone, source, w
     .bind(t.id, phone, from, to, new Date(Date.now() - 30 * 60e3).toISOString()).first();
   if (dup) return { booking: { id: dup.grp, grp: dup.grp }, total: o.total, typeName: o.parts.map(x => x.name).join(', '), repeat: true };
   const grp = uid(), created = nowIso(), src = String(source || 'site').slice(0, 20);
-  let kids = children;
-  const rows = o.parts.map(x => { const c = Math.min(kids, x.guests - 1); kids -= c; return { id: uid(), type: x.type, guests: x.guests, price: x.total, children: c }; });
+  const rows = o.parts.map(x => ({ id: uid(), type: x.type, guests: x.guests, price: x.total, children: x.kids }));
   await db.batch(rows.map(r => db.prepare('INSERT INTO bookings (tenant_id, id, room, type, date_from, date_to, guests, name, phone, status, source, created, price, note, wish, want_room, children, grp) VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)')
     .bind(t.id, r.id, r.type, from, to, r.guests, name, phone, 'pending', src, created, r.price, '', wish, r.children, grp)));
   await bumpRev(db, t);
