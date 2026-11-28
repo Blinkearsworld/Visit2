@@ -8,7 +8,7 @@ import { signUp, signUpsFrom, noteSignUp, SIGNUP_LIMIT } from './db/signup.js';
 import { ROOT_DOMAIN } from './db/tenants.js';
 import { tooManyFails, noteFail, clearFails } from './db/users.js';
 import { opsSetPassword, opsLogin, opsCookie, opsClear, opsUser, allHotels, autoTasks, listTasks, saveTask, deleteTask,
-  hotelDetail, setStatus, extendTrial, setAddons, addPayment, deletePayment, resetOwnerPassword, helpUntil, deleteHotel, addDomain, removeDomain, setFree, listNotices, saveNotice, deleteNotice, ADDONS, BASE_PRICE, PAUSE_PRICE, guestCount, limitTask, GUEST_LIMIT } from './db/ops.js';
+  hotelDetail, setStatus, extendTrial, setAddons, addPayment, deletePayment, resetOwnerPassword, setOwner, helpUntil, deleteHotel, addDomain, removeDomain, setFree, listNotices, saveNotice, deleteNotice, ADDONS, BASE_PRICE, PAUSE_PRICE, guestCount, limitTask, GUEST_LIMIT } from './db/ops.js';
 import { tenantBySlug } from './db/tenants.js';
 import { supportToken } from './db/users.js';
 import { today, addDays } from './lib/time.js';
@@ -110,6 +110,7 @@ async function opsApi(request, env, url, preview) {
         case 'pay': await addPayment(db, t, me, b); break;
         case 'pay-del': await deletePayment(db, t, me, String(b.id || '')); break;
         case 'password': return json({ ok: true, password: await resetOwnerPassword(db, t, me) });
+        case 'owner': return json({ ok: true, password: await setOwner(db, t, me, String(b.email || '')), known: true });
         case 'enter': {
           if (!(await helpUntil(db, t))) return json({ ok: false, msg: 'სასტუმროს მფლობელს დახმარება ჯერ არ დაუშვია. სთხოვე, ადმინში „დახმარების დაშვებას“ დააჭიროს.' }, 403);
           return json({ ok: true, url: siteOf(t) + 'api/support-enter?k=' + encodeURIComponent(await supportToken(secret, t, me)) });

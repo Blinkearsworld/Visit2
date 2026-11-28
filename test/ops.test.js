@@ -106,3 +106,15 @@ describe("first sign-in to Visit2's own admin", () => {
     expect(r.status).toBe(200);
   });
 });
+
+describe('an owner for a hotel Visit2 set up', () => {
+  it('adds one owner with a new password, then refuses a second', async () => {
+    const { setOwner } = await import('../src/db/ops.js');
+    const t = await createTenant(env.DB, { slug: 'own-less', name: 'Own Less' });
+    const pw = await setOwner(env.DB, t, { id: 'u1', name: 'Visit2' }, 'Owner@Villa.test');
+    expect(pw).toMatch(/^[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}$/);
+    const m = await env.DB.prepare("SELECT u.email FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.tenant_id = ? AND m.role = 'owner'").bind(t.id).first();
+    expect(m.email).toBe('owner@villa.test');
+    await expect(setOwner(env.DB, t, { id: 'u1', name: 'Visit2' }, 'x@y.test')).rejects.toThrow(/უკვე/);
+  });
+});

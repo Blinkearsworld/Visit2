@@ -313,6 +313,8 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
         <div class="row"><input class="grow" id="pN" maxlength="200" placeholder="შენიშვნა (მაგ. ინვოისი №12)"><button class="btn pri" type="button" data-do="pay">გადახდის ჩაწერა</button></div>
         ${h.payments.length ? `<ul class="list">${h.payments.map(p => `<li><span>${p.amount}₾ · ${fmt(p.until)}-მდე · ${esc(METHOD[p.method] || p.method)}${p.note ? ' · ' + esc(p.note) : ''}<br><small class="mute">${fmt(p.created.slice(0, 10))} · ${esc(p.by_user || '')}</small></span><button class="btn sm" type="button" data-pdel="${esc(p.id)}">წაშლა</button></li>`).join('')}</ul>` : ''}</div>
 
+      ${!h.team.some(x => x.owner) ? `<div class="box"><h3>მფლობელი</h3><p class="mute">ამ სასტუმროს მფლობელი ჯერ არ ჰყავს. ჩაწერე მისი ელფოსტა: თუ Visit2-ზე ანგარიში არ აქვს, შეიქმნება და პაროლი აქ ერთხელ გამოჩნდება.</p>
+        <div class="row"><input class="grow" id="oEmail" type="email" placeholder="ელფოსტა"><button class="btn pri" type="button" data-do="owner">მფლობელის მიბმა</button></div></div>` : ''}
       <div class="box"><h3>მფლობელის პაროლი</h3>
         ${pw ? `<p>ახალი პაროლი. გადაეცი მფლობელს, მეორედ აღარ გამოჩნდება:</p><p class="pw">${esc(pw)}</p>` : `<p class="mute">ახალი პაროლი შეიქმნება და მფლობელი ყველა მოწყობილობიდან გავა. პაროლს ტელეფონით ან შეხვედრისას გადაეცი.</p><div class="row"><button class="btn" type="button" data-do="password">ახალი პაროლის შექმნა</button></div>`}</div>
 
@@ -335,6 +337,7 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
     if (body.do === 'pay-del') body.id = b.dataset.pdel;
     if (body.do === 'delete') body.confirm = $('#dC').value.trim();
     if (body.do === 'domain-add') body.host = $('#dHost').value.trim();
+    if (body.do === 'owner') body.email = $('#oEmail').value.trim();
     if (body.do === 'free') { body.on = b.dataset.on === '1'; if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = body.on ? 'დიახ, მუდმივად უფასო' : 'დიახ, გავაუქმო'; return; } }
     if (body.do === 'domain-del') { body.host = b.dataset.host; if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, მოხსენი'; return; } }
     if (body.do === 'password' && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, შევქმნა ახალი პაროლი'; return; }
@@ -345,7 +348,7 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
     if (body.do === 'enter') { window.open(o.url, '_blank', 'noopener'); b.disabled = false; return; }
     if (body.do === 'delete') { hd.close(); load(); return; }
     const slug = H.slug; await openHotel(slug);
-    pw = o.password || ''; said = { status: 'მდგომარეობა შეინახა.', trial: `საცდელი გაგრძელდა ${fmt(o.until || '')}-მდე.`, addons: 'სერვისები შეინახა.', pay: 'გადახდა ჩაიწერა.', 'pay-del': 'გადახდა წაიშალა.', 'domain-add': 'დომენი მიება. თუ Cloudflare-ში უკვე მიბმულია, საიტი რამდენიმე წუთში გაიხსნება.', 'domain-del': 'დომენი მოიხსნა.', free: 'შეინახა.', password: '' }[body.do] || '';
+    pw = o.password || ''; said = { status: 'მდგომარეობა შეინახა.', trial: `საცდელი გაგრძელდა ${fmt(o.until || '')}-მდე.`, addons: 'სერვისები შეინახა.', pay: 'გადახდა ჩაიწერა.', 'pay-del': 'გადახდა წაიშალა.', 'domain-add': 'დომენი მიება. თუ Cloudflare-ში უკვე მიბმულია, საიტი რამდენიმე წუთში გაიხსნება.', 'domain-del': 'დომენი მოიხსნა.', free: 'შეინახა.', password: '', owner: o.password ? '' : 'მფლობელი მიება. შედის თავისი არსებული პაროლით.' }[body.do] || '';
     drawHotel(); load();
   });
   $('#hotels').addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b) openHotel(b.dataset.open); });

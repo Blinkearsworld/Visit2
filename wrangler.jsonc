@@ -13,7 +13,9 @@
   "routes": [
     { "pattern": "visit2.ge", "custom_domain": true },
     { "pattern": "www.visit2.ge", "custom_domain": true },
-    { "pattern": "*.visit2.ge/*", "zone_name": "visit2.ge" }
+    { "pattern": "*.visit2.ge/*", "zone_name": "visit2.ge" },
+    // hotels' own domains (villajiji.com) arrive as Cloudflare for SaaS custom hostnames on the visit2.ge zone
+    { "pattern": "*/*", "zone_name": "visit2.ge" }
   ],
   "d1_databases": [
     { "binding": "DB", "database_name": "visit2", "database_id": "4a62c23d-9361-4fff-b13c-9ca64a29d630", "migrations_dir": "migrations" }

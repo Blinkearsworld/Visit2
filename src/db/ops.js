@@ -1,7 +1,7 @@
 // Visit2's own admin (/ops): every hotel at a glance and a to-do list.
 // Only people marked platform = 1 in users may use it. Guests' personal data is not read here.
 import { nowIso, addDays, today } from '../lib/time.js';
-import { normEmail, hashPw, same, hmac, newSalt, pwProblem } from './users.js';
+import { normEmail, hashPw, same, hmac, newSalt, pwProblem, addMember } from './users.js';
 import { forgetTenants } from './tenants.js';
 
 export const OPS_COOKIE = 'v2_ops';
@@ -220,13 +220,26 @@ export async function deletePayment(db, t, me, id) {
   await db.batch([db.prepare('UPDATE tenants SET paid_until = ? WHERE id = ?').bind(last?.u || null, t.id), note(db, t, me, 'გადახდა წაიშალა', `${p.amount}₾, ${p.until}`)]);
   forgetTenants();
 }
+const newPw = () => { const abc = 'abcdefghjkmnpqrstuvwxyz23456789', r = crypto.getRandomValues(new Uint8Array(12));
+  return [...r].map(b => abc[b % abc.length]).join('').replace(/(.{4})(?=.)/g, '$1-'); };
+
+// an owner for a hotel Visit2 set up itself (Villa JIJI): only when it has none. A new account gets a password
+// shown once to pass on; someone who already has a Visit2 account keeps their own password ('').
+export async function setOwner(db, t, me, email) {
+  const has = await db.prepare("SELECT 1 FROM memberships WHERE tenant_id = ? AND role = 'owner'").bind(t.id).first();
+  if (has) throw new Error('ამ სასტუმროს მფლობელი უკვე ჰყავს.');
+  const known = await db.prepare('SELECT 1 FROM users WHERE email = ?').bind(normEmail(email)).first();
+  const pw = known ? '' : newPw();
+  await addMember(db, t, { email, name: t.name, password: pw, role: 'owner' });
+  await note(db, t, me, 'მფლობელი', 'მფლობელი მიება: ' + normEmail(email)).run();
+  return pw;
+}
+
 // a new password for the hotel's owner, shown once to Visit2 to pass on; every device is signed out
 export async function resetOwnerPassword(db, t, me) {
   const o = await db.prepare("SELECT u.id FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.tenant_id = ? AND m.role = 'owner' LIMIT 1").bind(t.id).first();
   if (!o) throw new Error('ამ სასტუმროს მფლობელი არ ჰყავს');
-  const abc = 'abcdefghjkmnpqrstuvwxyz23456789', r = crypto.getRandomValues(new Uint8Array(12));
-  const pw = [...r].map(b => abc[b % abc.length]).join('').replace(/(.{4})(?=.)/g, '$1-');
-  const salt = newSalt();
+  const pw = newPw(), salt = newSalt();
   await db.batch([db.prepare('UPDATE users SET salt = ?, hash = ?, ver = ver + 1 WHERE id = ?').bind(salt, await hashPw(pw, salt), o.id),
     note(db, t, me, 'პაროლი', 'მფლობელის პაროლი შეიცვალა')]);
   return pw;
