@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>სასტუმროს მფლობელებს · Visit2.ge</title>
+<meta name="description" content="საიტი, ჯავშნების ადმინი და ჩატბოტი შენი სასტუმროსთვის. 50₾ თვეში, საკომისიოს გარეშე, პირველი 30 დღე უფასოდ.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Visit2.ge"><meta property="og:url" content="https://visit2.ge/owners.html"><meta property="og:title" content="სასტუმროს მფლობელებს · Visit2.ge"><meta property="og:description" content="საიტი, ჯავშნების ადმინი და ჩატბოტი შენი სასტუმროსთვის. 50₾ თვეში, საკომისიოს გარეშე, პირველი 30 დღე უფასოდ."><meta property="og:image" content="https://visit2.ge/img/og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="ka_GE"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://visit2.ge/img/og.jpg">
+<link rel="icon" href="favicon.ico?v=1596012" sizes="48x48"><link rel="icon" href="favicon.svg?v=1596012" type="image/svg+xml"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=1596012"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-title" content="Visit2.ge"><meta name="theme-color" content="#0E857D">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="site/platform.css?v=1596012">
+</head>
+<body data-chat="owners" class="owners" data-photo>
+<main>
+  <section class="o-hero">
+    <img class="hero-bg" src="img/h/ski-spa.jpg" alt="">
+    <div class="wrap o-hero-in">
+      <h1 data-t="oH1">შენი სასტუმროს საიტი, ჯავშნები და ჩატბოტი ერთ ადგილას</h1>
+      <p class="lead" data-t="oLead">აირჩიე შაბლონი, ჩაწერე სახელი, და საიტი მზადაა.</p>
+      <p class="price-line" data-t="oPrice">50₾ თვეში, საკომისიოს გარეშე · პირველი 30 დღე უფასოდ</p>
+      <div class="acts"><a class="btn btn-teal" href="#signup" data-t="create">საიტის შექმნა</a><a class="o-more" href="#templates" data-t="seeTpl">შაბლონების ნახვა</a></div>
+    </div>
+  </section>
+  <section class="gets">
+    <div class="wrap">
+      <h2 data-t="getsH">რას იღებ</h2>
+      <ul>
+        <li data-t="get1"><b>საიტი</b>ხუთი შაბლონიდან ერთ-ერთი, შენი ფერით, ფოტოებით და ტექსტებით. ქართულად, ინგლისურად და რუსულად.</li>
+        <li data-t="get2"><b>ადმინი</b>მოთხოვნები, კალენდარი, ფასები სეზონებით, გადახდები, სტუმრების ისტორია, გუნდი და ჟურნალი.</li>
+        <li data-t="get3"><b>ჩატბოტი</b>საიტზე სტუმარს თავისუფალ ნომერს და ფასს წამებში ეუბნება. <span class="soon">Facebook და Instagram მალე</span></li>
+        <li data-t="get4"><b>ადგილი კატალოგში</b>Visit2.ge-ზე სტუმრები ქალაქით და თარიღით გპოულობენ. პირველი 6 თვე უფასოდ.</li>
+      </ul>
+    </div>
+  </section>
+  <section class="tpl" id="templates">
+    <div class="wrap">
+      <h2 data-t="tplH">ხუთი შაბლონი</h2>
+      <p class="small" data-t="tplP">ნებისმიერ დროს შეცვლი ადმინში. ჯავშნები და ფასები არ იკარგება.</p>
+      <div class="tpl-list" id="tplList"></div>
+    </div>
+  </section>
+  <section class="signup" id="signup">
+    <div class="wrap">
+      <h2 data-t="suH">შექმენი შენი საიტი</h2>
+      <p class="small" data-t="suP">შეავსე სამი ველი და საიტს მაშინვე ნახავ. შაბლონს, ფერს და ტექსტებს მერეც შეცვლი.</p>
+      <form class="owner-form" id="ownerForm" novalidate>
+        <label><span data-t="fName">სასტუმროს სახელი</span><input name="name" required maxlength="60" placeholder="მაგ.: ვილა მზიური"></label>
+        <label><span data-t="fCity">ქალაქი ან სოფელი</span><input name="city" required maxlength="40" placeholder="მაგ.: ბაკურიანი"></label>
+        <label class="wide"><span data-t="fEmail">ელფოსტა</span><input name="email" type="email" autocomplete="email" placeholder="შენი ელფოსტა ადმინში შესასვლელად"></label>
+        <label class="wide" id="pwRow" hidden><span data-t="fPass">პაროლი ადმინისთვის</span><input name="password" type="password" autocomplete="new-password" minlength="8" placeholder="მინიმუმ 8 სიმბოლო"></label>
+        <fieldset class="wide"><legend data-t="fTpl">შაბლონი</legend><div class="choice" id="tplChoice"></div></fieldset>
+        <input type="hidden" name="accent" value="">
+        <label class="agree wide"><input type="checkbox" name="agree"><span data-t="fAgree">ვეთანხმები პირობებს</span></label>
+        <button class="btn btn-teal wide" type="submit" data-t="create">საიტის შექმნა</button>
+        <p class="form-msg wide" id="formMsg" role="status"></p>
+      </form>
+      <div class="done" id="done">
+        <b id="doneTitle"></b>
+        <p class="small" data-t="doneP">ადმინში ნომრები, ფასები და ტექსტები შეცვალე.</p>
+        <div class="acts"><a class="btn btn-teal" id="doneSite" href="#" data-t="mySite">ჩემი საიტი</a><a class="btn btn-out" id="doneAdmin" href="#" data-t="admin">ადმინი</a></div>
+      </div>
+    </div>
+  </section>
+  <section class="prices" id="prices">
+    <div class="wrap price-wrap">
+      <div>
+      <h2 data-t="pricesH">ფასები</h2>
+      <table>
+        <tr><td data-t="pr1">საიტი, ადმინი და ჩატბოტი<small>პირველი 30 დღე უფასოდ, ბარათის გარეშე</small></td><td data-t="pr1v">50₾ / თვე</td></tr>
+        <tr><td data-t="pr2">ადგილი Visit2.ge-ს კატალოგში<small>პირველი 6 თვე უფასოდ</small></td><td data-t="pr2v">+20₾ / თვე</td></tr>
+        <tr><td data-t="pr7">საკუთარი დომენი<small>მაგ.: www.შენისასტუმრო.ge, https-ით; საიტიც და ადმინიც იქ</small></td><td data-t="pr7v">+10₾ / თვე<small>მალე</small></td></tr>
+        <tr><td data-t="pr6">მხოლოდ კატალოგი, სისტემის გარეშე<small>თუ საკუთარი საიტი უკვე გაქვთ</small></td><td data-t="pr6v">70₾ / თვე<small>მალე</small></td></tr>
+        <tr><td data-t="pr5">რეკლამა: წინ წამოწევა</td><td data-t="pr5v">მალე</td></tr>
+        <tr><td data-t="pr3">სეზონური პაუზა<small>საიტი რჩება და წინასწარ ჯავშნებს იღებს; 1–6 თვე წელიწადში</small></td><td data-t="pr3v">10₾ / თვე</td></tr>
+        <tr><td data-t="pr4">ჩვენ გავაკეთებთ<small>ფოტოები, ტექსტები, Google-ის პროფილი, Facebook-ისა და Instagram-ის მიერთება მალე</small></td><td data-t="pr4v">300₾ ერთხელ</td></tr>
+      </table>
+      </div>
+      <div id="restaurants" class="rest-card">
+      <h2 data-t="rH">რესტორნებისთვის</h2>
+      <p class="small" data-t="rP"></p>
+      <table>
+        <tr><td data-t="r1"></td><td data-t="r1v"></td></tr>
+        <tr><td data-t="r2"></td><td data-t="r2v"></td></tr>
+      </table>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="p-foot">
+  <div class="wrap foot-in">
+    <div><img src="img/brand/visit2.svg" alt="Visit2.ge" width="62" height="34"><p lang="en">Your Visit2 Georgia starts here</p></div>
+    <nav><a href="index.html" data-t="findHotels">სასტუმროების ძებნა</a><a href="#templates" data-t="seeTpl">შაბლონები</a><a href="#restaurants" data-t="rH">რესტორნებისთვის</a><a href="privacy.html" data-t="privacy">კონფიდენციალურობა</a><a href="terms.html" data-t="terms">პირობები</a></nav>
+  </div>
+</footer>
+<script src="site/places.js?v=1596012"></script>
+<script src="site/hotels.js?v=1596012"></script>
+<script src="site/menu.js?v=1596012"></script>
+<script src="site/platform.js?v=1596012"></script>
+<script src="site/visit2-chat.js?v=1596012"></script>
+</body>
+</html>

@@ -1,0 +1,936 @@
+/* Visit2 hotel site: one renderer, several templates (themes).
+   Data: rooms, prices and availability from JIJI (js/store.js); the hotel's texts, photos, theme and colour from
+   /api/content (content.site), edited in admin. Templates differ in CSS (site/themes/*.css) and a few layout flags. */
+(() => {
+  const J = window.JIJI, I = window.I18N, $ = s => document.querySelector(s);
+  const V = (document.currentScript && document.currentScript.src.split('?v=')[1]) || '1';
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const lang = () => (I ? I.lang : 'ka');
+  const caps = s => s;
+  const pick = v => (v == null ? '' : typeof v === 'string' ? v : v[lang()] || v.ka || '');
+
+  // ---------- templates ----------
+  // Five templates on one design (the Visit2.ge look): they differ in the top of the page and the order of sections.
+  // Template ids are colour names; colour and font are the owner's choice (admin → საიტის მართვა → იერსახე).
+  const THEMES = {
+    opal: { name: 'Opal', accent: '#0E857D' },    // a full photo, words in the middle
+    amber: { name: 'Amber', accent: '#B4472F' },  // photo and words side by side
+    cobalt: { name: 'Cobalt', accent: '#1F6FA8' }, // a mosaic of photos
+    alba: { name: 'Alba', accent: '#1F1A17' },    // rooms and prices first
+    jade: { name: 'Jade', accent: '#3F7A4E' },    // the story and the host first
+    lapis: { name: 'Lapis', accent: '#F3C27A' },  // a night-blue page with winter and summer, built from Villa JIJI's site
+  };
+  // Earlier template ids, so saved sites and old links still open the nearest of the five.
+  const OLD = { kva: 'opal', ezo: 'jade', kalaki: 'alba', zghva: 'cobalt', ghvino: 'jade', minimali: 'alba', tye: 'opal', butiki: 'cobalt', peradi: 'amber', klasika: 'amber',
+    onyx: 'opal', indigo: 'cobalt', ivory: 'amber', lilac: 'jade', umber: 'alba' };
+  const themeId = t => OLD[t] || t;
+  // colours that work with white text and on a light page
+  const ACCENTS = ['#0E857D', '#3F7A4E', '#1F6FA8', '#2F5A8A', '#B4472F', '#C2410C', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
+
+  // ---------- interface words ----------
+  const W = {
+    about: ['ჩვენ შესახებ', 'About', 'О нас'], rooms: ['ნომრები', 'Rooms', 'Номера'], amen: ['რა გვაქვს', 'Amenities', 'Удобства'],
+    gallery: ['ფოტოები', 'Photos', 'Фото'], where: ['სად ვართ', 'Location', 'Где мы'], faq: ['ხშირი კითხვები', 'FAQ', 'Вопросы'],
+    food: ['რესტორნები და კაფეები ახლოს', 'Restaurants and cafés nearby', 'Рестораны и кафе рядом'], adSample: ['რეკომენდებული · ნიმუში', 'Recommended · sample', 'Рекомендуем · образец'], recommended: ['რეკომენდებული', 'Recommended', 'Рекомендуем'],
+    foodAll: ['ყველა რესტორანი და კაფე ახლოს', 'All restaurants and cafés nearby', 'Все рестораны и кафе рядом'], foodAllH: ['რესტორნები და კაფეები, ჯერ უახლოესი', 'Restaurants and cafés, nearest first', 'Рестораны и кафе, сначала ближайшие'],
+    foodMap: ['რუკაზე ნახვა', 'Open map', 'На карте'], foodWalk: ['ფეხით ~{n} წთ', '~{n} min walk', '~{n} мин пешком'], foodHours: ['ღიაა 10:00–23:00', 'Open 10:00–23:00', 'Открыто 10:00–23:00'],
+    foodDemo: ['დემო: ნამდვილ საიტზე აქ იქნება რესტორნის ტელეფონი, მისამართი, მენიუ და ფოტოები.', 'Demo: the real site shows the phone, address, menu and photos here.', 'Демо: на настоящем сайте здесь будут телефон, адрес, меню и фото.'],
+    foodAllPlaces: ['ყველა რესტორანი და კაფე', 'All restaurants and cafés', 'Все рестораны и кафе'],
+    foodKind: ['სამზარეულო', 'Cuisine', 'Кухня'], foodAny: ['ყველა', 'All', 'Все'], close: ['დახურვა', 'Close', 'Закрыть'],
+    foodOsm: ['რუკა და ადგილები: © OpenStreetMap-ის მონაწილეები.', 'Map and places: © OpenStreetMap contributors.', 'Карта и места: © участники OpenStreetMap.'],
+    prevPhoto: ['წინა ფოტო', 'Previous photo', 'Предыдущее фото'], nextPhoto: ['შემდეგი ფოტო', 'Next photo', 'Следующее фото'],
+    hostTip: ['მასპინძელი გირჩევთ', 'Host’s tip', 'Совет хозяина'], mapLabel: ['რუკა: სასტუმრო და ახლომახლო ადგილები', 'Map: the hotel and places nearby', 'Карта: отель и места рядом'],
+    foodNote: ['სია Visit2.ge-დანაა. „რეკომენდებული“ რესტორნის ფასიანი ადგილია.', 'List from Visit2.ge. “Recommended” is a paid spot.', 'Список от Visit2.ge. «Рекомендуем» — платное размещение.'],
+    sampleName: ['შენი სასტუმრო', 'Your Hotel', 'Ваш отель'], sampleCity: ['ქალაქი', 'Town', 'Город'],
+    sampleTag: ['აქ ერთი წინადადება შენს სასტუმროზე', 'One sentence about your place', 'Одно предложение о вашем отеле'],
+    sampleAbout: ['აქ იქნება შენი სასტუმროს აღწერა: რით არის გამორჩეული, რა არის ახლოს და რატომ ბრუნდებიან სტუმრები. ტექსტს და ფოტოებს ადმინში შეცვლი.', 'Your description goes here: what makes your place special, what is nearby and why guests come back. Change texts and photos in the admin.', 'Здесь будет описание: чем особенно ваше место, что рядом и почему гости возвращаются. Тексты и фото меняются в админке.'],
+    sampleAddr: ['შენი მისამართი', 'Your address', 'Ваш адрес'],
+    book: ['დაჯავშნა', 'Book', 'Забронировать'], bookShort: ['ჯავშანი', 'Book', 'Бронь'], checkin: ['შესვლა', 'Check-in', 'Заезд'], checkout: ['გასვლა', 'Check-out', 'Выезд'],
+    adults: ['უფროსები', 'Adults', 'Взрослые'], adultsAge: ['13 წლიდან', 'Ages 13 or above', 'От 13 лет'], kids: ['ბავშვები', 'Children', 'Дети'], kidsAge: ['2–12 წლის', 'Ages 2–12', 'От 2 до 12 лет'],
+    babies: ['ჩვილები', 'Infants', 'Младенцы'], babiesAge: ['2 წლამდე', 'Under 2', 'До 2 лет'], pets: ['შინაური ცხოველი', 'Pets', 'Домашние животные'],
+    petsOk: ['ცხოველით შეიძლება', 'Pets are welcome', 'Можно с животными'], petsNo: ['ამ სასტუმროში ცხოველით არ შეიძლება', 'Pets are not allowed here', 'С животными нельзя'],
+    dates: ['თარიღები', 'Dates', 'Даты'], guestsW: ['სტუმრები', 'Guests', 'Гости'], addDates: ['აირჩიეთ', 'Add dates', 'Выбрать'],
+    whenQ: ['როდის მოდიხართ?', 'When are you coming?', 'Когда приезжаете?'], whoQ: ['ვინ მოდის?', 'Who is coming?', 'Кто едет?'],
+    arrive: ['ჩამოსვლა', 'Arriving', 'Заезд'], leave: ['წასვლა', 'Leaving', 'Выезд'], pickArrive: ['აირჩიეთ ჩამოსვლის დღე', 'Pick the day you arrive', 'Выберите день заезда'],
+    pickLeave: ['ახლა აირჩიეთ წასვლის დღე', 'Now pick the day you leave', 'Теперь выберите день выезда'], clear: ['გასუფთავება', 'Clear', 'Сбросить'], save: ['შენახვა', 'Save', 'Сохранить'],
+    seePrice: ['ფასის ნახვა', 'See prices', 'Узнать цены'], otherRoom: ['სხვა ნომრის არჩევა', 'Choose another room', 'Выбрать другой номер'], changeDates: ['თარიღების შეცვლა', 'Change dates', 'Изменить даты'], menu: ['მენიუ', 'Menu', 'Меню'],
+    guestsN: ['{n} სტუმარი', '{n} guests', 'Гостей: {n}'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], babiesN: ['{n} ჩვილი', '{n} infants', 'младенцев: {n}'],
+    rooms: ['ნომრები', 'Rooms', 'Номера'], roomsSub: ['ერთ ჯავშანში, მთელი ჯგუფისთვის', 'In one booking, for the whole group', 'В одной брони, на всю группу'], roomsN: ['{n} ნომერი', '{n} rooms', 'номеров: {n}'],
+    onlyFree: ['ამ თარიღებზე {n} ნომერია თავისუფალი. აირჩიეთ ნაკლები ნომერი ან სხვა დღეები.', 'Only {n} rooms are free on these dates. Choose fewer rooms or other days.', 'На эти даты свободно номеров: {n}. Выберите меньше номеров или другие дни.'],
+    roomsFit: ['ამდენი სტუმარი ამ ნომრებში ვერ დაეტევა. დაამატეთ ნომერი.', 'That many guests do not fit in these rooms. Add a room.', 'Столько гостей не поместится в эти номера. Добавьте номер.'], petsN: ['ცხოველით', 'with pets', 'с животными'],
+    kidsFree: ['ბავშვები 2–12 წლის უფასოდ', 'Children 2–12 stay free', 'Дети 2–12 лет бесплатно'], kidsFixed: ['ბავშვი 2–12 წლის: {p} ₾ ღამე', 'Child 2–12: {p} ₾ a night', 'Ребёнок 2–12 лет: {p} ₾ за ночь'],
+    babiesFree: ['ჩვილები 2 წლამდე უფასოდ', 'Infants under 2 stay free', 'Младенцы до 2 лет бесплатно'], photos: ['ფოტოები', 'Photos', 'Фото'],
+    name: ['სახელი', 'Name', 'Имя'], phone: ['ტელეფონი', 'Phone', 'Телефон'], wish: ['სპეციალური მოთხოვნა', 'Special request', 'Особые пожелания'],
+    optional: ['არასავალდებულო', 'optional', 'необязательно'], send: ['მოთხოვნის გაგზავნა', 'Send request', 'Отправить запрос'],
+    check: ['თავისუფალი ნომრები', 'Check availability', 'Свободные номера'], perNight: ['ღამე', 'night', 'ночь'], from: ['-დან', 'from', 'от'],
+    upTo: ['სტუმრამდე', 'guests max', 'гостей макс.'], left: ['თავისუფალი', 'available', 'свободно'], none: ['ამ თარიღებზე თავისუფალი არ არის', 'Not available on these dates', 'На эти даты нет мест'],
+    codeT: ['ფასდაკლების კოდი', 'Promo code', 'Промокод'], codeOk: ['კოდი მიღებულია: −{p}%', 'Code applied: −{p}%', 'Код применён: −{p}%'], codeBad: ['ასეთი კოდი ვერ მოიძებნა', 'This code was not found', 'Такой код не найден'],
+    minN: ['ამ თარიღებზე მინიმუმ {n} ღამე', 'At least {n} nights for these dates', 'Минимум {n} ночей на эти даты'], noIn: ['ამ დღეს შესვლა არ ხდება, აირჩიეთ სხვა დღე', 'No arrivals on this day, please choose another', 'В этот день заезда нет, выберите другой день'],
+    planT: ['ფასის ვარიანტი', 'Rate', 'Тариф'], planStd: ['სტანდარტული', 'Standard', 'Стандартный'], nonRef: ['დაუბრუნებელი', 'non-refundable', 'невозвратный'],
+    extrasT: ['დამატებითი სერვისები', 'Extras', 'Дополнительные услуги'], extrasS: ['სერვისები', 'Extras', 'Услуги'], withRoom: ['ნომერი', 'Room', 'Номер'],
+    uStay: ['ერთჯერადად', 'once', 'разово'], uNight: ['ღამეში', 'per night', 'за ночь'], uGuest: ['ერთ სტუმარზე', 'per guest', 'с гостя'], uGuestNight: ['სტუმარზე ღამეში', 'per guest per night', 'с гостя за ночь'], uItem: ['ერთეული', 'each', 'за единицу'], qty: ['რაოდენობა', 'Quantity', 'Количество'],
+    seasonW: ['ზამთარი', 'Winter', 'Зима'], seasonS: ['ზაფხული', 'Summer', 'Лето'], season: ['სეზონი', 'Season', 'Сезон'], freeRooms: ['თავისუფალი ნომრები', 'Available rooms', 'Свободные номера'],
+    seeRooms: ['ნომრების ნახვა', 'See the rooms', 'Посмотреть номера'], playVideo: ['ვიდეოს ნახვა', 'Watch the video', 'Смотреть видео'], spacesNav: ['სივრცეები', 'Spaces', 'Пространства'],
+    groundsNav: ['ეზო', 'Grounds', 'Двор'], nearNav: ['ახლოს', 'Nearby', 'Рядом'], contactNav: ['კონტაქტი', 'Contact', 'Контакты'], addrW: ['მისამართი', 'Address', 'Адрес'],
+    hoursW: ['მიღება', 'Reception', 'Приём'], daily: ['ყოველდღე, {a}–{b}', 'Daily, {a}–{b}', 'Ежедневно, {a}–{b}'], phoneW: ['ტელეფონი', 'Phone', 'Телефон'], privacyW: ['კონფიდენციალურობა', 'Privacy', 'Конфиденциальность'],
+    rightsW: ['ყველა უფლება დაცულია.', 'All rights reserved.', 'Все права защищены.'], feats: ['რა არის ნომერში', 'In the room', 'В номере'],
+    pickDates: ['აირჩიეთ თარიღები', 'Choose dates', 'Выберите даты'], nights: ['ღამე', 'nights', 'ночей'], total: ['სულ', 'Total', 'Итого'],
+    nearest: ['უახლოესი თავისუფალი', 'Nearest available', 'Ближайшие свободные'], choose: ['ეს ნომერი', 'This room', 'Этот номер'],
+    consent: ['მოთხოვნის გაგზავნით თქვენი სახელი და ტელეფონი გადაეცემა სასტუმროს ჯავშნის დასადასტურებლად. <a href="privacy.html" target="_blank">კონფიდენციალურობა</a>', 'By sending a request, your name and phone go to the hotel to confirm the booking. <a href="privacy.html" target="_blank">Privacy</a>', 'Отправляя запрос, вы передаёте имя и телефон отелю для подтверждения брони. <a href="privacy.html" target="_blank">Конфиденциальность</a>'],
+    noPay: ['გადახდა ახლა არ არის საჭირო. სასტუმრო დაგიკავშირდებათ და ჯავშანს დაგიდასტურებთ.', 'No payment now. The hotel will call you to confirm.', 'Оплата сейчас не нужна. Отель свяжется с вами для подтверждения.'],
+    noPayI: ['ბარათი არ გჭირდებათ: ფულს სასტუმროს პირდაპირ უხდით, მისი წესებით.', 'No card needed: you pay the hotel directly, under its rules.', 'Карта не нужна: вы платите отелю напрямую, по его правилам.'],
+    bookNow: ['დაჯავშნა', 'Book now', 'Забронировать'], instantNote: ['✓ მყისიერი დადასტურება: ნომერი მაშინვე თქვენია', '✓ Instant confirmation: the room is yours at once', '✓ Мгновенное подтверждение: номер сразу ваш'],
+    rulesOk: ['ვეთანხმები სასტუმროს წესებს', 'I agree to the hotel’s rules', 'Согласен с правилами отеля'], cancelT: ['გაუქმება', 'Cancellation', 'Отмена'], prepayT: ['წინასწარი გადახდა', 'Prepayment', 'Предоплата'],
+    needRules: ['დაჯავშნამდე მონიშნეთ, რომ ეთანხმებით სასტუმროს წესებს.', 'Please tick that you agree to the hotel’s rules.', 'Отметьте, что согласны с правилами отеля.'],
+    consentI: ['დაჯავშნით თქვენი სახელი და ტელეფონი გადაეცემა სასტუმროს. ჯავშანი თქვენსა და სასტუმროს შორისაა. <a href="privacy.html" target="_blank">კონფიდენციალურობა</a>', 'By booking, your name and phone go to the hotel. The booking is between you and the hotel. <a href="privacy.html" target="_blank">Privacy</a>', 'Бронируя, вы передаёте имя и телефон отелю. Бронь — между вами и отелем. <a href="privacy.html" target="_blank">Конфиденциальность</a>'],
+    instantPay: ['✓ ჯავშანი დადასტურდება გადახდისთანავე', '✓ Confirmed as soon as you pay', '✓ Подтверждается сразу после оплаты'],
+    bookPay: ['დაჯავშნა და გადახდა', 'Book and pay', 'Забронировать и оплатить'],
+    payFull: ['სრული თანხა', 'the full amount', 'полная сумма'], payDeposit: ['{p}% ავანსი', 'a {p}% deposit', 'предоплата {p}%'],
+    payNote: ['ნომერი {m} წუთით დაგიკავდებათ, სანამ სასტუმროს ბანკის გვერდზე გადაიხდით ({part}). ფული პირდაპირ სასტუმროს ანგარიშზე შედის. ბარათის მონაცემებს Visit2.ge ვერ ხედავს.', 'The room is held for {m} minutes while you pay on the hotel’s bank page ({part}). The money goes straight to the hotel’s account. Visit2.ge never sees your card.', 'Номер держится {m} минут, пока вы оплачиваете на странице банка отеля ({part}). Деньги идут прямо на счёт отеля. Visit2.ge не видит данные карты.'],
+    toBank: ['გადადიხართ ბანკის გვერდზე…', 'Taking you to the bank…', 'Переходим на страницу банка…'],
+    payWait: ['⏳ ელოდება გადახდას: {a} ₾. ნომერი თქვენთვის დაკავებულია {t}-მდე.', '⏳ Waiting for payment: {a} ₾. The room is held for you until {t}.', '⏳ Ожидает оплаты: {a} ₾. Номер держится до {t}.'],
+    payCheck: ['გადახდას ვამოწმებთ…', 'Checking the payment…', 'Проверяем оплату…'],
+    payNow: ['გადახდა', 'Pay now', 'Оплатить'], stHeld: ['ნომერი დაკავებულია, ელოდება გადახდას', 'Room held, waiting for payment', 'Номер удержан, ждёт оплаты'],
+    paid: ['💳 გადახდილია: {a} ₾', '💳 Paid: {a} ₾', '💳 Оплачено: {a} ₾'],
+    payExpired: ['გადახდის დრო ამოიწურა და ნომერი გათავისუფლდა. შეგიძლიათ ხელახლა დაჯავშნოთ.', 'The time to pay ran out and the room was released. You can book again.', 'Время оплаты истекло, номер освобождён. Можно забронировать снова.'],
+    payLate: ['გადახდა დაგვიანებით მოვიდა. სასტუმრო დაგიკავშირდებათ: ან დაგიდასტურებთ, ან თანხას დაგიბრუნებთ.', 'Your payment came after the time ran out. The hotel will contact you to confirm or refund.', 'Оплата пришла с опозданием. Отель свяжется: подтвердит бронь или вернёт деньги.'],
+    booked: ['დაჯავშნილია ✓', 'Booked ✓', 'Забронировано ✓'], bookNo: ['ჯავშნის ნომერი', 'Booking number', 'Номер брони'], keepLink: ['შეინახეთ ბმული: მასზე ნებისმიერ დროს ნახავთ თქვენს ჯავშანს.', 'Keep the link: your booking is always there.', 'Сохраните ссылку: по ней всегда видна ваша бронь.'],
+    myBooking: ['ჩემი ჯავშანი', 'My booking', 'Моя бронь'], stConfirmed: ['დადასტურებულია', 'Confirmed', 'Подтверждено'], stPending: ['სასტუმრო ადასტურებს', 'The hotel is confirming', 'Отель подтверждает'], stCancelled: ['გაუქმებულია', 'Cancelled', 'Отменено'],
+    fellBack: ['ეს ნომერი ახლახან დაიჯავშნა, ამიტომ მოთხოვნა გაიგზავნა. სასტუმრო მალე დაგიკავშირდებათ.', 'That room was just taken, so we sent a request. The hotel will contact you soon.', 'Этот номер только что заняли, поэтому отправлен запрос. Отель скоро свяжется с вами.'],
+    callHotel: ['სასტუმრო', 'Hotel', 'Отель'], roomsTogether: ['{n} ნომერი ერთად', '{n} rooms together', 'Номеров вместе: {n}'], roomNo: ['ნომერი {i}', 'Room {i}', 'Номер {i}'],
+    allRooms: ['სულ, {n}-ვე ნომერი', 'Total for all {n} rooms', 'Итого за все номера ({n})'], kidsN: ['{n} ბავშვი', '{n} children', 'детей: {n}'], another: ['კიდევ ერთი ჯავშანი', 'Another booking', 'Ещё одна бронь'], copyLink: ['ბმულის კოპირება', 'Copy link', 'Копировать ссылку'], copied: ['დაკოპირდა ✓', 'Copied ✓', 'Скопировано ✓'],
+    sent: ['მოთხოვნა გაიგზავნა. სასტუმრო მალე დაგიკავშირდებათ.', 'Request sent. The hotel will contact you soon.', 'Запрос отправлен. Отель скоро свяжется с вами.'],
+    needName: ['ჩაწერეთ სახელი და ტელეფონი', 'Enter your name and phone', 'Укажите имя и телефон'], err: ['ვერ გაიგზავნა. სცადეთ ხელახლა ან დაგვირეკეთ.', 'Could not send. Try again or call us.', 'Не удалось отправить. Попробуйте ещё раз или позвоните.'],
+    call: ['დარეკვა', 'Call', 'Позвонить'], map: ['რუკაზე ნახვა', 'Open map', 'На карте'], estimate: ['საორიენტაციო ფასი', 'Estimated price', 'Ориентировочная цена'],
+    seasonsH: ['ფასები სეზონების მიხედვით', 'Prices by season', 'Цены по сезонам'],
+    template: ['შაბლონი', 'Template', 'Шаблон'], colour: ['ფერი', 'Colour', 'Цвет'], demo: ['დემო: მონაცემები მხოლოდ ამ ბრაუზერშია', 'Demo: data stays in this browser', 'Демо: данные только в этом браузере'],
+    madeBy: ['საიტი შექმნილია', 'Website by', 'Сайт создан на'], admin: ['ადმინი', 'Admin', 'Админ'], directly: ['პირდაპირ, საკომისიოს გარეშე', 'Book direct, no commission', 'Напрямую, без комиссии'],
+  };
+  const w = k => (W[k] ? W[k][['ka', 'en', 'ru'].indexOf(lang())] || W[k][0] : k);
+
+  const AMEN = {
+    wifi: ['📶', 'Wi-Fi', 'Wi-Fi', 'Wi-Fi'], parking: ['🅿️', 'უფასო პარკინგი', 'Free parking', 'Бесплатная парковка'], kitchen: ['🍳', 'სამზარეულო ნომერში', 'Kitchen in room', 'Кухня в номере'],
+    breakfast: ['☕', 'საუზმე', 'Breakfast', 'Завтрак'], fireplace: ['🔥', 'ბუხარი', 'Fireplace', 'Камин'], pool: ['🏊', 'აუზი', 'Pool', 'Бассейн'],
+    garden: ['🌳', 'ეზო', 'Garden', 'Сад'], bbq: ['🍖', 'მაყალი', 'BBQ', 'Мангал'], pets: ['🐾', 'შინაური ცხოველით', 'Pets allowed', 'Можно с животными'],
+    ski: ['⛷️', 'საბაგიროსთან ახლოს', 'Near ski lifts', 'Рядом с подъёмником'], balcony: ['🌄', 'აივანი', 'Balcony', 'Балкон'], kids: ['🧸', 'საბავშვო კუთხე', 'Kids corner', 'Детский уголок'],
+    transfer: ['🚐', 'ტრანსფერი', 'Transfer', 'Трансфер'], sea: ['🌊', 'ზღვასთან ახლოს', 'Near the sea', 'Рядом с морем'], center: ['🏙️', 'ცენტრში', 'City centre', 'В центре'],
+  };
+  const TYPE_TR = {
+    'სტანდარტული ორადგილიანი': ['Standard double', 'Стандартный двухместный'],
+    'საოჯახო, 1 საძინებლით (4+1)': ['Family, 1 bedroom (4+1)', 'Семейный, 1 спальня (4+1)'],
+    'ლუქსი, 2 საძინებლით': ['Suite, 2 bedrooms', 'Люкс, 2 спальни'],
+  };
+  const typeName = n => (lang() === 'ka' || !TYPE_TR[n] ? n : TYPE_TR[n][lang() === 'en' ? 0 : 1]);
+  const amenText = k => (AMEN[k] ? AMEN[k][1 + ['ka', 'en', 'ru'].indexOf(lang())] || AMEN[k][1] : k);
+
+  // ---------- the demo hotel (GitHub Pages, no server) ----------
+  const DEMO = {
+    theme: 'opal', accent: '',
+    hero: { img: 'img/demo/hero.jpg', tagline: { ka: 'რვა თბილი ნომერი ტყის პირას, საბაგიროდან ხუთ წუთში', en: 'Eight warm rooms at the forest edge, five minutes from the lifts', ru: 'Восемь тёплых номеров у леса, в пяти минутах от подъёмника' } },
+    about: { img: 'img/demo/facade.jpg', text: { ka: 'პატარა საოჯახო სასტუმრო, სადაც დილით ტყის სუნი შემოდის და საღამოს ბუხართან ვსხდებით. ყველა ნომერს აქვს სამზარეულო და აივანი, ეზოში ბავშვებისთვის ადგილია, ზამთარში საბაგირომდე ფეხით მიხვალთ.', en: 'A small family hotel where mornings smell of pine and evenings are spent by the fire. Every room has a kitchen and a balcony, the garden has room for kids, and in winter the lifts are a short walk away.', ru: 'Небольшой семейный отель: утром пахнет лесом, вечером собираемся у камина. В каждом номере кухня и балкон, во дворе есть место для детей, зимой до подъёмника можно дойти пешком.' } },
+    amenities: ['wifi', 'parking', 'kitchen', 'fireplace', 'garden', 'pool', 'ski', 'pets'],
+    gallery: ['img/demo/lounge.jpg', 'img/demo/fire.jpg', 'img/demo/garden.jpg', 'img/demo/pool.jpg', 'img/demo/games.jpg', 'img/demo/pergola.jpg'],
+    rooms: {
+      std: { photos: ['img/rooms/lake-double.jpg', 'img/rooms/lake-double2.jpg'], text: { ka: 'მყუდრო ნომერი ორისთვის, აივნით ტყეზე.', en: 'A cosy room for two with a forest-view balcony.', ru: 'Уютный номер для двоих с балконом на лес.' } },
+      family: { photos: ['img/rooms/lake-twin.jpg', 'img/rooms/lake-twin2.jpg'], text: { ka: 'საძინებელი და მისაღები სამზარეულოთი. ოჯახისთვის ხუთამდე სტუმარი.', en: 'Bedroom plus living room with kitchenette. Up to five guests.', ru: 'Спальня и гостиная с кухней. До пяти гостей.' } },
+      suite: { photos: ['img/rooms/lake-suite.jpg'], text: { ka: 'ორი საძინებელი, დიდი მისაღები და ორი აივანი. ორი ოჯახისთვის.', en: 'Two bedrooms, a large living room and two balconies.', ru: 'Две спальни, большая гостиная и два балкона.' } },
+    },
+    location: { text: { ka: 'ტყის ქუჩა 12. ცენტრამდე 10 წუთი ფეხით, საბაგირომდე 400 მ.', en: '12 Forest St. 10 minutes on foot to the centre, 400 m to the lifts.', ru: 'Лесная ул. 12. До центра 10 минут пешком, до подъёмника 400 м.' }, map: 'https://www.google.com/maps/search/?api=1&query=Bakuriani' },
+  };
+
+  // ---------- state ----------
+  let C = {}; // site content from the server (or DEMO)
+  const params = new URLSearchParams(location.search);
+  const sample = params.get('sample') === '1';
+  const isDemo = () => !!(J.hotel && J.hotel.demo);
+  const slug = () => (J.hotel && J.hotel.slug) || 'demo';
+  const demoHotel = () => (isDemo() && window.V2DEMO ? window.V2DEMO.get(slug()) : null);
+  // a real hotel starts empty (the owner fills it in the admin); sample hotels have their own texts; the offline preview uses DEMO
+  const EMPTY = { hero: {}, about: {}, amenities: [], gallery: [], rooms: {}, location: {} };
+  const S = () => {
+    const d = demoHotel();
+    const base = d ? { ...d.site, theme: d.theme, accent: d.accent } : isDemo() ? DEMO : EMPTY;
+    return { ...base, ...(C.site || {}), ...(isDemo() ? (loadLocal() || {}) : {}) };
+  };
+  const lookKey = () => 'v2-demo-look-' + slug();
+  const loadLocal = () => { try { return JSON.parse(localStorage.getItem(lookKey()) || 'null'); } catch (e) { return null; } };
+  const saveLocal = o => { try { localStorage.setItem(lookKey(), JSON.stringify({ ...(loadLocal() || {}), ...o })); } catch (e) {} };
+  const theme = () => { const t = themeId(params.get('theme') || S().theme); return THEMES[t] ? t : 'opal'; };
+  // a template preview (?theme=…) shows the template's own colour; otherwise the hotel's
+  // Lapis has its own night palette with warm window light, so the hotel's colour is not used there
+  const accent = () => (theme() === 'lapis' ? THEMES.lapis.accent : params.get('theme') && THEMES[themeId(params.get('theme'))] ? THEMES[theme()].accent : S().accent || THEMES[theme()].accent);
+  const contact = () => (window.JC ? window.JC.contact() : {});
+
+  async function loadContent() {
+    // the admin's "preview" (unsaved changes) and, in the demo, the owner's own site saved in this browser
+    const ls = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
+    const KP = window.JC ? window.JC.K_PREVIEW : '';
+    if (params.get('preview') === '1' && KP && ls(KP)) { C = ls(KP); return; }
+    if (isDemo()) { if (J.hotel && J.hotel.mine) C = ls('v2-content-demo') || {}; else if (demoHotel()?.content) C = demoHotel().content; return; }
+    try { const r = await fetch('api/content', { cache: 'no-store' }); if (r.ok) { const o = await r.json(); C = o.content || {}; PAY = !!o.pay; PAYMIN = o.payMinutes || 20; } } catch (e) { /* keep defaults */ }
+  }
+
+  // ---------- rendering ----------
+  const minPrice = k => { const t = J.types[k]; return t && t.rates.length ? Math.min(...t.rates.map(J.fromPrice)) : 0; };
+  const roomsOf = k => J.ROOMS.filter(r => r.type === k);
+  const typeIds = () => Object.keys(J.types).filter(k => roomsOf(k).length);
+  const img = (src, alt = '', cls = '') => src ? `<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async">` : `<div class="ph ${cls}" aria-hidden="true"></div>`;
+
+
+  // ---------- template layouts ----------
+  // Every template uses the same sections; the top of the page and the order differ.
+  const LAYOUT = {
+    opal: ['heroFull', 'rooms', 'about', 'amen', 'gallery', 'where', 'food', 'book'],
+    amber: ['heroSplit', 'about', 'rooms', 'amen', 'gallery', 'where', 'food', 'book'],
+    cobalt: ['heroMosaic', 'rooms', 'amen', 'about', 'gallery', 'where', 'food', 'book'],
+    alba: ['heroPlain', 'compare', 'rooms', 'book', 'about', 'amen', 'gallery', 'where', 'food'],
+    jade: ['heroStory', 'about', 'amen', 'rooms', 'gallery', 'where', 'food', 'book'],
+    lapis: ['lpHero', 'lpAbout', 'lpStories', 'lpFire', 'lpStrip', 'lpSpaces', 'lpGrounds', 'lpNear', 'lpRooms', 'food', 'lpBook'],
+  };
+  const LAYOUT_OF = th => LAYOUT[th] || LAYOUT.opal;
+  const PHOTO_TOP = ['heroFull', 'heroStory', 'lpHero'];
+  const heroWords = (s, h) => `${h.city ? `<p class="hero-city">${esc(h.city)}</p>` : ''}
+      <h1 class="hero-name">${esc(h.name || '')}</h1>
+      ${pick(s.hero?.tagline) ? `<p class="hero-tag">${esc(pick(s.hero?.tagline))}</p>` : ''}`;
+  const BLOCK = {
+    heroFull: (s, h) => `<section class="hero hero-full">
+    <div class="hero-media">${img(s.hero?.img, h.name)}</div>
+    <div class="hero-in">${heroWords(s, h)}${pill()}</div>
+  </section>`,
+    heroSplit: (s, h) => `<section class="hero hero-split">
+    <div class="hero-in">${heroWords(s, h)}${pill()}</div>
+    <div class="hero-media">${img(s.hero?.img, h.name)}</div>
+  </section>`,
+    heroMosaic: (s, h) => { const ph = [s.hero?.img, ...(s.gallery || [])].filter(Boolean).slice(0, 5);
+      return `<section class="hero hero-mosaic">
+    <div class="hero-in">${heroWords(s, h)}${pill()}</div>
+    <div class="mosaic n${ph.length}">${ph.map((p, i) => img(p, i ? '' : h.name)).join('')}</div>
+  </section>`; },
+    heroPlain: (s, h) => `<section class="hero hero-plain">
+    <div class="hero-in">${heroWords(s, h)}${pill()}</div>
+    <div class="hero-media">${img(s.hero?.img, h.name)}</div>
+  </section>`,
+    heroStory: (s, h) => `<section class="hero hero-story">
+    <div class="hero-media">${img(s.hero?.img, h.name)}<div class="hero-in">${heroWords(s, h)}</div></div>
+    <div class="hero-bar">${pill()}</div>
+  </section>`,
+    about: s => !pick(s.about?.text) ? '' : `<section class="about" id="about">
+    <div class="about-media">${img(s.about?.img)}</div>
+    <div class="about-text"><h2>${w('about')}</h2><p>${esc(pick(s.about?.text))}</p></div>
+  </section>`,
+    amen: s => ((s.amenities || []).length ? `<section class="amen"><h2>${w('amen')}</h2><ul>${s.amenities.map(k => `<li><span aria-hidden="true">${AMEN[k]?.[0] || '•'}</span>${esc(amenText(k))}</li>`).join('')}</ul>${kidsLine()}</section>` : ''),
+    rooms: () => `<section class="rooms" id="rooms"><h2>${w('rooms')}</h2><div class="room-list">${typeIds().map(roomCard).join('')}</div></section>`,
+    gallery: s => ((s.gallery || []).length ? `<section class="gallery" id="photos"><h2>${w('gallery')}</h2><div class="grid">${s.gallery.map(g => img(g)).join('')}</div></section>` : ''),
+    book: () => bookForm(),
+    where: (s, h, c, tel) => `<section class="where" id="where">
+    <h2>${w('where')}</h2>
+    <p>${esc(pick(s.location?.text) || c.addrText || h.city || '')}</p>
+    <div class="where-actions">
+      ${tel ? `<a class="btn btn-ghost" href="${tel}">${w('call')} ${esc(c.phone)}</a>` : ''}
+      ${s.location?.map || c.map ? `<a class="btn btn-ghost" href="${esc(s.location?.map || c.map)}" target="_blank" rel="noopener">${w('map')}</a>` : ''}
+    </div>
+    ${mapBlock()}
+  </section>`,
+    food: () => foodSection(),
+    compare: () => compareBlock(),
+  };
+  // what children and infants cost here (the owner sets it: like adults, free, or a price a night)
+  const kidsRule = () => S().kids || {};
+  function kidsLine() {
+    const k = kidsRule(), parts = [];
+    if (k.mode === 'free') parts.push(w('kidsFree')); else if (k.mode === 'fixed' && +k.price > 0) parts.push(w('kidsFixed').replace('{p}', +k.price));
+    parts.push(w('babiesFree'));
+    return `<p class="kids-line">${parts.map(esc).join(' · ')}</p>`;
+  }
+  // room types side by side with their prices (the Alba template shows this first)
+  function compareBlock() {
+    return `<section class="compare"><div class="cmp">${typeIds().map(k => { const t = J.types[k]; return `<a class="cmp-row" href="#room-${esc(k)}">
+      <span class="cmp-name">${esc(typeName(t.name))}<small>${t.cap} ${w('upTo')}</small></span>
+      <b class="cmp-price">${lang() === 'ka' ? `${minPrice(k)} ₾${w('from')}` : `${w('from')} ${minPrice(k)} ₾`}<small> / ${w('perNight')}</small></b>
+    </a>`; }).join('')}</div></section>`;
+  }
+
+
+  // ---------- Lapis: the night-blue template with winter and summer (Villa JIJI's site) ----------
+  // Texts and photos may differ by season: a value is either one ({ka,en,ru} / a photo) or { w, s }.
+  let SEA = null;
+  // the visitor's own choice wins; otherwise the hotel's season setting, read again on every drawing,
+  // so the page follows the settings once they arrive from the server (as on Villa JIJI's old site)
+  const sea = () => SEA || (() => { try { const v = localStorage.getItem('v2-season-' + slug()); if (v === 'winter' || v === 'summer') return v; } catch (e) { /* none */ } return J.siteSeason ? J.siteSeason() : 'winter'; })();
+  const setSea = v => { SEA = v; try { localStorage.setItem('v2-season-' + slug(), v); } catch (e) { /* none */ } redraw(); };
+  const L = () => S().lapis || {};
+  const sz = v => (v && typeof v === 'object' && ('w' in v || 's' in v) ? v[sea() === 'summer' ? 's' : 'w'] || v.w || v.s : v);
+  const T2 = v => pick(sz(v));
+  const I2 = v => sz(v) || '';
+  const inSea = x => !x || !x.season || (x.season === 'w') === (sea() === 'winter');
+  const chips = l => ((l || []).length ? `<div class="lp-chips">${l.map(c => `<span>${esc(pick(c))}</span>`).join('')}</div>` : '');
+  const vid = (x, i) => `<div class="lp-vbox" data-video="${esc(x.video || '')}">${img(x.img)}${x.video ? `<button class="lp-play" type="button" data-play="${i}"><span><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>${w('playVideo')}</span></button>` : ''}${x.len ? `<span class="lp-len">${esc(x.len)}</span>` : ''}</div>`;
+  function lapisNav(h) {
+    return `<nav class="lp-nav" aria-label="${w('menu')}"><a href="#rooms">${w('rooms')}</a>${L().spaces ? `<a href="#spaces">${w('spacesNav')}</a>` : ''}${L().grounds ? `<a href="#grounds">${w('groundsNav')}</a>` : ''}${L().near ? `<a href="#near">${w('nearNav')}</a>` : ''}<a href="#contact">${w('contactNav')}</a></nav>
+  <div class="lp-sw" role="group" aria-label="${w('season')}"><button type="button" data-sea="winter" aria-pressed="${sea() === 'winter'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/></svg><span>${w('seasonW')}</span></button><button type="button" data-sea="summer" aria-pressed="${sea() === 'summer'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg><span>${w('seasonS')}</span></button></div>
+  <div class="lp-lang" role="group" aria-label="Language">${['ka', 'en', 'ru'].map(l => `<button type="button" data-lang="${l}" aria-pressed="${l === lang()}">${l.toUpperCase()}</button>`).join('')}</div>`;
+  }
+  const LP = {
+    lpHero: (s, h) => { const l = L(), im = I2(l.heroImg) || s.hero?.img;
+      return `<section class="lp-hero" id="hero" aria-label="${esc(h.name || '')}" style="${im ? `--hero-bg:url('${esc(im)}')` : ''}">${img(im, h.name)}<canvas id="snow" aria-hidden="true"></canvas>
+    <div class="lp-cap"><div class="lp-wrap"><h1 class="lp-name">${pick(l.kick) ? `<span class="lp-kick">${esc(pick(l.kick))}</span>` : ''}${esc(h.name || '')}</h1>
+    ${pick(s.hero?.tagline) ? `<p class="lp-tag">${esc(pick(s.hero.tagline))}</p>` : ''}
+    <div class="lp-acts"><a class="btn lp-lamp" href="#book">${esc(pick(l.heroBtn) || w('freeRooms'))}</a><a class="btn lp-ghost" href="#rooms">${w('seeRooms')}</a></div>${pill()}</div></div></section>`; },
+    lpAbout: s => { const l = L(); if (!pick(s.about?.text)) return '';
+      return `<section class="lp-state" id="about"><div class="lp-wrap">${img(I2(l.aboutImg) || s.about?.img)}<div><p class="lp-big">${esc(pick(s.about.text))}</p>
+    ${(l.facts || []).length ? `<div class="lp-facts">${l.facts.map(f => `<div><b>${esc(pick(f.n))}</b><span>${esc(pick(f.t))}</span></div>`).join('')}</div>` : ''}</div></div></section>`; },
+    lpStories: () => (L().stories || []).map((x, i) => (x.off || !inSea(x) ? '' : `<section class="lp-ny" id="${esc(x.id || 'story' + i)}"><div class="lp-wrap"><div>
+    <h2>${esc(pick(x.h))}</h2>${pick(x.p) ? `<p class="lp-lead">${esc(pick(x.p))}</p>` : ''}${chips(x.chips)}
+    ${pick(x.btn) ? `<div class="lp-act"><a class="btn lp-lamp" href="#book">${esc(pick(x.btn))}</a></div>` : ''}${pick(x.note) ? `<p class="lp-small">${esc(pick(x.note))}</p>` : ''}</div>
+    ${x.img || x.video ? vid(x, i) : ''}</div></section>`)).join(''),
+    lpFire: () => { const f = L().fire; if (!f || f.off || !T2(f.h)) return '';
+      return `<section class="lp-fire" id="fire"><div class="lp-wrap"><div><h2>${esc(T2(f.h))}</h2>${pick(f.p) ? `<p>${esc(pick(f.p))}</p>` : ''}${chips(f.chips)}</div>
+    <div class="lp-lit">${img(I2(f.img))}<div class="lp-glow" aria-hidden="true"></div></div></div></section>`; },
+    lpStrip: () => { const g = (L().strip || []).filter(inSea); if (!g.length) return '';
+      return `<section id="photos" aria-label="${w('gallery')}"><div class="lp-strip" tabindex="0">${g.map(x => `<figure>${img(x.img, pick(x.cap))}${pick(x.cap) ? `<figcaption>${esc(pick(x.cap))}</figcaption>` : ''}</figure>`).join('')}</div></section>`; },
+    lpSpaces: () => { const x = L().spaces; if (!x || x.off) return '';
+      return `<section class="lp-sec" id="spaces"><div class="lp-wrap"><h2>${esc(pick(x.h))}</h2>${pick(x.p) ? `<p class="lp-lead">${esc(pick(x.p))}</p>` : ''}
+    <div class="lp-spaces">${(x.items || []).map(it => `<div class="lp-sp">${img(it.img, pick(it.h))}<div class="lp-t"><h3>${esc(pick(it.h))}</h3>${pick(it.p) ? `<p>${esc(pick(it.p))}</p>` : ''}</div></div>`).join('')}</div></div></section>`; },
+    lpGrounds: () => { const x = L().grounds; if (!x || x.off) return ''; const li = (x.list || {})[sea() === 'summer' ? 's' : 'w'] || [];
+      return `<section class="lp-sec lp-grounds" id="grounds"><div class="lp-wrap"><div class="lp-where">${img(I2(x.img))}<div><h2>${esc(pick(x.h))}</h2>${T2(x.p) ? `<p class="lp-lead">${esc(T2(x.p))}</p>` : ''}
+    ${li.length ? `<ul class="lp-ticks">${li.map(t => `<li>${esc(pick(t))}</li>`).join('')}</ul>` : ''}</div></div>
+    ${(x.photos || []).length ? `<div class="lp-yard">${x.photos.map(p => `<figure>${img(I2(p.img), T2(p.cap))}${T2(p.cap) ? `<figcaption>${esc(T2(p.cap))}</figcaption>` : ''}</figure>`).join('')}</div>` : ''}</div></section>`; },
+    lpNear: () => { const x = L().near; if (!x || x.off) return '';
+      return `<section class="lp-sec lp-nearsec" id="near"><div class="lp-wrap"><h2>${esc(pick(x.h))}</h2>${pick(x.p) ? `<p class="lp-lead">${esc(pick(x.p))}</p>` : ''}
+    <div class="lp-near">${(x.items || []).map(it => `<div class="lp-nr"><h3>${esc(pick(it.h))}</h3><p>${esc(T2(it.p))}</p><span class="lp-d">${esc(pick(it.d))}</span></div>`).join('')}</div>
+    ${pick(x.note) ? `<p class="lp-small">${esc(pick(x.note))}</p>` : ''}${guidesNav()}</div></section>`; },
+    lpRooms: () => { const x = L().rooms || {};
+      return `<section class="rooms lp-rooms" id="rooms"><div class="lp-wrap"><div class="lp-head"><h2>${esc(pick(x.h) || w('rooms'))}</h2>${pick(x.p) ? `<p>${esc(pick(x.p))}</p>` : ''}</div>
+    <div class="room-list">${typeIds().map(roomCard).join('')}</div></div></section>`; },
+    lpBook: (s, h, c, tel) => { const x = L().book || {};
+      return `<section class="lp-book" id="contact"><div class="lp-wrap"><div class="lp-grid"><div>
+    <h2>${esc(pick(x.h) || w('book'))}</h2>${tel ? `<a class="lp-phone" href="${tel}">${esc(c.local || c.phone)}</a>` : ''}
+    <div class="lp-act">${c.waDigits ? `<a class="btn lp-lamp" href="https://wa.me/${esc(c.waDigits)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}${c.fb ? `<a class="btn lp-ghost" href="${esc(c.fb)}" target="_blank" rel="noopener">Facebook</a>` : ''}${c.ig ? `<a class="btn lp-ghost" href="${esc(c.ig)}" target="_blank" rel="noopener">Instagram</a>` : ''}</div>
+    <div class="lp-info">${c.addrText ? `<div><b>${w('addrW')}</b>${c.map ? `<a href="${esc(c.map)}" target="_blank" rel="noopener">${esc(c.addrText)}</a>` : esc(c.addrText)}</div>` : ''}${c.from && c.to ? `<div><b>${w('hoursW')}</b>${esc(w('daily').replace('{a}', c.from).replace('{b}', c.to))}</div>` : ''}${tel ? `<div><b>${w('phoneW')}</b><a href="${tel}">${esc(c.phone)}</a></div>` : ''}</div>
+    ${pick(x.note) ? `<p class="lp-small">${esc(pick(x.note))}</p>` : ''}</div>
+    <div>${bookForm()}</div></div></div></section>`; },
+  };
+  function guidesNav() { const g = L().guides || []; return g.length ? `<nav class="lp-guides" aria-label="${w('nearNav')}">${g.map(x => `<a href="${esc(x.href)}">${esc(pick(x.t))}</a>`).join('')}</nav>` : ''; }
+  function lapisFoot(h, c) {
+    const soc = [['ig', 'Instagram', '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/>'], ['fb', 'Facebook', '<path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H7.9v3h2.6V21z" fill="currentColor" stroke="none"/>'], ['tk', 'TikTok', '<path d="M16.6 3c.4 2.2 1.8 3.6 4 3.8v3.1c-1.5 0-2.9-.5-4-1.3v6.2c0 3.3-2.6 5.7-5.8 5.7S5 17.9 5 14.8s2.6-5.7 5.8-5.7c.3 0 .6 0 .9.1v3.2a2.6 2.6 0 0 0-.9-.2 2.6 2.6 0 1 0 2.6 2.6V3z" fill="currentColor" stroke="none"/>']].filter(([k]) => c[k]);
+    return `<footer class="foot lp-foot"><span class="lp-fname">${esc(h.name || '')}</span><span>${esc(c.addrText || h.city || '')} · <a href="privacy.html">${w('privacyW')}</a></span>${guidesNav()}
+  ${soc.length ? `<nav class="lp-soc" aria-label="Social">${soc.map(([k, n, svg]) => `<a href="${esc(c[k])}" target="_blank" rel="noopener" aria-label="${n}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">${svg}</svg></a>`).join('')}</nav>` : ''}
+  <small class="lp-copy">© ${new Date().getFullYear()} ${esc(h.name || '')}. ${w('rightsW')}</small>
+  <a class="made-by" href="https://visit2.ge" rel="noopener">${w('madeBy')} <b>Visit2.ge</b></a></footer>`;
+  }
+  // falling snow over the hero in winter (off when the visitor asks for less motion)
+  let snowStop = null;
+  function snow() {
+    if (snowStop) { snowStop(); snowStop = null; }
+    const cv = document.getElementById('snow'); if (!cv || sea() !== 'winter' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const ctx = cv.getContext('2d'); let W = 0, H = 0, run = true, raf = 0;
+    const size = () => { W = cv.width = cv.offsetWidth; H = cv.height = cv.offsetHeight; };
+    // the template's stylesheet may arrive after the first drawing, so follow the canvas's real size
+    size(); const ro = window.ResizeObserver ? new ResizeObserver(size) : null; if (ro) ro.observe(cv); else addEventListener('resize', size);
+    const flakes = Array.from({ length: 120 }, () => ({ x: Math.random() * 1600, y: Math.random() * 1000, r: Math.random() * 2.2 + .6, s: Math.random() * .6 + .3, d: Math.random() * 1.2 - .6 }));
+    const tick = () => { if (!run) return; ctx.clearRect(0, 0, W, H); ctx.fillStyle = 'rgba(255,255,255,.85)';
+      for (const f of flakes) { f.y += f.s; f.x += f.d * .4; if (f.y > H) { f.y = -4; f.x = Math.random() * W; } if (f.x > W || f.x < 0) f.x = Math.random() * W; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.283); ctx.fill(); }
+      raf = requestAnimationFrame(tick); };
+    tick();
+    snowStop = () => { run = false; cancelAnimationFrame(raf); if (ro) ro.disconnect(); else removeEventListener('resize', size); };
+  }
+  function wireLapis() {
+    document.querySelectorAll('[data-sea]').forEach(b => b.addEventListener('click', () => setSea(b.dataset.sea)));
+    document.querySelectorAll('[data-play]').forEach(b => b.addEventListener('click', () => {
+      const box = b.closest('.lp-vbox'), v = box.dataset.video, yt = v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
+      box.innerHTML = yt ? `<iframe src="https://www.youtube-nocookie.com/embed/${yt[1]}?autoplay=1&rel=0" allow="autoplay; fullscreen" allowfullscreen title="video"></iframe>`
+        : `<video src="${esc(v)}" controls autoplay playsinline></video>`;
+    }));
+    
+    snow();
+  }
+
+  function render() {
+    // a template sample (?sample=1) shows placeholder words instead of a real hotel's name and texts
+    const s = sample ? { ...S(), hero: { ...S().hero, tagline: w('sampleTag') }, about: { ...S().about, text: w('sampleAbout') }, location: { ...S().location, text: w('sampleAddr') } } : S();
+    const h = sample ? { ...(J.hotel || {}), name: w('sampleName'), city: w('sampleCity') } : (J.hotel || {}), c = contact(), th = theme();
+    const root = document.documentElement, lay = LAYOUT_OF(th);
+    root.dataset.theme = th;
+    if (th === 'lapis') root.dataset.season = sea(); else delete root.dataset.season;
+    root.style.setProperty('--accent', accent());
+    root.dataset.font = S().font === 'serif' ? 'serif' : 'sans';
+    root.toggleAttribute('data-photo', PHOTO_TOP.includes(lay[0]));
+    $('#themeCss').href = `site/themes/${th}.css?v=${V}`;
+    document.title = (h.name || '') + (h.city ? ' · ' + h.city : '');
+    const tel = c.digits ? `tel:+${c.digits}` : '';
+    const wasOpen = !!document.querySelector('.demo[open]');
+    const has = id => lay.includes(id) && (id !== 'gallery' || (s.gallery || []).length) && (id !== 'food' || foodList().length);
+    $('#app').innerHTML = `
+<header class="top" id="topbar">
+  <a class="brand" href="#top">${th === 'lapis' ? '<svg width="40" height="24" viewBox="0 0 46 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true" class="lp-logo"><path d="M2 19 15 6l10 9"/><path d="M19 11 30 1.5 44 15"/><path d="M9 15v11h30V12"/><path d="M22 26v-6h5v6"/></svg>' : ''}${th === 'lapis' ? `<span class="lp-bn">${esc(h.name || '')}</span>` : esc(h.name || '')}</a>
+  ${th === 'lapis' ? lapisNav(h) : ''}
+  <a class="btn btn-accent top-book" href="#book">${w('bookShort')}</a>
+  <button type="button" class="menu-btn" id="menuBtn" aria-haspopup="dialog" aria-controls="menu" aria-label="${w('menu')}"><span class="burger" aria-hidden="true"><i></i><i></i><i></i></span></button>
+</header>
+<dialog class="menu" id="menu" aria-label="${w('menu')}">
+  <div class="menu-in">
+    <div class="menu-head"><b>${esc(h.name || '')}</b><button type="button" class="x" data-close aria-label="${w('close')}">×</button></div>
+    <div class="menu-langs" role="group" aria-label="Language">${[['ka', 'ქართული'], ['en', 'English'], ['ru', 'Русский']].map(([l, n]) => `<button type="button" data-lang="${l}" aria-pressed="${l === lang()}">${n}</button>`).join('')}</div>
+    ${th === 'lapis' ? `<div class="menu-langs lp-msea" role="group" aria-label="${w('season')}"><button type="button" data-sea="winter" aria-pressed="${sea() === 'winter'}">${w('seasonW')}</button><button type="button" data-sea="summer" aria-pressed="${sea() === 'summer'}">${w('seasonS')}</button></div>` : ''}
+    <nav class="menu-links">
+      <a href="#rooms" data-close>${w('rooms')}</a>
+      ${has('gallery') ? `<a href="#photos" data-close>${w('gallery')}</a>` : ''}
+      ${pick(s.about?.text) ? `<a href="#about" data-close>${w('about')}</a>` : ''}
+      <a href="#where" data-close>${w('where')}</a>
+      ${has('food') ? `<a href="#food" data-close>${w('food')}</a>` : ''}
+      <a href="#book" data-close>${w('book')}</a>
+    </nav>
+    ${tel ? `<a class="btn btn-ghost menu-call" href="${tel}">${w('call')} ${esc(c.phone)}</a>` : ''}
+  </div>
+</dialog>
+<main id="top">
+  ${lay.map(k => ((BLOCK[k] || LP[k]) ? (BLOCK[k] || LP[k])(s, h, c, tel) : '')).join('\n  ')}
+</main>
+<!-- Visit2.ge credit: always shown, also on the hotel's own domain; not editable in the admin -->
+${th === 'lapis' ? lapisFoot(h, c) : `<footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span>
+  <a class="made-by" href="https://visit2.ge" rel="noopener">${w('madeBy')} <b>Visit2.ge</b></a></footer>`}
+${sheetHtml()}
+${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ? backLink() : ''}`;
+    if (wasOpen) { const d = document.querySelector('.demo'); if (d) d.open = true; }
+    wire();
+    if (th === 'lapis') wireLapis(); else if (snowStop) { snowStop(); snowStop = null; }
+  }
+
+  // ---------- places to eat nearby ----------
+  // Real places come from OpenStreetMap (js/osm.js), around the hotel's pin.
+  // The owner may hide a place and add their own tips, which come first ("the host recommends").
+  // Only where there is no server (the static preview) the invented demo list in food.js is shown.
+  let PL = null, plFor = '';               // places from the server for the current pin
+  const pin = () => {
+    const p = S().pin, h = J.hotel || {};
+    if (p && Number.isFinite(+p.lat) && Number.isFinite(+p.lng)) return { lat: +p.lat, lng: +p.lng };
+    return Number.isFinite(+h.lat) && h.lat != null ? { lat: +h.lat, lng: +h.lng } : null;
+  };
+  const metres = (a, b) => {
+    const r = Math.PI / 180, da = (b.lat - a.lat) * r, dl = (b.lng - a.lng) * r;
+    return Math.round(12742000 * Math.asin(Math.sqrt(Math.sin(da / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dl / 2) ** 2)));
+  };
+  // OpenStreetMap opening hours ("Mo-Su 10:00-23:00") in the guest's language
+  const hoursText = h => {
+    const L = { ka: ['ორშ', 'სამ', 'ოთხ', 'ხუთ', 'პარ', 'შაბ', 'კვი', 'ყოველდღე', 'დღე-ღამე'], en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Daily', 'Open 24 hours'], ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс', 'Ежедневно', 'Круглосуточно'] }[lang()] || [];
+    if (h.trim() === '24/7') return L[8];
+    return h.replace(/\bMo-Su\b/g, L[7]).replace(/\b(Mo|Tu|We|Th|Fr|Sa|Su)\b/g, d => L[['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].indexOf(d)]).replace(/;\s*/g, '; ').replace(/\boff\b/g, '—');
+  };
+  const nameOf = n => (typeof n === 'string' ? n : (n[lang()] || n.def || n.ka || ''));
+  // the owner's saved list comes with the content; sample hotels ask OpenStreetMap from the browser (kept a week here)
+  async function loadPlaces() {
+    const p = pin(); if (!p || sample || Array.isArray(S().food?.places) || !window.V2OSM) return;
+    const key = 'v2-places2-' + p.lat.toFixed(4) + ',' + p.lng.toFixed(4); if (plFor === key) return; plFor = key;
+    // sample hotels: the list saved with the site every week (data/places.json), no waiting for OpenStreetMap
+    if (isDemo()) try {
+      const d = await (await fetch('data/places.json')).json(), list = d.hotels?.[slug()];
+      if (list?.length) { PL = list; redraw(); return; }
+    } catch (e) { /* ask OpenStreetMap below */ }
+    try { const c = JSON.parse(localStorage.getItem(key) || 'null'); if (c && Date.now() - c.t < 7 * 864e5) { PL = c.places; redraw(); return; } } catch (e) { /* ask again */ }
+    try { PL = await window.V2OSM.places(p.lat, p.lng); } catch (e) { return; }
+    if (PL.length) try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), places: PL })); } catch (e) { /* full */ }
+    redraw();
+  }
+  // the list shown: host's tips, then real places (minus hidden), nearest first
+  function foodList() {
+    const f = S().food || {}, hide = new Set(f.hide || []), p = pin();
+    const own = (f.own || []).filter(x => pick(x.name)).map((x, i) => ({ id: 'own' + i, name: pick(x.name), kind: x.kind || 'restaurant', note: pick(x.note), own: true, m: null,
+      phone: x.phone || '', web: /^https?:\/\//i.test(x.web || '') ? x.web : '', mapUrl: /^https:\/\/(www\.)?(google\.[a-z.]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.)/i.test(x.map || '') ? x.map : '' }));
+    // sample paid places (site/ads.js), only on sample hotels; real hotels will get real ones from the server
+    const ads = isDemo() && window.V2ADS && p ? window.V2ADS.near(p).map(x => ({ id: x.id, name: x.name[lang()] || x.name.ka, kind: x.kind, note: x.note[lang()] || x.note.ka, photo: x.photo, lat: x.lat, lng: x.lng, m: x.m, sponsored: true, sample: true })) : [];
+    own.push(...ads);
+    const real = Array.isArray(f.places) ? f.places : PL;
+    if (real) return [...own, ...real.filter(x => !hide.has(x.id)).map(x => ({ ...x, name: nameOf(x.name), m: p ? metres(p, x) : x.m }))];
+    // invented names only in the offline preview (GitHub Pages, local testing); on visit2.ge only real places
+    const F = window.V2FOOD, offline = /github\.io$/.test(location.hostname) || location.protocol === 'file:' || ['8765', '8799'].includes(location.port);
+    if (!offline || !isDemo() || !F) return own;
+    return [...own, ...F.all((J.hotel || {}).city).map(x => ({ ...x, id: 'demo-' + x.name, demo: true }))];
+  }
+  const shortList = all => [...all].sort((a, b) => ((b.sponsored || 0) - (a.sponsored || 0)) || ((b.own || 0) - (a.own || 0)) || ((a.m ?? 0) - (b.m ?? 0))).slice(0, 4);
+
+  function foodSection() {
+    const all = foodList(); if (!all.length) return '';
+    return `<section class="food" id="food">
+  <h2>${caps(w('food'))}</h2>
+  ${all.some(r => r.photo) ? `<ul class="food-list food-ads">${all.filter(r => r.photo).map(foodItem).join('')}</ul>` : ''}
+  <ul class="food-list">${shortList(all.filter(r => !r.photo)).map(foodItem).join('')}</ul>
+  ${all.filter(r => !r.photo).length > 4 ? `<button type="button" class="btn btn-line food-more" id="foodMore" aria-haspopup="dialog">${w('foodAll')} (${all.filter(r => !r.photo).length})</button>` : ''}
+  <p class="food-note">${Array.isArray(S().food?.places) || PL ? w('foodOsm') : w('foodNote')}</p>
+</section>
+<dialog class="food-dlg place-dlg" id="placeDlg" aria-labelledby="placeH">
+  <div class="food-dlg-head"><span></span><button type="button" class="food-x" data-close aria-label="${w('close')}">×</button></div>
+  <div class="place-body"></div>
+</dialog>
+<dialog class="food-dlg" id="foodDlg" aria-labelledby="foodDlgH">
+  <div class="food-dlg-head"><h2 id="foodDlgH">${w('foodAllH')}</h2><button type="button" class="food-x" id="foodX" aria-label="${w('close')}">×</button></div>
+  <div class="food-filter" role="group" aria-label="${w('foodKind')}"></div>
+  <ul class="food-list food-full"></ul>
+</dialog>`;
+  }
+  const dist = m => (m < 1000 ? `${m} ${lang() === 'ka' ? 'მ' : lang() === 'ru' ? 'м' : 'm'}` : `${(m / 1000).toFixed(1)} ${lang() === 'ka' ? 'კმ' : lang() === 'ru' ? 'км' : 'km'}`);
+  const kindName = k => { const K = window.V2FOOD?.KIND || {}; const n = K[k] || K.restaurant || ['']; return n[['ka', 'en', 'ru'].indexOf(lang())] || n[0]; };
+  const foodItem = r => `<li${r.photo ? ' class="ad"' : ''}><button type="button" class="food-item${r.own || r.sponsored ? ' rec' : ''}${r.photo ? ' has-ph' : ''}" data-food="${esc(r.id)}">
+    ${r.photo ? `<img src="${esc(r.photo)}" alt="" loading="lazy">` : ''}
+    ${r.sponsored ? `<span class="food-badge">${w(r.sample ? 'adSample' : 'recommended')}</span>` : r.own ? `<span class="food-badge">${w('hostTip')}</span>` : ''}
+    <b>${esc(r.name)}</b>
+    <span class="food-meta">${[kindName(r.kind), r.m != null ? dist(r.m) : '', r.price ? '₾'.repeat(r.price) : ''].filter(Boolean).map(esc).join(' · ')}</span>
+  </button></li>`;
+  // one place: its card with what OpenStreetMap knows (hours, phone, website) and a map link
+  function openPlace(id) {
+    const r = foodList().find(x => x.id === id); if (!r) return;
+    const city = (J.hotel || {}).city || '', d = $('#placeDlg');
+    // a Google Maps search by name and town opens the place's own Google page (reviews, photos, links); free, no Google key
+    const where = `${r.name}, ${city.replace(/\s*\(.*\)\s*$/, '')}, Georgia`;
+    d.querySelector('.place-body').innerHTML = `${r.photo ? `<img class="place-ph" src="${esc(r.photo)}" alt="">` : ''}${r.sponsored ? `<span class="food-badge">${w(r.sample ? 'adSample' : 'recommended')}</span>` : r.own ? `<span class="food-badge">${w('hostTip')}</span>` : ''}
+      <h2 id="placeH">${esc(r.name)}</h2>
+      <p class="food-meta">${esc([kindName(r.kind), r.cuisine && !/georgian/i.test(r.cuisine) ? r.cuisine : '', r.price ? '₾'.repeat(r.price) : ''].filter(Boolean).join(' · '))}</p>
+      ${r.note ? `<p>${esc(r.note)}</p>` : ''}
+      <ul class="place-facts">
+        ${r.m != null ? `<li>📍 ${dist(r.m)} · ${w('foodWalk').replace('{n}', Math.max(1, Math.round(r.m / 80)))}</li>` : ''}
+        ${r.hours ? `<li>🕙 ${esc(hoursText(r.hours))}</li>` : r.demo ? `<li>🕙 ${w('foodHours')}</li>` : ''}
+        ${r.phone ? `<li>📞 <a href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}">${esc(r.phone)}</a></li>` : ''}
+        ${r.web ? `<li>🌐 <a href="${esc(r.web)}" target="_blank" rel="noopener nofollow">${esc(r.web.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '').slice(0, 40))}</a></li>` : ''}
+      </ul>
+      <a class="btn btn-accent" href="${esc(r.mapUrl || 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(where))}" target="_blank" rel="noopener">${w('foodMap')}</a>`;
+    if ($('#foodDlg').open) $('#foodDlg').close();
+    d.showModal();
+  }
+  // the full list: every place nearby, nearest first, with a filter by kind
+  function openFood() {
+    const all = foodList(), dlg = $('#foodDlg');
+    const kinds = [...new Set(all.map(r => r.kind))];
+    let cur = '';
+    const draw = () => {
+      dlg.querySelector('.food-filter').innerHTML = ['', ...kinds].map(k => `<button type="button" data-kind="${k}" aria-pressed="${k === cur}">${k ? esc(kindName(k)) : w('foodAny')}</button>`).join('');
+      dlg.querySelector('.food-full').innerHTML = all.filter(r => !cur || r.kind === cur).map(foodItem).join('');
+    };
+    dlg.querySelector('.food-filter').onclick = e => { const b = e.target.closest('[data-kind]'); if (!b) return; cur = b.dataset.kind; draw(); };
+    draw();
+    dlg.showModal();
+  }
+
+  // ---------- the map (OpenStreetMap through Leaflet, loaded only when the map comes near the screen) ----------
+  let leaflet = null;
+  const loadLeaflet = () => leaflet || (leaflet = new Promise((ok, bad) => {
+    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'vendor/leaflet/leaflet.css'; document.head.append(css);
+    const s = document.createElement('script'); s.src = 'vendor/leaflet/leaflet.js'; s.onload = () => ok(window.L); s.onerror = bad; document.head.append(s);
+  }));
+  const mapBlock = () => (pin() && !sample ? `<div class="v2map" id="v2map" role="region" aria-label="${esc(w('mapLabel'))}"></div>` : '');
+  function drawMap() {
+    const el = $('#v2map'), p = pin(); if (!el || !p) return;
+    const go = () => loadLeaflet().then(L => {
+      if (!el.isConnected) return;
+      const touch = matchMedia('(pointer: coarse)').matches;
+      const m = L.map(el, { scrollWheelZoom: false, dragging: !touch, tap: false, zoomControl: true, attributionControl: true }).setView([p.lat, p.lng], 15);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' }).addTo(m);
+      m.attributionControl.setPrefix(false);
+      const home = L.divIcon({ className: 'v2pin', html: '<span></span>', iconSize: [30, 30], iconAnchor: [15, 30] });
+      L.marker([p.lat, p.lng], { icon: home, title: (J.hotel || {}).name || '', keyboard: false }).addTo(m);
+      const near = foodList().filter(x => x.lat != null).slice(0, 25);
+      near.forEach(x => L.circleMarker([x.lat, x.lng], { radius: 7, weight: 2, color: '#fff', fillColor: accent(), fillOpacity: 1 })
+        .addTo(m).bindTooltip(esc(x.name)).on('click', () => openPlace(x.id)));
+      if (near.length) m.fitBounds(L.latLngBounds([[p.lat, p.lng], ...near.slice(0, 8).map(x => [x.lat, x.lng])]).pad(0.15), { maxZoom: 16 });
+    }).catch(() => { el.hidden = true; });
+    if (!('IntersectionObserver' in window)) return go();
+    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); go(); } }, { rootMargin: '400px' });
+    io.observe(el);
+  }
+  function roomCard(k) {
+    const t = J.types[k], s = S().rooms?.[k] || {}, ph = (s.photos || []).slice(0, 8);
+    // one whole photo at a time; more photos are swiped (or clicked through with the arrows)
+    return `<article class="room" id="room-${esc(k)}" data-type="${esc(k)}">
+  <div class="room-media">${ph.length ? `<div class="slides">${ph.map(p => img(p, typeName(t.name))).join('')}</div>${ph.length > 1 ? `
+    <button type="button" class="sl-btn sl-prev" data-sl="-1" aria-label="${w('prevPhoto')}" hidden>‹</button><button type="button" class="sl-btn sl-next" data-sl="1" aria-label="${w('nextPhoto')}">›</button>
+    <span class="sl-count" aria-hidden="true">1 / ${ph.length}</span>` : ''}` : img('')}</div>
+  <div class="room-body">
+    <h3>${esc(typeName(t.name))}</h3>
+    ${pick(s.text) ? `<p class="room-text">${esc(pick(s.text))}</p>` : ''}
+    ${(s.feats || []).length ? `<ul class="room-feats" aria-label="${w('feats')}">${s.feats.map(f => `<li>${esc(pick(f))}</li>`).join('')}</ul>` : ''}
+    <p class="room-meta">${t.cap} ${w('upTo')} · ${roomsOf(k).length} ${lang() === 'ka' ? 'ნომერი' : lang() === 'ru' ? 'ном.' : 'rooms'}</p>
+    <p class="room-price"><span class="amount">${lang() === 'ka' ? `${minPrice(k)} ₾${w('from')}` : `${w('from')} ${minPrice(k)} ₾`}</span><span class="per"> / ${w('perNight')}</span></p>
+    <p class="room-avail" aria-live="polite"></p>
+    <button type="button" class="btn btn-line" data-pick="${esc(k)}">${w('choose')}</button>
+  </div>
+</article>`;
+  }
+
+  // the dates and guests field, like the Visit2.ge search: it opens the sheet with a calendar and guests
+  function pill() {
+    return `<div class="pill" role="group" aria-label="${w('check')}">
+    <button type="button" class="seg" data-open="when"><span>${w('dates')}</span><b class="p-when"></b></button>
+    <button type="button" class="seg" data-open="who"><span>${w('guestsW')}</span><b class="p-who"></b></button>
+    <button type="button" class="btn btn-accent pill-go" data-see>${w('seePrice')}</button>
+  </div>`;
+  }
+  function sheetHtml() {
+    const step = (n, t, sub) => `<div class="step"><div><b>${w(t)}</b><small>${w(sub)}</small></div><div class="stepper"><button type="button" data-n="${n}" data-d="-1" aria-label="−">−</button><output data-v="${n}">0</output><button type="button" data-n="${n}" data-d="1" aria-label="+">+</button></div></div>`;
+    const petsOk = (S().amenities || []).includes('pets');
+    return `<dialog class="sheet" id="sheet" aria-labelledby="sheetH">
+  <div class="sheet-in">
+    <div class="sheet-head"><span></span><h2 id="sheetH"></h2><button type="button" class="x" data-close aria-label="${w('close')}">×</button></div>
+    <div class="view" data-view="when" hidden>
+      <div class="range"><div><span>${w('arrive')}</span><b id="rFrom">—</b></div><div><span>${w('leave')}</span><b id="rTo">—</b></div></div>
+      <p class="nights" id="rNights"></p>
+      <div class="dow" id="dow" aria-hidden="true"></div>
+      <div class="cal" id="cal"></div>
+      <div class="sheet-foot"><button type="button" class="btn btn-ghost" id="calReset">${w('clear')}</button><button type="button" class="btn btn-accent" id="calSave">${w('save')}</button></div>
+    </div>
+    <div class="view" data-view="who" hidden>
+      ${step('adults', 'adults', 'adultsAge')}${step('kids', 'kids', 'kidsAge')}${step('babies', 'babies', 'babiesAge')}${J.ROOMS.length > 1 ? step('rooms', 'rooms', 'roomsSub') : ''}
+      <div class="step"><div><b>${w('pets')}</b><small>${w(petsOk ? 'petsOk' : 'petsNo')}</small></div>${petsOk ? `<div class="stepper"><button type="button" data-n="pets" data-d="-1" aria-label="−">−</button><output data-v="pets">0</output><button type="button" data-n="pets" data-d="1" aria-label="+">+</button></div>` : ''}</div>
+      <div class="sheet-foot"><button type="button" class="btn btn-accent" id="whoSave">${w('save')}</button></div>
+    </div>
+  </div>
+</dialog>`;
+  }
+  const MONTHS = { ka: ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'],
+    en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    ru: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'] };
+  const DOW = { ka: ['ორ', 'სა', 'ოთ', 'ხუ', 'პა', 'შა', 'კვ'], en: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] };
+  let calFrom = '', calTo = '';
+  function openSheet(v) {
+    const d = $('#sheet'); if (!d.open) d.showModal();
+    d.querySelectorAll('[data-view]').forEach(x => { x.hidden = x.dataset.view !== v; });
+    $('#sheetH').textContent = w(v === 'when' ? 'whenQ' : 'whoQ');
+    if (v === 'when') { calFrom = sel.from; calTo = sel.to; drawCal(); }
+    if (v === 'who') ['adults', 'kids', 'babies', 'rooms', 'pets'].forEach(n => { const o = d.querySelector(`[data-v="${n}"]`); if (o) o.value = sel[n]; });
+    d.querySelector('.sheet-in').scrollTop = 0;
+  }
+  function drawCal() {
+    const L = lang(), today = J.today(), [y0, m0] = today.split('-').map(Number);
+    $('#dow').innerHTML = DOW[L].map(d => `<span>${d}</span>`).join('');
+    let html = '';
+    for (let i = 0; i < 12; i++) {
+      const y = y0 + Math.floor((m0 - 1 + i) / 12), m = (m0 - 1 + i) % 12;
+      const days = new Date(Date.UTC(y, m + 1, 0)).getUTCDate(), pad = (new Date(Date.UTC(y, m, 1)).getUTCDay() + 6) % 7;
+      html += `<section class="month"><h3>${MONTHS[L][m]} ${y}</h3><div class="days">${'<span></span>'.repeat(pad)}`;
+      for (let d = 1; d <= days; d++) {
+        const ds = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        html += ds < today ? `<span class="past">${d}</span>` : `<button type="button" data-day="${ds}">${d}</button>`;
+      }
+      html += '</div></section>';
+    }
+    $('#cal').innerHTML = html; paintCal();
+  }
+  function paintCal() {
+    $('#cal').querySelectorAll('[data-day]').forEach(x => {
+      const d = x.dataset.day;
+      x.className = [d === calFrom ? 'start' : '', d === calTo ? 'end' : '', calFrom && calTo && d > calFrom && d < calTo ? 'in' : ''].filter(Boolean).join(' ');
+      x.setAttribute('aria-pressed', String(d === calFrom || d === calTo));
+    });
+    $('#rFrom').textContent = calFrom ? J.fmt(calFrom) : '—';
+    $('#rTo').textContent = calTo ? J.fmt(calTo) : '—';
+    const n = calFrom && calTo ? J.nights(calFrom, calTo) : 0;
+    $('#rNights').textContent = n ? `${n} ${w('nights')}` : w(calFrom ? 'pickLeave' : 'pickArrive');
+  }
+  const guestsText = () => [w('guestsN').replace('{n}', sel.adults + sel.kids), sel.rooms > 1 ? w('roomsN').replace('{n}', sel.rooms) : '', sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(', ');
+  function pillText() {
+    document.querySelectorAll('.p-when').forEach(el => { el.textContent = sel.from && sel.to ? J.fmtRange(sel.from, sel.to) : w('addDates'); });
+    document.querySelectorAll('.p-who').forEach(el => { el.textContent = guestsText(); });
+    // in the booking form, once the dates are chosen, the price is already above: the button offers another room instead
+    document.querySelectorAll('.book-pick .pill-go').forEach(el => { el.textContent = sel.from && sel.to ? w('otherRoom') : w('seePrice'); });
+  }
+  const inst = () => !!(S().instant && S().instant.on);
+  // prepayment at the hotel's bank (Visit2 turned it on, the hotel connected its bank): the server says so in /api/content
+  let PAY = false, PAYMIN = 20;
+  const payOn = () => inst() && (PAY || (isDemo() && !!((S().instant || {}).pay || {}).on));
+  const payPart = () => { const p = (S().instant || {}).pay || {}; return p.part === 'deposit' ? w('payDeposit').replace('{p}', p.pct || 30) : w('payFull'); };
+  function rulesHtml() {
+    const r = S().instant || {}, c = pick(r.cancel), pp = pick(r.prepay);
+    if (!inst() || (!c && !pp)) return '';
+    return `<div class="rules wide">${c ? `<p><b>${w('cancelT')}:</b> ${esc(c)}</p>` : ''}${pp ? `<p><b>${w('prepayT')}:</b> ${esc(pp)}</p>` : ''}
+      ${c || pp ? `<label class="rules-ok"><input type="checkbox" name="rules"> <span>${w('rulesOk')}</span></label>` : ''}</div>`;
+  }
+  function bookForm() {
+    return `<section class="book" id="book">
+  <h2>${caps(w('book'))}</h2>
+  <div class="book-sum" id="sum" aria-live="polite">${w('pickDates')}</div>
+  <div class="book-pick">${pill()}</div>
+  <form id="req" novalidate>
+    <label><span>${w('name')}</span><input name="name" autocomplete="name" required></label>
+    <label><span>${w('phone')}</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
+    <label class="wide"><span>${w('wish')} <small>(${w('optional')})</small></span><textarea name="wish" rows="2" maxlength="500"></textarea></label>
+    ${plansHtml()}
+    ${extrasHtml()}
+    <label class="wide code-f"><span>${w('codeT')} <small>(${w('optional')})</small></span><input name="code" autocomplete="off" autocapitalize="characters" maxlength="30"><small class="code-m" aria-live="polite"></small></label>
+    ${rulesHtml()}
+    ${inst() ? `<p class="inst-note wide">${w(payOn() ? 'instantPay' : 'instantNote')}</p>` : ''}
+    <button class="btn btn-accent wide" type="submit">${w(payOn() ? 'bookPay' : inst() ? 'bookNow' : 'send')}</button>
+    <p class="note wide">${payOn() ? w('payNote').replace('{m}', PAYMIN).replace('{part}', payPart()) : w(inst() ? 'noPayI' : 'noPay')}</p>
+    <p class="note wide">${w(inst() ? 'consentI' : 'consent')}</p>
+    <p class="msg wide" id="msg" role="status"></p>
+  </form>
+</section>`;
+  }
+  // the hotel's price plans (with breakfast, non-refundable...): the guest picks one; the server prices it again
+  const planList = () => (J.plans ? J.plans() : []);
+  const curPlan = () => planList().find(p => p.id === sel.plan) || null;
+  // the plan, then a promo code the server accepted
+  const withPlan = (total, guests, n) => { const v = window.V2PLANS ? window.V2PLANS.planPrice(total, curPlan(), guests, n) : total; return sel.code ? Math.round(v * (100 - sel.code.pct) / 100) : v; };
+  function plansHtml() {
+    const list = planList(); if (!list.length) return '';
+    const d = p => [p.pct ? (p.pct > 0 ? '−' + p.pct + '%' : '+' + (-p.pct) + '%') : '', p.add ? '+' + fmtN(p.add) + ' ' + w(p.perGuest ? 'uGuestNight' : 'uNight') : '', p.refundable === false && !/დაუბრუნ|non-?ref|невозвр/i.test(p.name) ? w('nonRef') : ''].filter(Boolean).join(' · ');
+    return `<fieldset class="extras wide"><legend>${w('planT')}</legend>
+      <label class="ex-ck"><input type="radio" name="plan" value=""${sel.plan ? '' : ' checked'}> <span>${w('planStd')}</span></label>
+      ${list.map(p => `<label class="ex-ck"><input type="radio" name="plan" value="${esc(p.id)}"${sel.plan === p.id ? ' checked' : ''}> <span>${esc(J.serviceName(p, lang()))}</span> <small>${esc(d(p))}</small></label>`).join('')}
+    </fieldset>`;
+  }
+  // the hotel's services a guest can add when booking (breakfast, transfer, a tour...), at the hotel's own prices
+  const UNIT_W = { stay: 'uStay', night: 'uNight', guest: 'uGuest', guest_night: 'uGuestNight', item: 'uItem' };
+  const offered = () => (J.onlineServices ? J.onlineServices() : []);
+  function extrasHtml() {
+    const list = offered(); if (!list.length) return '';
+    return `<fieldset class="extras wide"><legend>${w('extrasT')}</legend>
+      ${list.map(x => `<div class="ex-row"><label class="ex-ck"><input type="checkbox" data-ex="${esc(x.id)}"${sel.extras[x.id] ? ' checked' : ''}> <span>${esc(J.serviceName(x, lang()))}</span> <small>${fmtN(x.price)} ${w(UNIT_W[x.unit] || 'uItem')}</small></label>${x.unit === 'item' ? `<label class="ex-q"><span class="sr">${w('qty')}</span><input type="number" min="1" max="99" step="1" inputmode="numeric" data-exq="${esc(x.id)}" value="${sel.extras[x.id] || 1}" aria-label="${w('qty')}: ${esc(J.serviceName(x, lang()))}"></label>` : ''}</div>`).join('')}
+    </fieldset>`;
+  }
+  // chosen services for the current dates and guests: [{id, qty, amount}]
+  function chosenExtras() {
+    if (!sel.from || !sel.to || sel.to <= sel.from) return [];
+    const stay = { from: sel.from, to: sel.to, guests: beds() };
+    return offered().filter(x => sel.extras[x.id]).map(x => { const qty = J.unitsFor(x.unit, stay, sel.extras[x.id]); return { id: x.id, qty, amount: x.price * qty }; });
+  }
+  const extrasSum = () => chosenExtras().reduce((a, x) => a + x.amount, 0);
+  const withExtras = room => { const e = extrasSum(); return e ? `<br>${w('withRoom')}: ${fmtN(room)} · ${w('extrasS')}: ${fmtN(e)}<br><span class="sum-total">${w('total')}: ${fmtN(room + e)}</span>` : ''; };
+  // one clear button back to Visit2.ge: a template sample goes back to the templates, a hotel to the hotel list
+  function backLink() {
+    const to = sample ? `owners.html?v=${V}#templates` : `index.html?v=${V}`;
+    const txt = sample ? { ka: 'შაბლონებზე დაბრუნება', en: 'Back to templates', ru: 'Назад к шаблонам' } : { ka: 'ყველა სასტუმრო', en: 'All places to stay', ru: 'Все места' };
+    return `<a class="v2-back" href="${to}"><span aria-hidden="true">←</span> ${esc(txt[lang()] || txt.en)}</a>`;
+  }
+  function demoPanel() {
+    const mine = J.hotel && J.hotel.mine;
+    return `<details class="demo"${mine ? '' : ''}>
+  <summary>Visit2.ge · ${lang() === 'ka' ? 'შენი საიტი' : lang() === 'ru' ? 'Ваш сайт' : 'Your site'}</summary>
+  <p class="demo-head"><a href="admin.html?h=${esc(slug())}">${w('admin')}</a></p>
+  ${mine ? `<div class="demo-row">${Object.entries(THEMES).map(([id, t]) => `<button type="button" data-theme="${id}" aria-pressed="${id === theme()}">${esc(t.name)}</button>`).join('')}</div>
+  <div class="demo-row">${ACCENTS.map(a => `<button type="button" class="sw" data-accent="${a}" style="--c:${a}" aria-label="${w('colour')} ${a}" aria-pressed="${a.toLowerCase() === accent().toLowerCase()}"></button>`).join('')}</div>` : ''}
+</details>`;
+  }
+
+  // ---------- booking ----------
+  const sel = { from: '', to: '', adults: 2, kids: 0, babies: 0, pets: 0, rooms: 1, type: '', extras: {}, plan: '', code: null };
+  // dates and guests from the Visit2.ge search (hotel.html?h=…&from=…&to=…&g=…)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('from') || '') && /^\d{4}-\d{2}-\d{2}$/.test(params.get('to') || '') && params.get('to') > params.get('from')) {
+    sel.from = params.get('from'); sel.to = params.get('to'); sel.adults = Math.max(1, Math.min(16, +params.get('g') || 2));
+  }
+  if (+params.get('rooms') > 1) sel.rooms = Math.min(10, +params.get('rooms'));
+  if (sel.from && +params.get('c') > 0) { sel.kids = Math.min(10, +params.get('c')); sel.adults = Math.max(1, sel.adults - sel.kids); }
+  if (+params.get('i') > 0) sel.babies = Math.min(5, +params.get('i'));
+  if (+params.get('p') > 0) sel.pets = Math.min(5, +params.get('p'));
+  if (params.get('t')) sel.type = params.get('t');
+  const fmtN = n => `${n} ₾`;
+  // beds needed: adults and children (infants share a bed); the price follows the owner's rule for children
+  const beds = () => sel.adults + sel.kids;
+  const priced = () => sel.adults + (kidsRule().mode === 'free' || kidsRule().mode === 'fixed' ? 0 : sel.kids);
+  const quoteOf = (k, from, to) => J.quote(k, from, to, Math.max(1, priced())) + (kidsRule().mode === 'fixed' ? (+kidsRule().price || 0) * sel.kids * J.nights(from, to) : 0);
+  function summary() {
+    const el = $('#sum'); if (!el) return;
+    const { from, to } = sel, g = beds();
+    pillText();
+    document.querySelectorAll('.room').forEach(r => { r.classList.toggle('picked', r.dataset.type === sel.type); });
+    if (!from || !to || to <= from) { el.innerHTML = w('pickDates'); availability(); return; }
+    const n = J.nights(from, to), free = k => roomsOf(k).filter(r => J.roomFree(r.id, from, to)).length;
+    // the hotel's stay rules: fewest nights, days with no arrivals
+    const sc = J.stayOk ? J.stayOk(from, to) : { ok: true };
+    if (!sc.ok) { availability(); sel.offer = ''; el.innerHTML = `<b>${sc.noIn ? w('noIn') : w('minN').replace('{n}', sc.min)}</b>`; return; }
+    if (sel.rooms > 1) {
+      availability();
+      const o = J.roomsOffer(from, to, g, Math.min(sel.rooms, g), sel.kids, kidsRule());
+      if (!o.parts) { el.innerHTML = `<b>${o.free < Math.min(sel.rooms, g) ? w('onlyFree').replace('{n}', o.free) : w('roomsFit')}</b>`; sel.offer = ''; return; }
+      sel.offer = '';
+      o.parts.forEach(x => { x.total = withPlan(x.total, x.guests, n); }); o.total = o.parts.reduce((a, x) => a + x.total, 0);
+      el.innerHTML = `<b>${w('roomsTogether').replace('{n}', o.parts.length)}</b><br>${o.parts.map((x, i) => `${w('roomNo').replace('{i}', i + 1)}: ${esc(typeName(x.name))} · ${w('guestsN').replace('{n}', x.guests)}${x.kids ? ` (${w('kidsN').replace('{n}', x.kids)})` : ''} · ${fmtN(x.total)}`).join('<br>')}<br>${J.fmtRange(from, to)} · ${n} ${w('nights')}${curPlan() ? ' · ' + esc(curPlan().name) : ''}<br><span class="sum-total">${w('allRooms').replace('{n}', o.parts.length)}: ${fmtN(o.total)}</span>${withExtras(o.total)}`;
+      return;
+    }
+    let type = sel.type && free(sel.type) && J.rateFor(sel.type, g) ? sel.type : null;
+    if (!type) { const o = J.findOffer(from, to, g); type = o ? o.type : null; }
+    availability();
+    if (!type) {
+      const nx = J.nextOffer(from, n, g);
+      el.innerHTML = `<b>${w('none')}</b>${nx ? `<br>${w('nearest')}: <button type="button" class="link" data-next="${nx.from}|${nx.to}">${J.fmtRange(nx.from, nx.to)}</button>` : ''}`;
+      return;
+    }
+    sel.offer = type;
+    const room = withPlan(quoteOf(type, from, to), beds(), n);
+    el.innerHTML = `<b>${esc(typeName(J.types[type].name))}</b><br>${J.fmtRange(from, to)} · ${n} ${w('nights')} · ${esc(guestsText())}${curPlan() ? ' · ' + esc(curPlan().name) : ''}<br><span class="sum-total">${w('estimate')}: ${fmtN(room)}</span>${withExtras(room)}`;
+  }
+  function availability() {
+    const { from, to } = sel, g = beds(), ok = from && to && to > from;
+    document.querySelectorAll('.room').forEach(r => {
+      const k = r.dataset.type, out = r.querySelector('.room-avail'); if (!out) return;
+      if (!ok) { out.textContent = ''; return; }
+      const free = roomsOf(k).filter(x => J.roomFree(x.id, from, to)).length, fits = J.rateFor(k, g);
+      out.textContent = !fits ? `${J.types[k].cap} ${w('upTo')}` : free ? `${w('left')}: ${free} · ${w('total')} ${fmtN(quoteOf(k, from, to))}` : w('none');
+      out.dataset.state = !fits || !free ? 'no' : 'yes';
+    });
+  }
+
+  function wire() {
+    const sheet = $('#sheet'), menu = $('#menu'), still = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => openSheet(b.dataset.open)));
+    document.querySelectorAll('[data-see]').forEach(b => b.addEventListener('click', () => { if (!sel.from) openSheet('when'); else $('#rooms').scrollIntoView({ behavior: still }); }));
+    sheet.addEventListener('click', e => { if (e.target === sheet || e.target.closest('[data-close]')) sheet.close(); });
+    $('#cal').addEventListener('click', e => {
+      const b = e.target.closest('[data-day]'); if (!b) return; const d = b.dataset.day;
+      if (!calFrom || calTo || d <= calFrom) { calFrom = d; calTo = ''; } else calTo = d;
+      paintCal();
+    });
+    $('#calReset').addEventListener('click', () => { calFrom = calTo = ''; paintCal(); });
+    $('#calSave').addEventListener('click', () => {
+      if (calFrom && !calTo) calTo = J.addDays(calFrom, 1);
+      sel.from = calFrom; sel.to = calTo; summary();
+      openSheet('who');
+    });
+    sheet.querySelector('[data-view="who"]').addEventListener('click', e => {
+      const b = e.target.closest('[data-n]'); if (!b) return;
+      const n = b.dataset.n, o = sheet.querySelector(`[data-v="${n}"]`), min = n === 'adults' || n === 'rooms' ? 1 : 0, max = { adults: 16, kids: 10, babies: 5, pets: 5, rooms: 10 }[n];
+      o.value = Math.min(max, Math.max(min, +o.value + +b.dataset.d));
+    });
+    $('#whoSave').addEventListener('click', () => {
+      ['adults', 'kids', 'babies', 'rooms', 'pets'].forEach(n => { const o = sheet.querySelector(`[data-v="${n}"]`); sel[n] = o ? +o.value : n === 'rooms' ? 1 : 0; });
+      sel.rooms = Math.max(1, Math.min(sel.rooms, beds()));
+      sheet.close(); summary();
+      if (sel.from) $('#rooms').scrollIntoView({ behavior: still });
+    });
+    $('#menuBtn').addEventListener('click', () => menu.showModal());
+    menu.addEventListener('click', e => { if (e.target === menu || e.target.closest('[data-close]')) menu.close(); });
+    const bar = $('#topbar'), onScroll = () => bar.classList.toggle('scrolled', scrollY > 40);
+    window.onscroll = onScroll; onScroll();
+    document.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => { sel.type = b.dataset.pick; summary(); $('#book').scrollIntoView({ behavior: still }); if (!sel.from) openSheet('when'); }));
+    $('#sum').addEventListener('click', e => { const b = e.target.closest('[data-next]'); if (!b) return; [sel.from, sel.to] = b.dataset.next.split('|'); summary(); });
+    $('#req').addEventListener('submit', send);
+    // services ticked on the form: kept in sel (the page may be drawn again) and added to the total
+    $('#req').addEventListener('change', e => {
+      if (e.target.name === 'plan') { sel.plan = e.target.value; summary(); return; }
+      if (e.target.name === 'code') {
+        const m = e.target.parentElement.querySelector('.code-m'), v = e.target.value.trim();
+        if (!v) { sel.code = null; m.textContent = ''; summary(); return; }
+        J.checkCode(v, sel.from).then(c => { sel.code = c; m.textContent = c ? w('codeOk').replace('{p}', c.pct) : w('codeBad'); m.dataset.ok = c ? '1' : ''; summary(); });
+        return;
+      }
+      const c = e.target.closest('[data-ex]'), q = e.target.closest('[data-exq]');
+      if (c) { if (c.checked) sel.extras[c.dataset.ex] = +(($('#req').querySelector(`[data-exq="${c.dataset.ex}"]`) || {}).value) || 1; else delete sel.extras[c.dataset.ex]; summary(); }
+      if (q) { const v = Math.max(1, Math.min(99, parseInt(q.value) || 1)); q.value = v; const ck = $('#req').querySelector(`[data-ex="${q.dataset.exq}"]`); if (ck) { ck.checked = true; sel.extras[q.dataset.exq] = v; } summary(); }
+    });
+    document.querySelectorAll('#food, #foodDlg').forEach(el => el.addEventListener('click', e => { const b = e.target.closest('[data-food]'); if (b) openPlace(b.dataset.food); }));
+    if ($('#placeDlg')) {
+      $('#placeDlg').querySelector('[data-close]').addEventListener('click', () => $('#placeDlg').close());
+      $('#placeDlg').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+    }
+    if ($('#foodMore')) {
+      $('#foodMore').addEventListener('click', openFood);
+      $('#foodX').addEventListener('click', () => $('#foodDlg').close());
+      $('#foodDlg').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.close(); });
+    }
+    document.querySelectorAll('button[data-lang]').forEach(b => b.addEventListener('click', () => { I.set(b.dataset.lang); }));
+    document.querySelectorAll('button[data-theme]').forEach(b => b.addEventListener('click', () => { params.delete('theme'); saveLocal({ theme: b.dataset.theme, accent: '' }); render(); }));
+    document.querySelectorAll('button[data-accent]').forEach(b => b.addEventListener('click', () => { saveLocal({ accent: b.dataset.accent }); render(); }));
+    document.querySelectorAll('.room-media').forEach(m => {
+      const sl = m.querySelector('.slides'); if (!sl || sl.children.length < 2) return;
+      const n = sl.children.length, cnt = m.querySelector('.sl-count'), prev = m.querySelector('.sl-prev'), next = m.querySelector('.sl-next');
+      const at = () => Math.round(sl.scrollLeft / sl.clientWidth);
+      sl.addEventListener('scroll', () => { const i = at(); cnt.textContent = `${i + 1} / ${n}`; prev.hidden = i === 0; next.hidden = i === n - 1; }, { passive: true });
+      m.addEventListener('click', e => { const b = e.target.closest('[data-sl]'); if (b) sl.scrollTo({ left: (at() + +b.dataset.sl) * sl.clientWidth, behavior: 'smooth' }); });
+    });
+    summary();
+    drawMap();
+  }
+
+  async function send(e) {
+    e.preventDefault();
+    const f = e.target, msg = $('#msg'), g = beds();
+    const name = f.name.value.trim(), phone = f.phone.value.trim();
+    msg.dataset.state = 'bad';
+    if (!sel.from || !sel.to || sel.to <= sel.from) { msg.textContent = w('pickDates'); openSheet('when'); return; }
+    const sc = J.stayOk ? J.stayOk(sel.from, sel.to) : { ok: true };
+    if (!sc.ok) { msg.textContent = sc.noIn ? w('noIn') : w('minN').replace('{n}', sc.min); openSheet('when'); return; }
+    if (!name || phone.replace(/\D/g, '').length < 9) { msg.textContent = w('needName'); (name ? f.phone : f.name).focus(); return; }
+    if (f.rules && !f.rules.checked) { msg.textContent = w('needRules'); f.rules.focus(); return; }
+    const btn = f.querySelector('button[type=submit]'); btn.disabled = true;
+    const req = J.createRequest({ instant: inst(), kidRule: kidsRule(), payRule: payOn() ? (S().instant || {}).pay : null, from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · '), extras: chosenExtras().map(x => ({ id: x.id, qty: x.qty })), plan: curPlan() ? curPlan().id : undefined, code: sel.code ? sel.code.code : undefined, codePct: sel.code ? sel.code.pct : 0 });
+    const out = await req.saved;
+    btn.disabled = false;
+    if (out && out.ok && out.instant && out.pay) { msg.dataset.state = 'ok'; msg.textContent = w('toBank'); location.href = out.pay; return; }
+    if (out && out.ok && out.instant && out.key) { f.reset(); sel.extras = {}; sel.code = null; showBooked(out.id, out.key, true); }
+    else if (out && out.ok) { msg.dataset.state = 'ok'; msg.textContent = w(inst() ? 'fellBack' : 'sent'); f.reset(); sel.extras = {}; sel.code = null; summary(); }
+    else msg.textContent = out && out.free != null ? w('onlyFree').replace('{n}', out.free) : (out && out.msg) || w('err');
+  }
+
+  // ---------- the guest's booking (after instant booking, and behind the link ?b=…&k=…) ----------
+  let booked = null; // the booking shown on this page, drawn again when the page is redrawn
+  const redraw = () => { render(); if (booked) showBooked(booked.id, booked.key, false); };
+  async function showBooked(id, key, fresh) {
+    booked = { id, key };
+    const u = new URL(location.href); u.hash = ''; ['paid', 'demopay'].forEach(x => u.searchParams.delete(x)); u.searchParams.set('b', id); u.searchParams.set('k', key); const link = u.toString();
+    let b = null;
+    if (key === 'demo') { if (params.get('demopay') === 'ok') J.demoPaid(id); b = J.localBooking(id); }
+    else {
+      const load = async () => { try { const r = await fetch(`api/booking?id=${encodeURIComponent(id)}&k=${encodeURIComponent(key)}`, { cache: 'no-store' }); const o = await r.json(); if (o.ok) b = o.booking; } catch (e) { /* offline: show what we know */ } };
+      await load();
+      // back from the bank: its answer may take a few seconds to arrive
+      for (let i = 0; i < 4 && params.get('paid') && b && b.pay && b.pay.state === 'waiting'; i++) { await new Promise(r => setTimeout(r, 2500)); await load(); }
+    }
+    const st = b ? { confirmed: 'stConfirmed', pending: 'stPending', cancelled: 'stCancelled' }[b.status] : 'stConfirmed';
+    const py = b && b.pay, hm = s => new Date(s).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Tbilisi' });
+    const payHtml = !py ? '' : py.state === 'paid' ? `<p class="bk-pay" data-s="paid"><b>${w('paid').replace('{a}', py.amount)}</b></p>`
+      : py.state === 'waiting' ? `<p class="bk-pay" data-s="wait">${w('payWait').replace('{a}', py.amount).replace('{t}', hm(py.until))}</p><p><button type="button" class="btn btn-accent" data-pay>${w('payNow')}</button></p>`
+      : py.state === 'expired' ? `<p class="bk-pay" data-s="gone">${w('payExpired')}</p>` : `<p class="bk-pay" data-s="late">${w('payLate')}</p>`;
+    const c = S().contact || {}, phone = c.phone || '';
+    const box = document.createElement('div'); box.className = 'booked'; box.setAttribute('role', 'status');
+    box.innerHTML = `<h3>${fresh ? w('booked') : w('myBooking')}</h3>
+      ${b ? `<p class="bk-st" data-s="${esc(py && py.state === 'waiting' ? 'pending' : b.status)}">${w(py && py.state === 'waiting' ? 'stHeld' : st)}</p><p><b>${esc(b.name)}</b><br>${J.fmtRange(b.from, b.to)} · ${J.nights(b.from, b.to)} ${w('nights')}<br>${b.rooms.map(x => `${esc(typeName((J.types[x.type] && J.types[x.type].name) || x.type))} · ${w('guestsN').replace('{n}', x.guests)}`).join('<br>')}${(b.extras || []).map(x => `<br>${esc(x.name)}${x.qty > 1 ? ` × ${x.qty}` : ''} · ${fmtN(x.amount)}`).join('')}<br><b>${fmtN(b.total)}</b></p>` : ''}
+      ${(() => { const r = S().instant || {}, c = pick(r.cancel), pp = pick(r.prepay); return pp || c ? `<p>${pp ? `<b>${w('prepayT')}:</b> ${esc(pp)}` : ''}${pp && c ? '<br>' : ''}${c ? `<b>${w('cancelT')}:</b> ${esc(c)}` : ''}</p>` : ''; })()}
+      ${payHtml}
+      <p class="bk-no">${w('bookNo')}: <b>${esc(String(id).slice(-6).toUpperCase())}</b></p>
+      ${fresh ? `<p>${w('keepLink')}</p><p class="bk-acts"><a class="btn btn-ghost" href="${esc(link)}">${w('myBooking')}</a><button type="button" class="btn btn-ghost" data-copy="${esc(link)}">${w('copyLink')}</button></p>` : ''}
+      ${phone ? `<p>${w('callHotel')}: <a href="tel:${esc(phone.replace(/[^\d+]/g, ''))}">${esc(phone)}</a></p>` : ''}`;
+    const book = $('#book'); if (!book) return;
+    book.querySelector('.booked')?.remove();
+    book.querySelector('#req').before(box);
+    if (fresh) {
+      // done: the form steps aside so the booking is all the guest sees (another booking is one tap away)
+      ['#req', '#sum', '.book-pick'].forEach(q => { const el = book.querySelector(q); if (el) el.hidden = true; });
+      const again = document.createElement('p'); again.innerHTML = `<button type="button" class="btn btn-ghost">${w('another')}</button>`;
+      again.firstChild.addEventListener('click', () => { ['#req', '#sum', '.book-pick'].forEach(q => { const el = book.querySelector(q); if (el) el.hidden = false; }); again.remove(); });
+      box.append(again);
+    }
+    if (fresh) try { history.replaceState(null, '', link); } catch (e) { /* ignore */ }
+    box.querySelector('[data-pay]')?.addEventListener('click', async ev => {
+      const btn = ev.currentTarget; btn.disabled = true; btn.textContent = w('toBank');
+      if (key === 'demo') { location.href = J.demoBank(id, b.pay.amount); return; }
+      try {
+        const r = await fetch('api/pay/again', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id, k: key, lang: (document.documentElement.lang || 'ka').slice(0, 2) }) });
+        const o = await r.json(); if (o.ok && o.pay) { location.href = o.pay; return; }
+      } catch (e) { /* below */ }
+      showBooked(id, key, false);
+    });
+    box.querySelector('[data-copy]')?.addEventListener('click', async ev => {
+      const b2 = ev.currentTarget;
+      try { if (navigator.share && matchMedia('(pointer: coarse)').matches) await navigator.share({ url: b2.dataset.copy }); else { await navigator.clipboard.writeText(b2.dataset.copy); b2.textContent = w('copied'); } } catch (e) { /* closed */ }
+    });
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // ---------- start ----------
+  J.ready.then(loadContent).then(() => {
+    render();
+    if (params.get('b') && params.get('k')) showBooked(params.get('b'), params.get('k'), false);
+    // from the Visit2.ge assistant's "book at this price": straight to the booking form, dates and room already chosen
+    else if (params.get('book') && sel.from) { if (sel.type && !J.types[sel.type]) sel.type = ''; summary(); setTimeout(() => $('#book')?.scrollIntoView({ block: 'start' }), 60); }
+    // for the chatbot: is instant booking on, the hotel's rules, and "go to the booking form" with the chosen dates
+    const R = S().instant || {};
+    window.V2_PAY = payOn() ? { min: PAYMIN, part: payPart(), rule: (S().instant || {}).pay } : null;
+    window.V2_INSTANT = inst(); window.V2_RULES = { cancel: pick(R.cancel), prepay: pick(R.prepay), kids: kidsRule().mode ? kidsRule() : null };
+    window.V2_GOBOOK = (from, to, g, kids) => {
+      if (from && to) { sel.from = from; sel.to = to; }
+      if (g) { sel.kids = Math.max(0, Math.min(10, kids || 0)); sel.adults = Math.max(1, g - sel.kids); }
+      summary(); pillText();
+      $('#book')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    if (I) I.onChange(redraw);
+    J.onChange(() => summary());
+    loadPlaces();
+    if (window.JC && window.JC.onChange) window.JC.onChange(redraw);
+  });
+})();

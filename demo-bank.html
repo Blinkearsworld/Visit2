@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ბანკის გვერდის ნიმუში · Visit2.ge</title>
+<link rel="icon" href="favicon.svg?v=1596012" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;600;800&display=swap">
+<style>
+/* A sample of the bank's payment page, for the demo hotels only. No card is asked and no money moves.
+   On a real hotel the guest goes to the hotel's own bank (TBC or Bank of Georgia) instead. */
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 20px; background: #FFF8EE; color: #1F1A17; font: 16px/1.55 'Noto Sans Georgian', system-ui, sans-serif; }
+main { width: 100%; max-width: 420px; background: #fff; border: 1px solid #eadfce; border-radius: 20px; padding: 26px 22px; box-shadow: 0 8px 30px rgba(31, 26, 23, .06); }
+.tag { display: inline-block; margin: 0 0 14px; padding: 4px 10px; border-radius: 999px; background: #FDEBD3; color: #7a4a12; font-size: 13px; font-weight: 600; }
+h1 { margin: 0 0 4px; font-size: 22px; }
+.hotel { margin: 0 0 18px; color: #5f5650; }
+.sum { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 16px; border-radius: 14px; background: #F0F8F6; border: 1px solid #9FD0C8; margin: 0 0 18px; }
+.sum b { font-size: 26px; color: #0B7A73; }
+.card { display: grid; gap: 10px; margin: 0 0 18px; }
+.field { padding: 12px 14px; min-height: 48px; border: 1px dashed #d8cbb8; border-radius: 12px; color: #8a7f76; font-size: 15px; }
+.note { margin: 0 0 18px; font-size: 14px; color: #5f5650; }
+.btn { display: block; width: 100%; min-height: 48px; border: 0; border-radius: 12px; font: inherit; font-weight: 700; cursor: pointer; }
+.pay { background: #0B7A73; color: #fff; margin: 0 0 10px; }
+.pay:focus-visible, .back:focus-visible { outline: 3px solid #0E857D; outline-offset: 2px; }
+.back { background: #fff; color: #0B7A73; border: 1px solid #9FD0C8; }
+.en { margin: 16px 0 0; font-size: 13px; color: #8a7f76; }
+</style>
+</head>
+<body>
+<main>
+  <p class="tag">ნიმუში · ფული არ ჩამოგეჭრებათ</p>
+  <h1>ბანკის გადახდის გვერდი</h1>
+  <p class="hotel" id="hotel"></p>
+  <div class="sum"><span>გადასახდელი</span><b id="amt"></b></div>
+  <div class="card" aria-hidden="true">
+    <div class="field">ბარათის ნომერი</div>
+    <div class="field">ვადა · CVV</div>
+  </div>
+  <p class="note">ნამდვილ სასტუმროში აქ სასტუმროს ბანკის (TBC ან საქართველოს ბანკი) გვერდი გაიხსნება. ბარათს სტუმარი იქ წერს და ფული პირდაპირ სასტუმროს ანგარიშზე შედის. Visit2.ge ბარათს ვერ ხედავს.</p>
+  <button class="btn pay" type="button" id="pay">გადახდა</button>
+  <button class="btn back" type="button" id="back">დაბრუნება გადახდის გარეშე</button>
+  <p class="en">A sample of the bank's payment page. No card is asked and no money moves.</p>
+</main>
+<script>
+(() => {
+  const q = new URLSearchParams(location.search);
+  const amount = Math.max(0, Math.round(+q.get('a') || 0));
+  document.getElementById('amt').textContent = amount + ' ₾';
+  document.getElementById('hotel').textContent = q.get('h') || '';
+  // only back to a page of this site
+  let back = null;
+  try { const u = new URL(q.get('back') || '', location.href); if (u.origin === location.origin) back = u; } catch (e) { /* none */ }
+  const go = ok => { if (!back) { location.href = 'index.html'; return; } if (ok) back.searchParams.set('demopay', 'ok'); location.href = back.toString(); };
+  document.getElementById('pay').addEventListener('click', () => go(true));
+  document.getElementById('back').addEventListener('click', () => go(false));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+/* Opal: a full photo, the name and the dates field in the middle (like the Visit2.ge home page). */
+.hero-full { display: grid; place-items: center; min-height: min(88svh, 780px); padding: 110px var(--pad) 56px !important; color: #fff; text-align: center; isolation: isolate; overflow: hidden; background: #2a2622; }
+.hero-full .hero-media { position: absolute; inset: 0; z-index: -2; }
+.hero-full::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(0, 0, 0, .42) 0%, rgba(0, 0, 0, .25) 45%, rgba(0, 0, 0, .5) 100%); }
+.hero-full .hero-in { max-width: 860px; text-shadow: 0 2px 22px rgba(0, 0, 0, .35); }
+.hero-full .hero-tag { margin-left: auto; margin-right: auto; }
+.hero-full .pill { margin: 0 auto; }

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Visit2 ადმინი</title>
+<link rel="icon" href="favicon.ico?v=1596012" sizes="48x48"><link rel="icon" href="favicon.svg?v=1596012" type="image/svg+xml"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=1596012">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--bg:#F7F3EC;--card:#fff;--ink:#1F1A17;--mute:#645C55;--line:#E7DED2;--teal:#0E857D;--tealD:#0B7A73;--warn:#9A5B00;--warnBg:#FFF1D9;--pad:clamp(14px,4vw,28px)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Noto Sans Georgian",system-ui,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--tealD)}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.top{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line)}
+.top .in{max-width:1180px;margin:0 auto;padding:0 var(--pad);min-height:62px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.top .who{display:flex;align-items:center;gap:12px}
+.top img{height:26px;width:auto}
+.top b{font-weight:700;padding-left:12px;border-left:1px solid var(--line);white-space:nowrap}
+main{max-width:1180px;margin:0 auto;padding:20px var(--pad) 60px}
+h1{font-size:clamp(24px,5vw,32px);margin:4px 0 4px}
+h2{font-size:20px;margin:0 0 12px}
+.sub{color:var(--mute);margin:0 0 18px}
+.btn{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:var(--ink)}
+.btn.pri{background:var(--tealD);border-color:var(--tealD);color:#fff}
+.btn.sm{min-height:38px;padding:0 14px;font-size:14px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:28px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}
+.card small{display:block;color:var(--mute);font-size:14px}
+.card b{display:block;font-size:30px;line-height:1.2;font-variant-numeric:tabular-nums}
+.card span{font-size:14px;color:var(--mute)}
+.card.hot b{color:var(--warn)}
+.card.soon b{font-size:18px;color:var(--mute);font-weight:600;padding-top:8px}
+.sec{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:22px}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.seg button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;font-size:14px}
+.seg button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+.tasks{display:grid;gap:10px;list-style:none;margin:0;padding:0}
+.task{border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:6px}
+.task.late{border-color:#F3DCA4;background:#FFFBF2}
+.task h3{margin:0;font-size:17px;overflow-wrap:anywhere}
+.task .why{margin:0;color:var(--ink)}
+.task .meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:14px;color:var(--mute)}
+.task .how{margin:0;font-size:14px;color:var(--mute);white-space:pre-wrap;overflow-wrap:anywhere}
+.task .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.pill{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12.5px;font-weight:700;background:var(--bg)}
+.pill.doing{background:#E3F1EF;color:var(--tealD)}
+.pill.auto{background:var(--warnBg);color:var(--warn)}
+.empty{padding:20px;border:1px dashed var(--line);border-radius:14px;color:var(--mute);text-align:center}
+details.add{margin-bottom:14px}
+details.add>summary{list-style:none;cursor:pointer;display:inline-flex}
+details.add>summary::-webkit-details-marker{display:none}
+.form{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.form label{display:grid;gap:4px;font-size:14px;font-weight:600}
+.form label i{font-style:normal;font-weight:400;color:var(--mute)}
+.form input,.form select,.form textarea{width:100%;min-height:46px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:16px}
+.form textarea{min-height:70px;resize:vertical}
+.msg{min-height:1.4em;margin:0;color:var(--warn);font-size:14px}
+.hotels{width:100%;border-collapse:collapse;font-size:15px}
+.hotels th{text-align:left;font-size:13px;color:var(--mute);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line)}
+.hotels td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.hotels td b{display:block}
+.hotels td small{color:var(--mute)}
+.lims{display:grid;gap:10px}.lim{display:grid;gap:8px;padding:12px 14px;border:1px solid var(--line);border-radius:14px}.lim b{display:block}.lim span{font-size:14px;color:var(--mute)}
+.lim i{display:block;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--teal) var(--p),#EFE7DB var(--p))}.lim.hot{border-color:#F3DCA4;background:#FFFBF2}.lim.hot i{background:linear-gradient(90deg,var(--warn) var(--p),#EFE7DB var(--p))}
+.gate{max-width:420px;margin:8vh auto;background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}
+.gate form{display:grid;gap:12px}
+.gate input{width:100%;min-height:48px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;font-size:16px}
+.gate .setup{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}.gate .setup summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600;color:var(--accent,#0B7A73)}.gate .setup .sub{font-size:14px;margin:6px 0 12px}
+dialog.hd{width:min(760px,100vw);max-width:100vw;max-height:100dvh;margin:auto;padding:0;border:0;border-radius:20px;background:var(--bg);color:var(--ink)}
+dialog.hd::backdrop{background:rgba(31,26,23,.45)}
+@media (max-width:640px){dialog.hd{width:100vw;height:100dvh;border-radius:0}}
+.hd .hh{position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid var(--line);padding:14px var(--pad);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hd .hh h2{margin:0;font-size:19px;overflow-wrap:anywhere}.hd .hh small{display:block;color:var(--mute);font-size:14px;font-weight:400}
+.hd .x{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:22px;cursor:pointer}
+.hd .hb{padding:16px var(--pad) 28px;display:grid;gap:14px}
+.box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:10px}
+.box h3{margin:0;font-size:16px}.box p{margin:0}.box .mute{color:var(--mute);font-size:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row input,.row select{min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;font-size:16px}
+.row input[type=number]{width:110px}.row input.grow{flex:1 1 180px}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;margin:0}
+.facts dt{font-size:13px;color:var(--mute)}.facts dd{margin:0 0 4px;font-weight:600;overflow-wrap:anywhere}
+@media (min-width:641px){.facts{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.chk{display:flex;align-items:center;gap:10px;min-height:44px}.chk input{width:22px;height:22px;accent-color:var(--tealD)}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:6px}.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}.list li:last-child{border:0}
+.pw{font:600 20px/1.3 ui-monospace,monospace;letter-spacing:.04em;padding:10px 14px;background:var(--bg);border-radius:12px;user-select:all}
+.ok{color:var(--tealD);font-weight:600}.danger{border-color:#E8C9C0}.btn.red{color:#9B2C1F;border-color:#E8C9C0}
+.notes{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}.notes li{border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.notes small{display:block;color:var(--mute)}
+@media (min-width:641px){.cards{grid-template-columns:repeat(4,minmax(0,1fr))}.form{grid-template-columns:repeat(2,minmax(0,1fr))}.form .wide{grid-column:1/-1}}
+@media (max-width:640px){.hotels thead{display:none}.hotels,.hotels tbody,.hotels tr,.hotels td{display:block;width:100%}.hotels tr{padding:10px 0;border-bottom:1px solid var(--line)}.hotels td{border:0;padding:2px 0}}
+</style>
+<script src="js/pw-eye.js?v=1596012" defer></script>
+</head>
+<body>
+<header class="top"><div class="in"><div class="who"><img src="img/brand/visit2.svg" alt="Visit2.ge" width="58" height="32"><b>ადმინი</b></div><button class="btn sm" id="out" type="button" hidden>გასვლა</button></div></header>
+
+<div class="gate" id="gate" hidden>
+  <h1>შესვლა</h1>
+  <p class="sub">Visit2-ის ადმინი. იგივე ელფოსტა და პაროლი, რაც სასტუმროს ადმინში.</p>
+  <form id="gateForm">
+    <input name="email" type="email" autocomplete="username" placeholder="ელფოსტა" required>
+    <input name="password" type="password" autocomplete="current-password" placeholder="პაროლი" required>
+    <button class="btn pri" type="submit">შესვლა</button>
+    <p class="msg" id="gateMsg" role="status"></p>
+  </form>
+  <details class="setup">
+    <summary>პირველი შესვლა ან დავიწყებული პაროლი</summary>
+    <p class="sub">Cloudflare-ში, Worker-ის Settings → Variables and Secrets-ში, დაამატე Secret სახელით OPS_SETUP და შენი მოფიქრებული კოდი (მინიმუმ 12 სიმბოლო). იგივე კოდი ჩაწერე აქ.</p>
+    <form id="setupForm">
+      <input name="email" type="email" autocomplete="username" placeholder="ელფოსტა" required>
+      <input name="code" type="password" autocomplete="off" placeholder="OPS_SETUP-ის კოდი" required>
+      <input name="password" type="password" autocomplete="new-password" placeholder="ახალი პაროლი (მინიმუმ 8)" minlength="8" required>
+      <button class="btn pri" type="submit">პაროლის დაყენება და შესვლა</button>
+      <p class="msg" id="setupMsg" role="status"></p>
+    </form>
+  </details>
+</div>
+
+<main id="app" hidden>
+  <h1 id="hello">დილა მშვიდობისა</h1>
+  <p class="sub" id="dateLine"></p>
+  <div class="cards" id="cards"></div>
+  <section class="sec" aria-labelledby="lH"><h2 id="lH">მონაცემთა დაცვის ზღვრები</h2><div class="lims" id="limits"></div></section>
+
+  <section class="sec" aria-labelledby="tH">
+    <h2 id="tH">გასაკეთებელი</h2>
+    <details class="add" id="addBox"><summary class="btn pri">+ დავალება</summary>
+      <form class="form" id="taskForm">
+        <input type="hidden" name="id">
+        <label class="wide">რა <i>(მოკლედ: „დაურეკე“, „ფოტოები ჩაუსვი“)</i><input name="what" maxlength="120" required></label>
+        <label>ვინ <i>(ვინ აკეთებს)</i><input name="who" maxlength="40" list="people"></label>
+        <label>სად <i>(რომელი სასტუმრო)</i><select name="hotel" id="hotelSel"><option value="">—</option></select></label>
+        <label>როდის<input name="due" type="date"></label>
+        <label>სტატუსი<select name="status"><option value="todo">გასაკეთებელი</option><option value="doing">მიმდინარე</option><option value="done">დასრულებული</option></select></label>
+        <label class="wide">რატომ<input name="why" maxlength="200" placeholder="მაგ.: უფასო პერიოდი 3 დღეში მთავრდება"></label>
+        <label class="wide">როგორ <i>(შენიშვნა, ნაბიჯები, ტელეფონი)</i><textarea name="how" maxlength="400"></textarea></label>
+        <div class="wide" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" type="submit">შენახვა</button><button class="btn" type="button" id="cancelTask">გაუქმება</button></div>
+        <p class="msg wide" id="taskMsg" role="status"></p>
+      </form>
+    </details>
+    <datalist id="people"></datalist>
+    <div class="seg" role="group" aria-label="ფილტრი" id="seg"><button type="button" data-f="open" aria-pressed="true">გასაკეთებელი</button><button type="button" data-f="done" aria-pressed="false">დასრულებული</button></div>
+    <ul class="tasks" id="tasks"></ul>
+  </section>
+
+  <section class="sec" aria-labelledby="hH">
+    <h2 id="hH">სასტუმროები</h2>
+    <table class="hotels"><thead><tr><th>სასტუმრო</th><th>მფლობელი</th><th>სტატუსი</th><th>გადახდა</th><th></th></tr></thead><tbody id="hotels"></tbody></table>
+  </section>
+
+  <section class="sec" aria-labelledby="nH">
+    <h2 id="nH">შეტყობინება სასტუმროებს</h2>
+    <p class="sub">ჩანს ყველა სასტუმროს ადმინში, ზემოთ, არჩეულ დღეებში. მაგ.: „ხვალ 02:00–03:00 სისტემა განახლდება“.</p>
+    <ul class="notes" id="notes"></ul>
+    <form class="form" id="noteForm">
+      <label class="wide">ტექსტი<textarea name="text" maxlength="600" required></textarea></label>
+      <label>რა დღიდან<input name="from" type="date" required></label>
+      <label>რა დღემდე<input name="to" type="date" required></label>
+      <div class="wide"><button class="btn pri" type="submit">გამოქვეყნება</button></div>
+      <p class="msg wide" id="noteMsg" role="status"></p>
+    </form>
+  </section>
+
+  <section class="sec" aria-labelledby="jH">
+    <h2 id="jH">ვილა ჯიჯის გადმოტანა</h2>
+    <p class="sub">ძველი საიტის ბაზიდან კოპირდება ნომრები, ფასები, ჯავშნები, გადახდები, სტუმრების შენიშვნები და ფოტოები. ძველი საიტი არ იცვლება. გადართვამდე შეგიძლია ხელახლა გაუშვა: ახალი ჯავშნებიც გადმოვა. villajiji.com-ის გადართვის შემდეგ ეს ღილაკი აღარ მუშაობს.</p>
+    <button class="btn pri" type="button" id="jijiGo">გადმოტანა</button>
+    <p class="msg" id="jijiMsg" role="status"></p>
+  </section>
+</main>
+
+<dialog class="hd" id="hd" aria-labelledby="hdName"><div class="hh"><h2 id="hdName"></h2><button class="x" type="button" id="hdX" aria-label="დახურვა">×</button></div><div class="hb" id="hdBody"></div></dialog>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const MON = ['იან', 'თებ', 'მარ', 'აპრ', 'მაი', 'ივნ', 'ივლ', 'აგვ', 'სექ', 'ოქტ', 'ნოე', 'დეკ'];
+  const fmt = d => d ? `${+d.slice(8, 10)} ${MON[+d.slice(5, 7) - 1]}` : '';
+  const todayGe = () => new Date(Date.now() + 4 * 3600e3).toISOString().slice(0, 10);
+  const STATUS = { trial: 'უფასო პერიოდი', active: 'აქტიური', paused: 'პაუზა', closed: 'დახურული' };
+  let S = null, filter = 'open';
+
+  const api = (p, body) => fetch('api/ops/' + p, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : { cache: 'no-store' });
+
+  async function load() {
+    const r = await api('state');
+    if (r.status === 401) { $('#app').hidden = true; $('#out').hidden = true; $('#gate').hidden = false; return; }
+    S = await r.json(); $('#gate').hidden = true; $('#app').hidden = false; $('#out').hidden = false; draw();
+  }
+
+  function draw() {
+    const d = todayGe(), h = +new Date(Date.now() + 4 * 3600e3).toISOString().slice(11, 13);
+    $('#hello').textContent = (h < 12 ? 'დილა მშვიდობისა' : h < 18 ? 'გამარჯობა' : 'საღამო მშვიდობისა') + (S.me.name ? ', ' + S.me.name : '');
+    const open = S.tasks.filter(t => t.status !== 'done'), late = open.filter(t => t.due && t.due <= d);
+    $('#dateLine').textContent = `დღეს ${fmt(d)} · ${open.length ? `${open.length} დავალება${late.length ? `, მათ შორის ${late.length} დღეს ან უკვე ვადაგასული` : ''}` : 'გასაკეთებელი არაფერია'}`;
+    const money = S.hotels.filter(x => x.status === 'active' || x.status === 'paused').reduce((a, x) => a + (x.monthly || 0), 0);
+    const late2 = S.hotels.filter(x => x.status === 'active' && x.paidUntil && x.paidUntil < d).length;
+    $('#cards').innerHTML = `
+      <div class="card"><small>სასტუმრო</small><b>${S.stats.hotels}</b><span>+${S.stats.newWeek} ამ კვირაში</span></div>
+      <div class="card${S.stats.trialEnding ? ' hot' : ''}"><small>უფასო პერიოდი მთავრდება</small><b>${S.stats.trialEnding}</b><span>7 დღეში</span></div>
+      <div class="card"><small>თვიური შემოსავალი</small><b>${money}₾</b><span>ჩართული სასტუმროებიდან</span></div>
+      <div class="card${late2 ? ' hot' : ''}"><small>გადახდის ვადა გავიდა</small><b>${late2}</b><span>სასტუმრო</span></div>`;
+    const L = S.limits, pct = Math.round(L.guests / L.guestLimit * 100);
+    $('#limits').innerHTML = `<div class="lim${pct >= 70 ? ' hot' : ''}"><div><b>სტუმრები 2 წელში: ${L.guests.toLocaleString('ka-GE')} / ${L.guestLimit.toLocaleString('ka-GE')}</b><span>${pct}%. ზღვარზე მონაცემთა დაცვის ოფიცერი გვჭირდება. 70%-ზე გასაკეთებელში დავალება თავისით გაჩნდება.</span></div><i style="--p:${Math.min(100, pct)}%"></i></div>
+      <div class="lim"><div><b>სერვერი: ევროკავშირი ✓</b><span>საქართველოში რომ გადავიდეს, წარმომადგენელი დაგვჭირდება.</span></div></div>`;
+    $('#hotelSel').innerHTML = '<option value="">—</option>' + S.hotels.map(x => `<option value="${esc(x.slug)}">${esc(x.name)}</option>`).join('');
+    $('#people').innerHTML = [...new Set(S.tasks.map(t => t.who).filter(Boolean))].map(w => `<option value="${esc(w)}">`).join('');
+    const list = S.tasks.filter(t => (filter === 'done') === (t.status === 'done'));
+    const hotelOf = s => S.hotels.find(x => x.slug === s);
+    $('#tasks').innerHTML = list.map(t => { const ho = hotelOf(t.hotel); return `<li class="task${t.status !== 'done' && t.due && t.due <= d ? ' late' : ''}">
+      <h3>${esc(t.what)}${ho ? ` · <a href="${esc(ho.site)}" target="_blank" rel="noopener">${esc(ho.name)}</a>` : ''}</h3>
+      ${t.why ? `<p class="why">${esc(t.why)}</p>` : ''}
+      <div class="meta">${t.status === 'doing' ? '<span class="pill doing">მიმდინარე</span>' : ''}${t.auto ? '<span class="pill auto">თავისით</span>' : ''}${t.who ? `<span>ვინ: ${esc(t.who)}</span>` : ''}${t.due ? `<span>როდის: ${fmt(t.due)}</span>` : ''}</div>
+      ${t.how ? `<p class="how">${esc(t.how)}</p>` : ''}
+      <div class="acts">${t.status === 'done' ? `<button class="btn sm" data-st="todo" data-id="${t.id}">დაბრუნება</button>` : `${t.status === 'todo' ? `<button class="btn sm" data-st="doing" data-id="${t.id}">ვიწყებ</button>` : ''}<button class="btn sm pri" data-st="done" data-id="${t.id}">✓ გაკეთდა</button>`}<button class="btn sm" data-edit="${t.id}">შეცვლა</button></div>
+    </li>`; }).join('') || `<li class="empty">${filter === 'done' ? 'ბოლო 2 კვირაში დასრულებული არაფერია.' : 'გასაკეთებელი არაფერია. ახალი დავალება „+ დავალება“-თი დაამატე.'}</li>`;
+    $('#hotels').innerHTML = S.hotels.map(x => `<tr><td><b>${esc(x.name)}</b><small>${esc(x.city || '')} · ${esc(x.slug)}</small></td><td>${x.owner ? `<a href="mailto:${esc(x.owner)}">${esc(x.owner)}</a>` : '—'}</td><td>${esc(STATUS[x.status] || x.status)}${(x.addons || []).includes('hidden') ? '<br><small>კატალოგში დამალულია</small>' : ''}${x.status === 'trial' && x.trialEnds ? `<br><small>${fmt(x.trialEnds)}-მდე</small>` : ''}</td><td>${x.free ? '<b>მუდმივად უფასო</b>' : `${x.paidUntil ? `${x.paidUntil < d && x.status === 'active' ? '<b style="color:var(--warn)">ვადა გავიდა</b>' : ''}<small>${fmt(x.paidUntil)}-მდე</small>` : '<small>—</small>'}<br><small>${x.monthly}₾ / თვე</small>`}</td><td><button class="btn sm pri" type="button" data-open="${esc(x.slug)}">მართვა</button> <a href="${esc(x.site)}" target="_blank" rel="noopener">საიტი</a></td></tr>`).join('') || '<tr><td colspan="5" class="empty">სასტუმრო ჯერ არ არის.</td></tr>';
+    $('#notes').innerHTML = S.notices.map(n => `<li><div>${esc(n.text)}<small>${fmt(n.from)} – ${fmt(n.to)}${n.to < d ? ' · დასრულდა' : n.from > d ? ' · მოგვიანებით' : ' · ახლა ჩანს'}</small></div><button class="btn sm" type="button" data-ndel="${esc(n.id)}">წაშლა</button></li>`).join('');
+  }
+
+  const form = $('#taskForm');
+  function edit(t) {
+    form.reset(); form.id.value = t ? t.id : '';
+    if (t) for (const k of ['what', 'who', 'hotel', 'due', 'status', 'why', 'how']) form[k].value = t[k] || '';
+    $('#addBox').open = true; form.what.focus();
+  }
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const body = Object.fromEntries(new FormData(form)); if (!body.id) delete body.id;
+    const o = await (await api('task', body)).json();
+    if (!o.ok) { $('#taskMsg').textContent = o.msg || 'ვერ შეინახა. სცადე თავიდან.'; return; }
+    $('#taskMsg').textContent = ''; form.reset(); $('#addBox').open = false; load();
+  });
+  $('#cancelTask').addEventListener('click', () => { form.reset(); $('#addBox').open = false; });
+  $('#tasks').addEventListener('click', async e => {
+    const st = e.target.closest('[data-st]'), ed = e.target.closest('[data-edit]');
+    if (st) { const t = S.tasks.find(x => x.id === st.dataset.id); await api('task', { ...t, status: st.dataset.st }); load(); }
+    if (ed) edit(S.tasks.find(x => x.id === ed.dataset.edit));
+  });
+  $('#seg').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; document.querySelectorAll('#seg button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); draw(); });
+  $('#gateForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = e.target, o = await (await api('login', { email: f.email.value, password: f.password.value })).json();
+    if (!o.ok) { $('#gateMsg').textContent = o.msg || 'შესვლა ვერ მოხერხდა.'; return; }
+    f.reset(); $('#gateMsg').textContent = ''; load();
+  });
+  $('#setupForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = e.target, o = await (await api('setup', { email: f.email.value, code: f.code.value, password: f.password.value })).json();
+    if (!o.ok) { $('#setupMsg').textContent = o.msg || 'ვერ მოხერხდა.'; return; }
+    f.reset(); $('#setupMsg').textContent = ''; load();
+  });
+  // ---------- one hotel: everything Visit2 can do for it ----------
+  const hd = $('#hd'), METHOD = { bank: 'ბანკით', cash: 'ნაღდით', stripe: 'Stripe', other: 'სხვა' };
+  const addMonth = s => { const x = new Date(s + 'T00:00:00Z'); x.setUTCMonth(x.getUTCMonth() + 1); return x.toISOString().slice(0, 10); };
+  const when = ms => { const x = new Date(ms + 4 * 3600e3).toISOString(); return `${fmt(x.slice(0, 10))}, ${x.slice(11, 16)}`; };
+  let H = null, said = '', pw = '';
+  async function openHotel(slug) {
+    const o = await (await api('hotel?slug=' + encodeURIComponent(slug))).json();
+    if (!o.ok) return;
+    H = o.hotel; said = ''; pw = ''; drawHotel(); if (!hd.open) hd.showModal();
+  }
+  function drawHotel() {
+    const h = H, d = todayGe(), si = h.siteInfo || {};
+    const nextFrom = h.paidUntil && h.paidUntil >= d ? h.paidUntil : d;
+    $('#hdName').innerHTML = `${esc(h.name)}<small>${esc(h.city || '')} · ${esc(STATUS[h.status] || h.status)}${h.status === 'paused' && h.pausedUntil ? ' ' + fmt(h.pausedUntil) + '-მდე' : ''}</small>`;
+    $('#hdBody').innerHTML = `
+      ${said ? `<p class="ok" role="status">${esc(said)}</p>` : ''}
+      <div class="box"><dl class="facts">
+        <div><dt>მფლობელი</dt><dd>${esc((h.team.find(x => x.owner) || {}).email || '—')}</dd></div>
+        <div><dt>ბოლოს შევიდა</dt><dd>${h.lastLogin ? fmt(h.lastLogin.slice(0, 10)) : 'ჯერ არა'}</dd></div>
+        <div><dt>მოთხოვნები, 30 დღე</dt><dd>${h.requests30} · დადასტურდა ${h.confirmed30}</dd></div>
+        <div><dt>თვეში</dt><dd>${h.monthly}₾</dd></div>
+        <div><dt>მთავარი ფოტო</dt><dd>${si.photo ? '✓' : 'არ არის'}</dd></div>
+        <div><dt>ტექსტი „ჩვენ შესახებ“</dt><dd>${si.about ? '✓' : 'არ არის'}</dd></div>
+        <div><dt>გალერეა</dt><dd>${si.gallery} ფოტო</dd></div>
+        <div><dt>რუკაზე</dt><dd>${si.pin ? '✓' : 'არ არის'}</dd></div>
+      </dl><div class="row"><a class="btn sm" href="${esc(h.url)}" target="_blank" rel="noopener">საიტის ნახვა</a></div></div>
+
+      <div class="box"><h3>ადმინში შესვლა</h3>
+        ${h.helpUntil ? `<p>მფლობელმა დაგვიშვა ${esc(when(h.helpUntil))}-მდე. რასაც შეცვლი, მის ჟურნალში ჩაიწერება „Visit2 · ${esc(S.me.name)}“.</p><div class="row"><button class="btn pri" type="button" data-do="enter">ადმინში შესვლა</button></div>`
+        : `<p class="mute">შესვლა მხოლოდ მფლობელის ნებართვით შეიძლება. სთხოვე, ადმინში გახსნას „გუნდი“ და დააჭიროს „დაშვება 24 საათით“.</p>`}</div>
+
+      <div class="box"><h3>მდგომარეობა</h3>
+        <div class="row"><select id="hSt">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}"${k === h.status ? ' selected' : ''}>${v}</option>`).join('')}</select>
+        <label class="row" id="hPuL"${h.status === 'paused' ? '' : ' hidden'}>რა დღემდე<input type="date" id="hPu" value="${esc(h.pausedUntil || '')}"></label>
+        <button class="btn" type="button" data-do="status">შენახვა</button></div>
+        <p class="mute">პაუზაზე საიტი დახურულია და თვეში ${S.prices.pause}₾ ჯდება. გამორთულს საიტი არ უჩანს, მონაცემები რჩება.</p>
+        <div class="row">საცდელი${h.trialEnds ? ` (${fmt(h.trialEnds)}-მდე)` : ''}: <input type="number" id="hTd" min="1" max="180" value="14" aria-label="დღე"> დღით <button class="btn" type="button" data-do="trial">გაგრძელება</button></div></div>
+
+      <div class="box"><h3>სერვისები</h3>
+        ${h.free ? `<p><b>მუდმივად უფასო.</b> ყველა სერვისი ჩართულია, საცდელი ვადა და გადახდა არ სჭირდება. <button class="btn sm" type="button" data-do="free" data-on="0">გაუქმება</button></p>` : `<p class="mute">სისტემა და საიტი: ${S.prices.base}₾ / თვე. <button class="btn sm" type="button" data-do="free" data-on="1">მუდმივად უფასო</button></p>`}
+        <label class="chk"><input type="checkbox" data-addon="catalog"${h.addons.includes('catalog') ? ' checked' : ''}> ადგილი კატალოგში +${S.prices.addons.catalog}₾ <small class="mute">(პირველი 6 თვე ისედაც ჩანს)</small></label>
+        <label class="chk"><input type="checkbox" data-addon="domain"${h.addons.includes('domain') ? ' checked' : ''}> საკუთარი დომენი +${S.prices.addons.domain}₾</label>
+        <label class="chk"><input type="checkbox" data-addon="pay"${h.addons.includes('pay') ? ' checked' : ''}> ონლაინ წინასწარი გადახდა სასტუმროს ბანკით${S.prices.addons.pay ? ' +' + S.prices.addons.pay + '₾' : ''} <small class="mute">(ბანკს სასტუმრო თავად აერთებს ადმინში)</small></label>
+        <label class="chk"><input type="checkbox" data-addon="hidden"${h.addons.includes('hidden') ? ' checked' : ''}> კატალოგში დამალვა <small class="mute">(სასტუმრო მზადდება; საიტი და ადმინი მუშაობს)</small></label>
+        <div class="row"><button class="btn" type="button" data-do="addons">შენახვა</button></div></div>
+
+      <div class="box"><h3>საიტის მისამართი</h3>
+        <ul class="list">${(h.domains || []).map(x => `<li><span><a href="https://${esc(x.host)}/" target="_blank" rel="noopener">${esc(x.host)}</a>${x.kind === 'sub' ? ' <small class="mute">(Visit2.ge-ის ქვედომენი, ყოველთვის მუშაობს)</small>' : ''}</span>${x.kind === 'custom' && !x.host.startsWith('www.') ? `<button class="btn sm" type="button" data-do="domain-del" data-host="${esc(x.host)}">მოხსნა</button>` : ''}</li>`).join('')}</ul>
+        <p class="mute">საკუთარი დომენი: ჯერ Cloudflare-ში დომენი Visit2-ის Worker-ზე მიაბი (Workers → visit2 → Settings → Domains &amp; Routes → Add → Custom domain: დომენი და www.დომენი), მერე აქ ჩაწერე.</p>
+        <div class="row"><input class="grow" id="dHost" placeholder="hotel.ge" autocomplete="off" inputmode="url"><button class="btn" type="button" data-do="domain-add">მიბმა</button></div></div>
+
+      <div class="box"><h3>გადახდები</h3>
+        <p>${h.paidUntil ? `გადახდილია <b>${fmt(h.paidUntil)}</b>-მდე${h.paidUntil < d ? ' · <b style="color:var(--warn)">ვადა გავიდა</b>' : ''}` : 'გადახდა ჯერ არ ჩაწერილა.'}</p>
+        <div class="row"><input type="number" id="pA" min="1" value="${h.monthly}" aria-label="თანხა">₾
+          <label class="row">რა დღემდე<input type="date" id="pU" value="${addMonth(nextFrom)}"></label>
+          <select id="pM">${Object.entries(METHOD).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
+        <div class="row"><input class="grow" id="pN" maxlength="200" placeholder="შენიშვნა (მაგ. ინვოისი №12)"><button class="btn pri" type="button" data-do="pay">გადახდის ჩაწერა</button></div>
+        ${h.payments.length ? `<ul class="list">${h.payments.map(p => `<li><span>${p.amount}₾ · ${fmt(p.until)}-მდე · ${esc(METHOD[p.method] || p.method)}${p.note ? ' · ' + esc(p.note) : ''}<br><small class="mute">${fmt(p.created.slice(0, 10))} · ${esc(p.by_user || '')}</small></span><button class="btn sm" type="button" data-pdel="${esc(p.id)}">წაშლა</button></li>`).join('')}</ul>` : ''}</div>
+
+      ${!h.team.some(x => x.owner) ? `<div class="box"><h3>მფლობელი</h3><p class="mute">ამ სასტუმროს მფლობელი ჯერ არ ჰყავს. ჩაწერე მისი ელფოსტა: თუ Visit2-ზე ანგარიში არ აქვს, შეიქმნება და პაროლი აქ ერთხელ გამოჩნდება.</p>
+        <div class="row"><input class="grow" id="oEmail" type="email" placeholder="ელფოსტა"><button class="btn pri" type="button" data-do="owner">მფლობელის მიბმა</button></div></div>` : ''}
+      <div class="box"><h3>მფლობელის პაროლი</h3>
+        ${pw ? `<p>ახალი პაროლი. გადაეცი მფლობელს, მეორედ აღარ გამოჩნდება:</p><p class="pw">${esc(pw)}</p><div class="row"><button class="btn" type="button" id="pwCopy" data-pw="${esc(pw)}">კოპირება</button></div>` : `<p class="mute">ახალი პაროლი შეიქმნება და მფლობელი ყველა მოწყობილობიდან გავა. პაროლს ტელეფონით ან შეხვედრისას გადაეცი.</p><div class="row"><button class="btn" type="button" data-do="password">ახალი პაროლის შექმნა</button></div>`}</div>
+
+      ${h.ourLog.length ? `<div class="box"><h3>რა გავაკეთეთ ჩვენ</h3><ul class="list">${h.ourLog.map(l => `<li><span>${esc(l.op)}: ${esc(l.detail)}<br><small class="mute">${esc(String(l.at).slice(0, 10))} · ${esc(l.who)}</small></span></li>`).join('')}</ul></div>` : ''}
+
+      <div class="box danger"><h3>სასტუმროს წაშლა</h3>
+        ${h.status === 'closed' ? `<p class="mute">წაიშლება საიტი, ჯავშნები, სტუმრები და გუნდი. ამას ვეღარ დავაბრუნებთ. დასადასტურებლად ჩაწერე: <b>${esc(h.slug)}</b></p><div class="row"><input class="grow" id="dC" autocomplete="off"><button class="btn red" type="button" data-do="delete">სამუდამოდ წაშლა</button></div>`
+        : '<p class="mute">წაშლამდე სასტუმრო გამორთე (მდგომარეობა → დახურული).</p>'}</div>
+      <p class="msg" id="hdMsg" role="status"></p>`;
+  }
+  hd.addEventListener('change', e => { if (e.target.id === 'hSt') $('#hPuL').hidden = e.target.value !== 'paused'; });
+  hd.addEventListener('click', async e => {
+    if (e.target === hd || e.target.closest('#hdX')) { hd.close(); return; }
+    const b = e.target.closest('[data-do],[data-pdel]'); if (!b) return;
+    const body = { slug: H.slug, do: b.dataset.do || 'pay-del' };
+    if (body.do === 'status') { body.status = $('#hSt').value; body.pausedUntil = $('#hPu').value; }
+    if (body.do === 'trial') body.days = +$('#hTd').value;
+    if (body.do === 'addons') body.addons = [...hd.querySelectorAll('[data-addon]:checked')].map(x => x.dataset.addon);
+    if (body.do === 'pay') Object.assign(body, { amount: +$('#pA').value, until: $('#pU').value, method: $('#pM').value, note: $('#pN').value });
+    if (body.do === 'pay-del') body.id = b.dataset.pdel;
+    if (body.do === 'delete') body.confirm = $('#dC').value.trim();
+    if (body.do === 'domain-add') body.host = $('#dHost').value.trim();
+    if (body.do === 'owner') body.email = $('#oEmail').value.trim();
+    if (body.do === 'free') { body.on = b.dataset.on === '1'; if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = body.on ? 'დიახ, მუდმივად უფასო' : 'დიახ, გავაუქმო'; return; } }
+    if (body.do === 'domain-del') { body.host = b.dataset.host; if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, მოხსენი'; return; } }
+    if (body.do === 'password' && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, შევქმნა ახალი პაროლი'; return; }
+    if (body.do === 'pay-del' && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, წაშალე'; return; }
+    b.disabled = true;
+    const o = await (await api('hotel-action', body)).json();
+    if (!o.ok) { b.disabled = false; $('#hdMsg').textContent = o.msg || 'ვერ შეინახა. სცადე თავიდან.'; return; }
+    if (body.do === 'enter') { window.open(o.url, '_blank', 'noopener'); b.disabled = false; return; }
+    if (body.do === 'delete') { hd.close(); load(); return; }
+    const slug = H.slug; await openHotel(slug);
+    pw = o.password || ''; said = { status: 'მდგომარეობა შეინახა.', trial: `საცდელი გაგრძელდა ${fmt(o.until || '')}-მდე.`, addons: 'სერვისები შეინახა.', pay: 'გადახდა ჩაიწერა.', 'pay-del': 'გადახდა წაიშალა.', 'domain-add': 'დომენი მიება. თუ Cloudflare-ში უკვე მიბმულია, საიტი რამდენიმე წუთში გაიხსნება.', 'domain-del': 'დომენი მოიხსნა.', free: 'შეინახა.', password: '', owner: o.password ? '' : 'მფლობელი მიება. შედის თავისი არსებული პაროლით.' }[body.do] || '';
+    drawHotel(); load();
+  });
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('#pwCopy'); if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.pw); b.textContent = '✓ დაკოპირდა'; } catch (er) { b.textContent = 'ხელით მონიშნე და დააკოპირე'; }
+  });
+  $('#hotels').addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b) openHotel(b.dataset.open); });
+  $('#jijiGo').addEventListener('click', async e => {
+    const b = e.currentTarget, m = $('#jijiMsg'); b.disabled = true; m.textContent = 'ვაკოპირებ…';
+    try {
+      const o = await (await api('jiji-import', {})).json();
+      m.textContent = o.ok ? `მზადაა: ${o.done.rooms} ნომერი, ${o.done.types} ტიპი, ${o.done.bookings} ჯავშანი, ${o.done.payments} გადახდა, ${o.done.notes} შენიშვნა, ${o.done.media} ფოტო. სასტუმრო: ${o.done.slug} (კატალოგში დამალულია).` : o.msg;
+      if (o.ok) load();
+    } catch (er) { m.textContent = 'კავშირი ვერ დამყარდა. სცადე ხელახლა.'; }
+    b.disabled = false;
+  });
+  $('#notes').addEventListener('click', async e => { const b = e.target.closest('[data-ndel]'); if (!b) return; await api('notice-del', { id: b.dataset.ndel }); load(); });
+  $('#noteForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const o = await (await api('notice', Object.fromEntries(new FormData(e.target)))).json();
+    if (!o.ok) { $('#noteMsg').textContent = o.msg || 'ვერ შეინახა.'; return; }
+    e.target.reset(); $('#noteMsg').textContent = ''; load();
+  });
+  $('#out').addEventListener('click', async () => { await api('logout', {}); load(); });
+  load();
+})();
+</script>
+</body>
+</html>

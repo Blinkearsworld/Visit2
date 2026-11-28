@@ -1,0 +1,9 @@
+/* Jade: a large photo with the name on it, the dates field just below, then the host's story. */
+.hero-story { padding: 0 !important; }
+.hero-story .hero-media { position: relative; min-height: min(78svh, 720px); color: #fff; overflow: hidden; background: #2a2622; }
+.hero-story .hero-media > img, .hero-story .hero-media > .ph { position: absolute; inset: 0; }
+.hero-story .hero-media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, .35) 0%, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, .6) 100%); }
+.hero-story .hero-in { position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; max-width: var(--max); margin: 0 auto; padding: 0 var(--pad) 72px; text-shadow: 0 2px 20px rgba(0, 0, 0, .35); }
+.hero-story .hero-tag { margin-bottom: 0; }
+.hero-story .hero-bar { position: relative; z-index: 2; max-width: var(--max); margin: -36px auto 0; padding: 0 var(--pad); }
+.about .about-text p { font-size: clamp(19px, 2.2vw, 23px); line-height: 1.6; }

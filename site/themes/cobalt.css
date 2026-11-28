@@ -1,0 +1,18 @@
+/* Cobalt: the name and the dates field on top, then a mosaic of the best photos. */
+.hero-mosaic { padding-top: 36px !important; }
+.hero-mosaic .hero-in { text-align: center; margin-bottom: 28px; }
+.hero-mosaic .hero-tag { margin-left: auto; margin-right: auto; }
+.hero-mosaic .pill { margin: 0 auto; }
+.mosaic { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: var(--r); overflow: hidden; }
+.mosaic img, .mosaic .ph { width: 100%; height: 100%; aspect-ratio: 1; object-fit: cover; min-height: 0; }
+.mosaic > :first-child { grid-column: 1 / -1; aspect-ratio: 16 / 10; }
+.mosaic.n2 > :last-child, .mosaic.n4 > :last-child { grid-column: 1 / -1; aspect-ratio: 16 / 10; }
+@media (min-width: 1024px) {
+  .mosaic { grid-template-columns: 2fr 1fr 1fr; grid-template-rows: 1fr 1fr; height: min(62vh, 560px); }
+  .mosaic > * { aspect-ratio: auto !important; }
+  .mosaic > :first-child { grid-column: 1; grid-row: 1 / span 2; }
+  .mosaic.n2 { grid-template-columns: 2fr 1fr; } .mosaic.n2 > :last-child { grid-column: 2; grid-row: 1 / span 2; }
+  .mosaic.n3 { grid-template-columns: 2fr 1fr; }
+  .mosaic.n4 > :last-child { grid-column: 2 / span 2; }
+  .mosaic.n1 { grid-template-columns: 1fr; }
+}

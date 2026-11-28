@@ -1,0 +1,10 @@
+/* Amber: the words and the dates field next to one large photo; on a phone, the photo comes first. */
+.hero-split { display: grid; gap: 28px; align-items: center; padding-top: 24px !important; }
+.hero-split .hero-media { order: -1; }
+.hero-split .hero-media img, .hero-split .hero-media .ph { aspect-ratio: 4 / 3; border-radius: var(--r); }
+.hero-split .hero-city { color: var(--accent); opacity: 1; }
+@media (min-width: 1024px) {
+  .hero-split { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 56px; padding-top: 48px !important; }
+  .hero-split .hero-media { order: 0; }
+  .hero-split .hero-media img, .hero-split .hero-media .ph { aspect-ratio: 4 / 5; max-height: 76vh; }
+}

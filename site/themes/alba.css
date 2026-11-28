@@ -1,0 +1,7 @@
+/* Alba: short words, the dates field and a wide photo; then room types with prices straight away. */
+.hero-plain { padding-top: 32px !important; padding-bottom: 32px !important; }
+.hero-plain .hero-in { margin-bottom: 26px; }
+.hero-plain .hero-name { font-size: clamp(32px, 6vw, 54px); }
+.hero-plain .hero-media img, .hero-plain .hero-media .ph { aspect-ratio: 16 / 9; border-radius: var(--r); max-height: 62vh; }
+@media (min-width: 1024px) { .hero-plain .hero-media img { aspect-ratio: 21 / 9; } }
+.compare { padding-top: 32px !important; }

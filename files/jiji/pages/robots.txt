@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+Disallow: /api/
+
+# Short facts for AI assistants: https://villajiji.com/llms.txt
+Sitemap: https://villajiji.com/sitemap.xml

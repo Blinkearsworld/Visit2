@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Visit2.ge · Your Visit2 Georgia starts here</title>
+<meta name="description" content="იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ სასტუმროსთან. ნამდვილი თავისუფალი ნომრები, საკომისიოს გარეშე.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Visit2.ge"><meta property="og:url" content="https://visit2.ge/"><meta property="og:title" content="Visit2.ge · Your Visit2 Georgia starts here"><meta property="og:description" content="იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ სასტუმროსთან. ნამდვილი თავისუფალი ნომრები, საკომისიოს გარეშე."><meta property="og:image" content="https://visit2.ge/img/og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="ka_GE"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://visit2.ge/img/og.jpg">
+<link rel="icon" href="favicon.ico?v=1596012" sizes="48x48"><link rel="icon" href="favicon.svg?v=1596012" type="image/svg+xml"><link rel="apple-touch-icon" href="apple-touch-icon.png?v=1596012"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-title" content="Visit2.ge"><meta name="theme-color" content="#0E857D">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="site/platform.css?v=1596012">
+<link rel="stylesheet" href="site/home.css?v=1596012">
+</head>
+<body data-chat="guests" class="home2" data-photo>
+<main>
+  <section class="h-hero">
+    <img class="h-hero-bg" id="heroA" src="img/h/sighnaghi-terrace.jpg" alt="" fetchpriority="high">
+    <img class="h-hero-bg h-next" id="heroB" alt="">
+    <div class="h-hero-in">
+      <h1 data-h="h1">იპოვე სასტუმრო საქართველოში და დაჯავშნე პირდაპირ</h1>
+      <div class="h-pill" role="group" aria-label="Search">
+        <button type="button" class="h-seg h-seg-where" data-open="where"><span class="h-seg-l" data-h="where">სად</span><span class="h-seg-v" id="vWhere">სად მიდიხართ?</span></button>
+        <button type="button" class="h-seg h-seg-when" data-open="when"><span class="h-seg-l" data-h="when">როდის</span><span class="h-seg-v" id="vWhen"></span></button>
+        <button type="button" class="h-seg h-seg-who" data-open="who"><span class="h-seg-l" data-h="who">სტუმრები</span><span class="h-seg-v" id="vWho"></span></button>
+        <button type="button" class="h-go" data-open="main" id="goBtn"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span class="sr-only" data-h="go">ძებნა</span></button>
+      </div>
+    </div>
+    <a class="h-credit" id="heroCredit" href="#"></a>
+  </section>
+
+  <!-- the search state lives in this hidden form (the chatbot fills it too) -->
+  <form id="q" hidden><input name="city"><input name="from"><input name="to"><input name="g" value="2"><input name="kids" value="0"><input name="babies" value="0"><input name="pets" value="0"><input name="rooms" value="1"></form>
+
+  <div class="h-chips-wrap"><div class="h-chips" id="chips" role="group" aria-label="Kinds"></div></div>
+
+  <section class="h-results" id="results" hidden aria-live="polite">
+    <div class="wrap">
+      <div class="h-res-head">
+        <div><h2 id="resTitle"></h2><p id="resNote"></p></div>
+        <div class="h-res-tools">
+          <label class="h-sort"><span class="sr" data-h="sortL">დალაგება</span><select id="sortBy" aria-label="დალაგება"></select></label>
+          <button type="button" class="h-chip" id="mapBtn" aria-expanded="false" aria-controls="mapBox" data-h="mapOpen">რუკაზე</button>
+          <button type="button" class="h-chip" id="resClear" data-h="clear">გასუფთავება</button>
+        </div>
+      </div>
+      <div class="h-map-box" id="mapBox" hidden>
+        <p class="h-map-hint" id="mapHint" data-h="mapHint">დააჭირე რუკაზე ადგილს, სადაც სასტუმრო გინდა</p>
+        <div class="h-map-row"><div class="h-radius" id="radius" role="group" aria-label="Radius"></div><button type="button" class="h-chip" id="nearMe" data-h="nearMe">📍 ჩემთან ახლოს</button></div>
+        <div class="h-map" id="map"></div>
+      </div>
+      <div class="h-grid" id="resCards"></div>
+    </div>
+  </section>
+
+  <div id="rows"></div>
+
+  <section class="h-row-sec" id="eat" hidden>
+    <div class="h-row-head wrap"><div><h2 data-h="eatH">რესტორნები</h2><p data-h="eatSub">რესტორნები, კაფეები და ბარები ქალაქის ცენტრში</p></div></div>
+    <div class="h-chips h-eat-towns wrap" id="eatTowns" role="group" aria-label="Places"></div>
+    <div class="h-row h-ads" id="eatAds"></div>
+    <div class="h-row" id="eatRow"></div>
+    <p class="h-note wrap" data-h="eatNote">ადგილები და რუკა: © OpenStreetMap-ის მონაწილეები.</p>
+  </section>
+
+  <section class="h-how" id="how">
+    <div class="wrap">
+      <h2 data-t="howH">როგორ მუშაობს</h2>
+      <ol class="h-steps">
+        <li data-t="why1"><b>პირდაპირ სასტუმროსთან</b>მოთხოვნა სასტუმროს ეგზავნება და ისინი გირეკავენ დასადასტურებლად.</li>
+        <li data-t="why2"><b>გადახდა სასტუმროში</b>წინასწარ ბარათს არ გთხოვთ. გადახდის პირობებს სასტუმრო გეტყვით.</li>
+        <li data-t="why3"><b>ჯავშნის მერე ადგილი გარანტირებულია</b>გიჩვენებთ მხოლოდ იმ ნომრებს, რომლებიც შენს თარიღებზე მართლა თავისუფალია.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="h-about" id="about">
+    <div class="wrap">
+      <h2 data-h="aboutH">Visit2.ge-ის შესახებ</h2>
+      <p data-h="aboutP">Visit2.ge ქართული პლატფორმაა მცირე სასტუმროებისა და ბინებისთვის. სტუმარი პირდაპირ სასტუმროსთან ჯავშნის, ფასს სასტუმრო თავად აწესებს და საკომისიოს არავინ იხდის.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="p-foot">
+  <div class="wrap foot-in">
+    <div><img src="img/brand/visit2.svg" alt="Visit2.ge" width="62" height="34"><p lang="en">Your Visit2 Georgia starts here</p></div>
+    <nav><a href="owners.html" data-t="partners">პარტნიორებისთვის</a><a href="owners.html#restaurants" data-t="rH">რესტორნებისთვის</a><a href="privacy.html" data-t="privacy">კონფიდენციალურობა</a><a href="terms.html" data-t="terms">პირობები</a></nav>
+  </div>
+</footer>
+
+<!-- compare: a small bar while hotels are picked, then a side-by-side table in the same sheet as the search -->
+<div class="h-cmp-bar" id="cmpBar" hidden><button type="button" class="h-cmp-go" id="cmpOpen"><span id="cmpN">შედარება</span></button><button type="button" class="h-cmp-x" id="cmpClear" aria-label="გასუფთავება">×</button></div>
+<p class="h-cmp-full" id="cmpFull" role="status" hidden data-h="cmpFull">შეადარე ერთად მაქსიმუმ 3 სასტუმრო.</p>
+<dialog class="h-sheet wide h-cmp-dlg" id="cmp" aria-labelledby="cmpH">
+  <div class="h-sheet-in">
+    <div class="h-sheet-head"><span aria-hidden="true"></span><h2 id="cmpH" data-h="cmpH">შედარება</h2><button type="button" class="h-x" data-close aria-label="Close">×</button></div>
+    <div id="cmpBody"></div>
+  </div>
+</dialog>
+
+<!-- search: one sheet, full screen on a phone, a panel on a computer -->
+<dialog class="h-sheet" id="sheet" aria-labelledby="sheetH">
+  <div class="h-sheet-in">
+    <div class="h-sheet-head">
+      <button type="button" class="h-back" id="sheetBack" aria-label="Back" hidden>‹</button>
+      <h2 id="sheetH"></h2>
+      <button type="button" class="h-x" data-close aria-label="Close">×</button>
+    </div>
+    <div class="h-view" data-view="main">
+      <button type="button" class="h-field" data-go="where"><span data-h="where">სად</span><b id="fWhere"></b></button>
+      <button type="button" class="h-field" data-go="when"><span data-h="when">როდის</span><b id="fWhen"></b></button>
+      <button type="button" class="h-field" data-go="who"><span data-h="who">სტუმრები</span><b id="fWho"></b></button>
+      <button type="button" class="btn btn-teal h-submit" id="doSearch" data-h="go">ძებნა</button>
+    </div>
+    <div class="h-view" data-view="where" hidden>
+      <input class="h-find" id="townFind" type="search" autocomplete="off" data-hp="townPh" placeholder="ქალაქი ან კურორტი">
+      <div class="h-towns" id="townList"></div>
+    </div>
+    <div class="h-view" data-view="when" hidden>
+      <button type="button" class="h-skip" id="calSkip"><span data-h="skipDates">თარიღის გარეშე: ყველა სასტუმრო</span> →</button>
+      <div class="h-range"><div class="h-range-box"><span data-h="arrive">ჩამოსვლა</span><b id="rFrom">—</b></div><div class="h-range-box"><span data-h="leave">წასვლა</span><b id="rTo">—</b></div></div>
+      <p class="h-nights" id="rNights"></p>
+      <div class="h-dow" id="dow" aria-hidden="true"></div>
+      <div class="h-cal" id="cal"></div>
+      <div class="h-sheet-foot"><button type="button" class="btn btn-out" id="calReset" data-h="clear">გასუფთავება</button><button type="button" class="btn btn-teal" id="calSave" data-h="save">შენახვა</button></div>
+    </div>
+    <div class="h-view" data-view="who" hidden>
+      <div class="h-step"><div><b data-h="adults">უფროსები</b><small data-h="adultsAge">13 წლიდან</small></div><div class="h-stepper"><button type="button" data-n="g" data-d="-1" aria-label="−">−</button><output id="nG">2</output><button type="button" data-n="g" data-d="1" aria-label="+">+</button></div></div>
+      <div class="h-step"><div><b data-h="kids">ბავშვები</b><small data-h="kidsAge">2–12 წლის</small></div><div class="h-stepper"><button type="button" data-n="kids" data-d="-1" aria-label="−">−</button><output id="nK">0</output><button type="button" data-n="kids" data-d="1" aria-label="+">+</button></div></div>
+      <div class="h-step"><div><b data-h="babies">ჩვილები</b><small data-h="babiesAge">2 წლამდე</small></div><div class="h-stepper"><button type="button" data-n="babies" data-d="-1" aria-label="−">−</button><output id="nB">0</output><button type="button" data-n="babies" data-d="1" aria-label="+">+</button></div></div>
+      <div class="h-step"><div><b data-h="rooms">ნომრები</b><small data-h="roomsSub">ერთ ჯავშანში, მთელი ჯგუფისთვის</small></div><div class="h-stepper"><button type="button" data-n="rooms" data-d="-1" aria-label="−">−</button><output id="nR">1</output><button type="button" data-n="rooms" data-d="1" aria-label="+">+</button></div></div>
+      <div class="h-step"><div><b data-h="pets">შინაური ცხოველი</b><small data-h="petsSub">ვაჩვენებთ სასტუმროებს, სადაც ცხოველი შეიძლება</small></div><div class="h-stepper"><button type="button" data-n="pets" data-d="-1" aria-label="−">−</button><output id="nP">0</output><button type="button" data-n="pets" data-d="1" aria-label="+">+</button></div></div>
+      <div class="h-sheet-foot"><button type="button" class="btn btn-teal" id="whoSave" data-h="save">შენახვა</button></div>
+    </div>
+  </div>
+</dialog>
+
+<script src="site/food.js?v=1596012"></script>
+<script src="js/osm.js?v=1596012"></script>
+<script src="site/places.js?v=1596012"></script>
+<script src="site/ads.js?v=1596012"></script>
+<script src="site/hotels.js?v=1596012"></script>
+<script src="site/menu.js?v=1596012"></script>
+<script src="site/platform.js?v=1596012"></script>
+<script src="site/home.js?v=1596012"></script>
+<script src="site/visit2-chat.js?v=1596012"></script>
+</body>
+</html>
