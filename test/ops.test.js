@@ -142,3 +142,22 @@ describe('a copied password with a space or line break at the end', () => {
     expect(await checkLogin(env.DB, t, 'trim@pw.test', 'abcd')).toBeNull();
   });
 });
+
+describe('the catalogue links a hotel with its own domain there', () => {
+  it('uses the custom domain', async () => {
+    const { catalog } = await import('../src/db/catalog.js');
+    const { setAddons } = await import('../src/db/ops.js');
+    const t = await createTenant(env.DB, { slug: 'own-dom', name: 'Own Domain', city: 'ბაკურიანი' });
+    await env.DB.prepare("INSERT INTO domains (host, tenant_id, kind, created) VALUES ('owndomain-test.ge', ?, 'custom', '2026-01-01')").bind(t.id).run();
+    await env.DB.prepare("INSERT INTO site_content (tenant_id, v, created) VALUES (?, ?, '2026-01-01')").bind(t.id, JSON.stringify({ site: { hero: { img: 'files/x.jpg' } } })).run();
+    await env.DB.prepare("INSERT INTO types (tenant_id, id, name, rates, sort) VALUES (?, 'std', 'S', '[{\"guests\":2,\"price\":{\"peak\":100}}]', 0)").bind(t.id).run();
+    await env.DB.prepare("INSERT INTO rooms (tenant_id, id, type, sort) VALUES (?, '1', 'std', 0)").bind(t.id).run();
+    let list = await catalog(env.DB, { siteOf: x => `https://${x.slug}.visit2.ge/` });
+    const h = list.find(x => x.slug === 'own-dom');
+    expect(h.url).toBe('https://owndomain-test.ge/');
+    expect(h.img).toBe('https://owndomain-test.ge/files/x.jpg');
+    await setAddons(env.DB, t, { id: 'u1', name: 'V' }, ['hidden']);
+    list = await catalog(env.DB, { siteOf: x => `https://${x.slug}.visit2.ge/` });
+    expect(list.find(x => x.slug === 'own-dom')).toBeUndefined();
+  });
+});

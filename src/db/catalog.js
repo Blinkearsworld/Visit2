@@ -24,7 +24,9 @@ export async function catalog(db, { siteOf, from = '', to = '', guests = 2, room
     if (!s.hero?.img) continue;
     const prices = Object.values(st.types).flatMap(ty => ty.rates.flatMap(x => Object.values(x.price || {}).map(Number))).filter(v => v > 0);
     if (!prices.length || !st.rooms.length) continue;
-    const site = siteOf(t);
+    // a hotel with its own domain is linked there (villajiji.com), the others on their Visit2 address
+    const own = await db.prepare("SELECT host FROM domains WHERE tenant_id = ? AND kind = 'custom' AND host NOT LIKE 'www.%' ORDER BY host LIMIT 1").bind(t.id).first();
+    const site = own ? `https://${own.host}/` : siteOf(t);
     const abs = src => (/^https:\/\//.test(src) ? src : site + String(src).replace(/^\//, ''));
     const h = {
       slug: t.slug, name: t.name, city: t.city || '', url: site, real: true,
