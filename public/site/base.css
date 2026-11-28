@@ -258,6 +258,16 @@ main > section:nth-of-type(even):not(.hero) { background: var(--soft); }
 .book .rules p { margin: 0; }
 .rules-ok { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 600; cursor: pointer; }
 .rules-ok input { width: 22px; height: 22px; flex: none; accent-color: var(--accent, #0B7A73); }
+.extras { border: 1px solid var(--line, #e5e1da); border-radius: 12px; padding: 10px 14px 12px; margin: 0; display: grid; gap: 4px; }
+.extras legend { padding: 0 6px; font-weight: 600; }
+.extras legend small { font-weight: 400; opacity: .75; }
+.ex-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ex-ck { display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; flex: 1 1 220px; min-width: 0; }
+.ex-ck input { width: 22px; height: 22px; flex: none; accent-color: var(--accent, #0B7A73); }
+.ex-ck span { min-width: 0; overflow-wrap: anywhere; }
+.ex-ck small { opacity: .8; white-space: nowrap; }
+.ex-q input { width: 72px; min-height: 44px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .inst-note { margin: 0; color: var(--accent-ink, #0B7A73); font-weight: 600; font-size: 15px; }
 .booked { display: grid; gap: 8px; margin: 0 0 18px; padding: 18px 20px; border-radius: 16px; background: #F0F8F6; border: 1px solid #9FD0C8; line-height: 1.55; overflow-wrap: anywhere; }
 .booked h3 { margin: 0; font-size: 22px; }

@@ -67,13 +67,13 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
         // the room is held for a few minutes while the guest pays at the bank; no payment page → an ordinary request
         try {
           const pay = await openPayment(env, t, acc, { id: r.booking.id, key, amount: r.pay, origin: url.origin, base, lang: body.lang });
-          return json({ ok: true, id: r.booking.id, total: r.total, typeName: r.typeName, instant: true, key, pay, payAmount: r.pay, payMinutes: HOLD_MIN });
+          return json({ ok: true, id: r.booking.id, total: r.total, extras: r.extras || [], typeName: r.typeName, instant: true, key, pay, payAmount: r.pay, payMinutes: HOLD_MIN });
         } catch (e) {
           await holdToRequest(db, t, r.booking.id);
-          return json({ ok: true, id: r.booking.id, total: r.total, typeName: r.typeName, instant: false, key: '' });
+          return json({ ok: true, id: r.booking.id, total: r.total, extras: r.extras || [], typeName: r.typeName, instant: false, key: '' });
         }
       }
-      return json({ ok: true, id: r.booking.id, total: r.total, typeName: r.typeName, instant: !!r.instant, key });
+      return json({ ok: true, id: r.booking.id, total: r.total, extras: r.extras || [], typeName: r.typeName, instant: !!r.instant, key });
     } catch (e) { return json({ ok: false, error: e.message }, 400); }
   }
   // the guest's own booking, behind the link they got when booking (id + key); nothing else is reachable with it

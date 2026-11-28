@@ -63,6 +63,8 @@
     optional: ['არასავალდებულო', 'optional', 'необязательно'], send: ['მოთხოვნის გაგზავნა', 'Send request', 'Отправить запрос'],
     check: ['თავისუფალი ნომრები', 'Check availability', 'Свободные номера'], perNight: ['ღამე', 'night', 'ночь'], from: ['-დან', 'from', 'от'],
     upTo: ['სტუმრამდე', 'guests max', 'гостей макс.'], left: ['თავისუფალი', 'available', 'свободно'], none: ['ამ თარიღებზე თავისუფალი არ არის', 'Not available on these dates', 'На эти даты нет мест'],
+    extrasT: ['დამატებითი სერვისები', 'Extras', 'Дополнительные услуги'], extrasS: ['სერვისები', 'Extras', 'Услуги'], withRoom: ['ნომერი', 'Room', 'Номер'],
+    uStay: ['ერთჯერადად', 'once', 'разово'], uNight: ['ღამეში', 'per night', 'за ночь'], uGuest: ['ერთ სტუმარზე', 'per guest', 'с гостя'], uGuestNight: ['სტუმარზე ღამეში', 'per guest per night', 'с гостя за ночь'], uItem: ['ერთეული', 'each', 'за единицу'], qty: ['რაოდენობა', 'Quantity', 'Количество'],
     pickDates: ['აირჩიეთ თარიღები', 'Choose dates', 'Выберите даты'], nights: ['ღამე', 'nights', 'ночей'], total: ['სულ', 'Total', 'Итого'],
     nearest: ['უახლოესი თავისუფალი', 'Nearest available', 'Ближайшие свободные'], choose: ['ეს ნომერი', 'This room', 'Этот номер'],
     consent: ['მოთხოვნის გაგზავნით თქვენი სახელი და ტელეფონი გადაეცემა სასტუმროს ჯავშნის დასადასტურებლად. <a href="privacy.html" target="_blank">კონფიდენციალურობა</a>', 'By sending a request, your name and phone go to the hotel to confirm the booking. <a href="privacy.html" target="_blank">Privacy</a>', 'Отправляя запрос, вы передаёте имя и телефон отелю для подтверждения брони. <a href="privacy.html" target="_blank">Конфиденциальность</a>'],
@@ -537,6 +539,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     <label><span>${w('name')}</span><input name="name" autocomplete="name" required></label>
     <label><span>${w('phone')}</span><input name="phone" type="tel" autocomplete="tel" inputmode="tel" required></label>
     <label class="wide"><span>${w('wish')} <small>(${w('optional')})</small></span><textarea name="wish" rows="2" maxlength="500"></textarea></label>
+    ${extrasHtml()}
     ${rulesHtml()}
     ${inst() ? `<p class="inst-note wide">${w(payOn() ? 'instantPay' : 'instantNote')}</p>` : ''}
     <button class="btn btn-accent wide" type="submit">${w(payOn() ? 'bookPay' : inst() ? 'bookNow' : 'send')}</button>
@@ -546,6 +549,23 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   </form>
 </section>`;
   }
+  // the hotel's services a guest can add when booking (breakfast, transfer, a tour...), at the hotel's own prices
+  const UNIT_W = { stay: 'uStay', night: 'uNight', guest: 'uGuest', guest_night: 'uGuestNight', item: 'uItem' };
+  const offered = () => (J.onlineServices ? J.onlineServices() : []);
+  function extrasHtml() {
+    const list = offered(); if (!list.length) return '';
+    return `<fieldset class="extras wide"><legend>${w('extrasT')}</legend>
+      ${list.map(x => `<div class="ex-row"><label class="ex-ck"><input type="checkbox" data-ex="${esc(x.id)}"${sel.extras[x.id] ? ' checked' : ''}> <span>${esc(J.serviceName(x, lang()))}</span> <small>${fmtN(x.price)} ${w(UNIT_W[x.unit] || 'uItem')}</small></label>${x.unit === 'item' ? `<label class="ex-q"><span class="sr">${w('qty')}</span><input type="number" min="1" max="99" step="1" inputmode="numeric" data-exq="${esc(x.id)}" value="${sel.extras[x.id] || 1}" aria-label="${w('qty')}: ${esc(J.serviceName(x, lang()))}"></label>` : ''}</div>`).join('')}
+    </fieldset>`;
+  }
+  // chosen services for the current dates and guests: [{id, qty, amount}]
+  function chosenExtras() {
+    if (!sel.from || !sel.to || sel.to <= sel.from) return [];
+    const stay = { from: sel.from, to: sel.to, guests: beds() };
+    return offered().filter(x => sel.extras[x.id]).map(x => { const qty = J.unitsFor(x.unit, stay, sel.extras[x.id]); return { id: x.id, qty, amount: x.price * qty }; });
+  }
+  const extrasSum = () => chosenExtras().reduce((a, x) => a + x.amount, 0);
+  const withExtras = room => { const e = extrasSum(); return e ? `<br>${w('withRoom')}: ${fmtN(room)} · ${w('extrasS')}: ${fmtN(e)}<br><span class="sum-total">${w('total')}: ${fmtN(room + e)}</span>` : ''; };
   // one clear button back to Visit2.ge: a template sample goes back to the templates, a hotel to the hotel list
   function backLink() {
     const to = sample ? `owners.html?v=${V}#templates` : `index.html?v=${V}`;
@@ -563,7 +583,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   }
 
   // ---------- booking ----------
-  const sel = { from: '', to: '', adults: 2, kids: 0, babies: 0, pets: 0, rooms: 1, type: '' };
+  const sel = { from: '', to: '', adults: 2, kids: 0, babies: 0, pets: 0, rooms: 1, type: '', extras: {} };
   // dates and guests from the Visit2.ge search (hotel.html?h=…&from=…&to=…&g=…)
   if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('from') || '') && /^\d{4}-\d{2}-\d{2}$/.test(params.get('to') || '') && params.get('to') > params.get('from')) {
     sel.from = params.get('from'); sel.to = params.get('to'); sel.adults = Math.max(1, Math.min(16, +params.get('g') || 2));
@@ -590,7 +610,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
       const o = J.roomsOffer(from, to, g, Math.min(sel.rooms, g), sel.kids, kidsRule());
       if (!o.parts) { el.innerHTML = `<b>${o.free < Math.min(sel.rooms, g) ? w('onlyFree').replace('{n}', o.free) : w('roomsFit')}</b>`; sel.offer = ''; return; }
       sel.offer = '';
-      el.innerHTML = `<b>${w('roomsTogether').replace('{n}', o.parts.length)}</b><br>${o.parts.map((x, i) => `${w('roomNo').replace('{i}', i + 1)}: ${esc(typeName(x.name))} · ${w('guestsN').replace('{n}', x.guests)}${x.kids ? ` (${w('kidsN').replace('{n}', x.kids)})` : ''} · ${fmtN(x.total)}`).join('<br>')}<br>${J.fmtRange(from, to)} · ${n} ${w('nights')}<br><span class="sum-total">${w('allRooms').replace('{n}', o.parts.length)}: ${fmtN(o.total)}</span>`;
+      el.innerHTML = `<b>${w('roomsTogether').replace('{n}', o.parts.length)}</b><br>${o.parts.map((x, i) => `${w('roomNo').replace('{i}', i + 1)}: ${esc(typeName(x.name))} · ${w('guestsN').replace('{n}', x.guests)}${x.kids ? ` (${w('kidsN').replace('{n}', x.kids)})` : ''} · ${fmtN(x.total)}`).join('<br>')}<br>${J.fmtRange(from, to)} · ${n} ${w('nights')}<br><span class="sum-total">${w('allRooms').replace('{n}', o.parts.length)}: ${fmtN(o.total)}</span>${withExtras(o.total)}`;
       return;
     }
     let type = sel.type && free(sel.type) && J.rateFor(sel.type, g) ? sel.type : null;
@@ -602,7 +622,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
       return;
     }
     sel.offer = type;
-    el.innerHTML = `<b>${esc(typeName(J.types[type].name))}</b><br>${J.fmtRange(from, to)} · ${n} ${w('nights')} · ${esc(guestsText())}<br><span class="sum-total">${w('estimate')}: ${fmtN(quoteOf(type, from, to))}</span>`;
+    el.innerHTML = `<b>${esc(typeName(J.types[type].name))}</b><br>${J.fmtRange(from, to)} · ${n} ${w('nights')} · ${esc(guestsText())}<br><span class="sum-total">${w('estimate')}: ${fmtN(quoteOf(type, from, to))}</span>${withExtras(quoteOf(type, from, to))}`;
   }
   function availability() {
     const { from, to } = sel, g = beds(), ok = from && to && to > from;
@@ -649,6 +669,12 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     document.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => { sel.type = b.dataset.pick; summary(); $('#book').scrollIntoView({ behavior: still }); if (!sel.from) openSheet('when'); }));
     $('#sum').addEventListener('click', e => { const b = e.target.closest('[data-next]'); if (!b) return; [sel.from, sel.to] = b.dataset.next.split('|'); summary(); });
     $('#req').addEventListener('submit', send);
+    // services ticked on the form: kept in sel (the page may be drawn again) and added to the total
+    $('#req').addEventListener('change', e => {
+      const c = e.target.closest('[data-ex]'), q = e.target.closest('[data-exq]');
+      if (c) { if (c.checked) sel.extras[c.dataset.ex] = +(($('#req').querySelector(`[data-exq="${c.dataset.ex}"]`) || {}).value) || 1; else delete sel.extras[c.dataset.ex]; summary(); }
+      if (q) { const v = Math.max(1, Math.min(99, parseInt(q.value) || 1)); q.value = v; const ck = $('#req').querySelector(`[data-ex="${q.dataset.exq}"]`); if (ck) { ck.checked = true; sel.extras[q.dataset.exq] = v; } summary(); }
+    });
     document.querySelectorAll('#food, #foodDlg').forEach(el => el.addEventListener('click', e => { const b = e.target.closest('[data-food]'); if (b) openPlace(b.dataset.food); }));
     if ($('#placeDlg')) {
       $('#placeDlg').querySelector('[data-close]').addEventListener('click', () => $('#placeDlg').close());
@@ -682,12 +708,12 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     if (!name || phone.replace(/\D/g, '').length < 9) { msg.textContent = w('needName'); (name ? f.phone : f.name).focus(); return; }
     if (f.rules && !f.rules.checked) { msg.textContent = w('needRules'); f.rules.focus(); return; }
     const btn = f.querySelector('button[type=submit]'); btn.disabled = true;
-    const req = J.createRequest({ instant: inst(), kidRule: kidsRule(), payRule: payOn() ? (S().instant || {}).pay : null, from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · ') });
+    const req = J.createRequest({ instant: inst(), kidRule: kidsRule(), payRule: payOn() ? (S().instant || {}).pay : null, from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · '), extras: chosenExtras().map(x => ({ id: x.id, qty: x.qty })) });
     const out = await req.saved;
     btn.disabled = false;
     if (out && out.ok && out.instant && out.pay) { msg.dataset.state = 'ok'; msg.textContent = w('toBank'); location.href = out.pay; return; }
-    if (out && out.ok && out.instant && out.key) { f.reset(); showBooked(out.id, out.key, true); }
-    else if (out && out.ok) { msg.dataset.state = 'ok'; msg.textContent = w(inst() ? 'fellBack' : 'sent'); f.reset(); }
+    if (out && out.ok && out.instant && out.key) { f.reset(); sel.extras = {}; showBooked(out.id, out.key, true); }
+    else if (out && out.ok) { msg.dataset.state = 'ok'; msg.textContent = w(inst() ? 'fellBack' : 'sent'); f.reset(); sel.extras = {}; summary(); }
     else msg.textContent = out && out.free != null ? w('onlyFree').replace('{n}', out.free) : (out && out.msg) || w('err');
   }
 
@@ -713,7 +739,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     const c = S().contact || {}, phone = c.phone || '';
     const box = document.createElement('div'); box.className = 'booked'; box.setAttribute('role', 'status');
     box.innerHTML = `<h3>${fresh ? w('booked') : w('myBooking')}</h3>
-      ${b ? `<p class="bk-st" data-s="${esc(py && py.state === 'waiting' ? 'pending' : b.status)}">${w(py && py.state === 'waiting' ? 'stHeld' : st)}</p><p><b>${esc(b.name)}</b><br>${J.fmtRange(b.from, b.to)} · ${J.nights(b.from, b.to)} ${w('nights')}<br>${b.rooms.map(x => `${esc(typeName((J.types[x.type] && J.types[x.type].name) || x.type))} · ${w('guestsN').replace('{n}', x.guests)}`).join('<br>')}<br><b>${fmtN(b.total)}</b></p>` : ''}
+      ${b ? `<p class="bk-st" data-s="${esc(py && py.state === 'waiting' ? 'pending' : b.status)}">${w(py && py.state === 'waiting' ? 'stHeld' : st)}</p><p><b>${esc(b.name)}</b><br>${J.fmtRange(b.from, b.to)} · ${J.nights(b.from, b.to)} ${w('nights')}<br>${b.rooms.map(x => `${esc(typeName((J.types[x.type] && J.types[x.type].name) || x.type))} · ${w('guestsN').replace('{n}', x.guests)}`).join('<br>')}${(b.extras || []).map(x => `<br>${esc(x.name)}${x.qty > 1 ? ` × ${x.qty}` : ''} · ${fmtN(x.amount)}`).join('')}<br><b>${fmtN(b.total)}</b></p>` : ''}
       ${(() => { const r = S().instant || {}, c = pick(r.cancel), pp = pick(r.prepay); return pp || c ? `<p>${pp ? `<b>${w('prepayT')}:</b> ${esc(pp)}` : ''}${pp && c ? '<br>' : ''}${c ? `<b>${w('cancelT')}:</b> ${esc(c)}` : ''}</p>` : ''; })()}
       ${payHtml}
       <p class="bk-no">${w('bookNo')}: <b>${esc(String(id).slice(-6).toUpperCase())}</b></p>

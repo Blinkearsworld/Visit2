@@ -66,6 +66,15 @@ window.JIJI = (() => {
     t.cap = t.rates.length ? t.rates[t.rates.length - 1].guests : 0;
   }
   const uid = () => Math.random().toString(36).slice(2, 9);
+  // sample services for the browser-only demo; on the real site each hotel keeps its own list on the server
+  const DEMO_SERVICES = [
+    { id: 'bf01', name: 'საუზმე', nameEn: 'Breakfast', nameRu: 'Завтрак', price: 20, unit: 'guest_night', online: 1, active: 1 },
+    { id: 'dn01', name: 'ვახშამი', nameEn: 'Dinner', nameRu: 'Ужин', price: 35, unit: 'guest_night', online: 1, active: 1 },
+    { id: 'tr01', name: 'ტრანსფერი აეროპორტიდან', nameEn: 'Airport transfer', nameRu: 'Трансфер из аэропорта', price: 80, unit: 'stay', online: 1, active: 1 },
+    { id: 'mb01', name: 'მინიბარი: წყალი', nameEn: '', nameRu: '', price: 3, unit: 'item', online: 0, active: 1 },
+    { id: 'mb02', name: 'მინიბარი: ღვინო', nameEn: '', nameRu: '', price: 25, unit: 'item', online: 0, active: 1 },
+    { id: 'cl01', name: 'დამატებითი დალაგება', nameEn: 'Extra cleaning', nameRu: 'Дополнительная уборка', price: 15, unit: 'stay', online: 0, active: 1 },
+  ];
   function seed() {
     const t = today();
     const b = (room, from, n, name, phone, guests, status, source) => ({
@@ -91,6 +100,8 @@ window.JIJI = (() => {
         pending('std', 9, 2, 'Mark T.', '+44 7700 900123', 2, 'site')
       ],
       payments: [],
+      services: JSON.parse(JSON.stringify(DEMO_SERVICES)),
+      items: [],
       guestNotes: {},
       guestBdays: {}
     };
@@ -99,6 +110,8 @@ window.JIJI = (() => {
     try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) { state = null; }
     if (!state || !state.bookings) { state = seed(); needPayments = true; save(); return; }
     if (!Array.isArray(state.payments)) state.payments = [];
+    if (!Array.isArray(state.services)) state.services = JSON.parse(JSON.stringify(DEMO_SERVICES));
+    if (!Array.isArray(state.items)) state.items = [];
     if (!state.guestNotes) state.guestNotes = {};
     if (!state.guestBdays) state.guestBdays = {};
     for (const k in state.types) syncCap(k);
@@ -128,6 +141,8 @@ window.JIJI = (() => {
     c.forEach(b => { b.price = quote(b.type, b.from, b.to, b.guests); });
     const pay = (b, part, method, ago) => b && state.payments.push({ id: uid(), booking: b.id, amount: Math.round(b.price * part), method, date: addDays(t, -ago), created: new Date().toISOString() });
     pay(c[0], 1, 'cash', 0); pay(c[1], .3, 'transfer', 3); pay(c[2], 1, 'card', 1); pay(c[3], .5, 'transfer', 6); pay(c[5], .2, 'card', 12);
+    // a stay with breakfast and a few things from the minibar
+    if (c[1]) { const S = state.services; [[S[0], unitsFor('guest_night', c[1]), 'site'], [S[3], 2, 'admin'], [S[4], 1, 'admin']].forEach(([x, q, src]) => x && state.items.push({ id: uid(), booking: c[1].id, service: x.id, name: x.name, price: x.price, qty: q, amount: x.price * q, date: c[1].from, source: src })); }
   }
   function save() { if (mode === 'api') return; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable: demo keeps working in memory */ } }
   function reset() { state = seed(); demoPayments(); save(); }
@@ -311,8 +326,9 @@ window.JIJI = (() => {
   }
 
   // ---------- actions ----------
-  function createRequest({ from, to, guests, name, phone, source, type, price, note, wish, deal, children, rooms, instant, kidRule, payRule }) {
+  function createRequest({ from, to, guests, name, phone, source, type, price, note, wish, deal, children, rooms, instant, kidRule, payRule, extras }) {
     rooms = Math.max(1, Math.min(10, guests, parseInt(rooms) || 1));
+    const ext = pickExtras(extras, { from, to, guests });
     if (rooms > 1) {
       // several rooms: one row per room, tied by grp (the server builds the same rows)
       const o = roomsOffer(from, to, guests, rooms, Math.max(0, parseInt(children) || 0), kidRule || null);
@@ -320,10 +336,10 @@ window.JIJI = (() => {
       const grp = uid(), created = new Date().toISOString(); let kids = Math.max(0, parseInt(children) || 0);
       const rows = o.parts.map(x => { const c = Math.min(kids, x.guests - 1); kids -= c;
         return { id: uid(), room: null, type: x.type, from, to, guests: x.guests, name, phone, status: 'pending', source, price: x.total, note: '', wish: String(wish || '').trim().slice(0, 500), remark: '', wantRoom: '', children: c, grp, created }; });
-      state.bookings.push(...rows); save();
+      state.bookings.push(...rows); addExtras(rows[0].id, ext); save();
       const req = { id: grp, grp, rows };
       req.saved = mode === 'api'
-        ? sendRequest({ from, to, guests, name, phone, source, rooms, wish: rows[0].wish, children, instant: instant === true }).then(out => {
+        ? sendRequest({ from, to, guests, name, phone, source, rooms, wish: rows[0].wish, children, instant: instant === true, extras: ext.map(x => ({ id: x.service, qty: x.qty })) }).then(out => {
             if (!out.ok) { state.bookings = state.bookings.filter(x => x.grp !== grp); save(); emit(); }
             return out;
           })
@@ -336,10 +352,10 @@ window.JIJI = (() => {
     const offer = type ? { type } : findOffer(from, to, guests);
     const t = offer ? offer.type : (Object.keys(state.types).find(k => rateFor(k, guests)) || Object.keys(state.types)[0]);
     const req = { id: uid(), room: null, type: t, from, to, guests, name, phone, status: 'pending', source, price: price ?? null, note: note || '', wish: String(wish || '').trim().slice(0, 500), remark: '', wantRoom: D ? D.room : '', children: Math.max(0, Math.min(guests - 1, parseInt(children) || 0)), created: new Date().toISOString() };
-    state.bookings.push(req); save();
+    state.bookings.push(req); addExtras(req.id, ext); save();
     // on the real site the request counts as sent only when the server confirms it; otherwise it is taken back
     req.saved = mode === 'api'
-      ? sendRequest({ from, to, guests, name, phone, source, type: t, deal: D ? D.key : undefined, wish: req.wish, children: req.children, instant: instant === true }).then(out => {
+      ? sendRequest({ from, to, guests, name, phone, source, type: t, deal: D ? D.key : undefined, wish: req.wish, children: req.children, instant: instant === true, extras: ext.map(x => ({ id: x.service, qty: x.qty })) }).then(out => {
           if (!out.ok) { state.bookings = state.bookings.filter(x => x !== req); save(); emit(); }
           return out;
         })
@@ -355,7 +371,7 @@ window.JIJI = (() => {
       if (!room || !roomFree(room, r.from, r.to, r.id)) { done.forEach(x => { x.room = null; x.status = 'pending'; }); save(); emit(); return { ok: true, instant: false }; }
       r.room = room; r.status = 'confirmed'; r.instant = 1; if (r.price == null) r.price = kidPrice(r.type, r.from, r.to, r.guests, r.children || 0, null); done.push(r);
     }
-    const total = rows.reduce((a, r) => a + (r.price || 0), 0), typeName = state.types[rows[0].type] ? state.types[rows[0].type].name : '';
+    const total = rows.reduce((a, r) => a + (r.price || 0) + extrasOf(r.id), 0), typeName = state.types[rows[0].type] ? state.types[rows[0].type].name : '';
     if (payRule && payRule.on) {
       // the room waits 20 minutes for payment on the (sample) bank page
       const amount = payRule.part === 'deposit' ? Math.max(1, Math.round(total * (+payRule.pct || 30) / 100)) : Math.round(total);
@@ -378,7 +394,8 @@ window.JIJI = (() => {
     demoExpire();
     const rows = state.bookings.filter(x => x.id === id || x.grp === id); if (!rows.length) return null;
     const st = rows.every(x => x.status === 'confirmed') ? 'confirmed' : rows.some(x => x.status === 'cancelled') ? 'cancelled' : 'pending';
-    return { status: st, name: rows[0].name, from: rows[0].from, to: rows[0].to, rooms: rows.map(x => ({ type: x.type, guests: x.guests })), total: rows.reduce((a, r) => a + (r.price || 0), 0),
+    const extras = rows.flatMap(r => itemsOf(r.id)).map(x => ({ name: x.name, qty: x.qty, amount: x.amount }));
+    return { status: st, name: rows[0].name, from: rows[0].from, to: rows[0].to, rooms: rows.map(x => ({ type: x.type, guests: x.guests, price: x.price })), extras, total: rows.reduce((a, r) => a + (r.price || 0) + extrasOf(r.id), 0),
       pay: rows[0].payState ? { state: rows[0].payState, until: rows[0].payUntil, amount: rows[0].payAmount } : null };
   }
   // confirm a request; the admin may pick another room (also of another type) and set the price
@@ -489,10 +506,50 @@ window.JIJI = (() => {
   const priceOf = b => b.price ?? quote(b.type, b.from, b.to, b.guests);
   const paymentsOf = id => state.payments.filter(x => x.booking === id).sort((a, b) => a.date < b.date ? -1 : 1);
   const paidOf = id => paymentsOf(id).reduce((s, x) => s + x.amount, 0);
+  // what the guest owes: the room price plus services charged to the stay (breakfast, minibar...)
   function payState(b) {
-    const price = priceOf(b), paid = paidOf(b.id), left = Math.max(0, price - paid);
-    return { price, paid, left, status: paid <= 0 ? 'none' : left > 0 ? 'part' : 'full' };
+    const room = priceOf(b), extras = extrasOf(b.id), price = room + extras, paid = paidOf(b.id), left = Math.max(0, price - paid);
+    return { room, extras, price, paid, left, status: paid <= 0 ? 'none' : left > 0 ? 'part' : 'full' };
   }
+
+  // ---------- services: the hotel's own list and the charges on a stay ----------
+  const UNITS = { stay: 'ერთჯერადად', night: 'ღამეში', guest: 'ერთ სტუმარზე', guest_night: 'სტუმარზე ღამეში', item: 'რაოდენობით (ცალი, საათი)' };
+  const services = () => state.services || [];
+  const itemsOf = id => (state.items || []).filter(x => x.booking === id);
+  const extrasOf = id => itemsOf(id).reduce((s, x) => s + (+x.amount || 0), 0);
+  function unitsFor(unit, stay, qty) {
+    const n = Math.max(1, nights(stay.from, stay.to) || 1), g = Math.max(1, +stay.guests || 1);
+    return unit === 'stay' ? 1 : unit === 'night' ? n : unit === 'guest' ? g : unit === 'guest_night' ? n * g : Math.max(1, Math.min(99, parseInt(qty) || 1));
+  }
+  // what the site offers when booking; the server prices it again from its own list
+  const onlineServices = () => services().filter(x => x.online && x.active !== 0);
+  function pickExtras(extras, stay) {
+    const out = [];
+    for (const e of (Array.isArray(extras) ? extras : [])) {
+      const x = onlineServices().find(s => s.id === (e && e.id)); if (!x || out.some(o => o.service === x.id)) continue;
+      const qty = unitsFor(x.unit, stay, e.qty); out.push({ service: x.id, name: x.name, price: x.price, qty, amount: x.price * qty });
+    }
+    return out;
+  }
+  function addExtras(booking, ext) { if (!state.items) state.items = []; ext.forEach(x => state.items.push({ id: uid(), booking, ...x, date: '', source: 'site' })); }
+  const serviceName = (x, lang) => (lang === 'en' && x.nameEn) || (lang === 'ru' && x.nameRu) || x.name;
+  function setServices(list) {
+    const clean = list.map((x, i) => ({ id: x.id || uid(), name: String(x.name || '').trim().slice(0, 60), nameEn: String(x.nameEn || '').trim().slice(0, 60), nameRu: String(x.nameRu || '').trim().slice(0, 60),
+      price: Math.max(0, Math.round(+x.price || 0)), unit: UNITS[x.unit] ? x.unit : 'item', online: x.online ? 1 : 0, active: x.active === 0 ? 0 : 1, sort: i })).filter(x => x.name);
+    state.services = clean; save(); post('api/admin/action', { op: 'services', list: clean }); return clean;
+  }
+  function addItem({ booking, service, name, price, qty, date }) {
+    const b = state.bookings.find(x => x.id === booking); if (!b) return { ok: false, msg: 'ჯავშანი ვერ მოიძებნა' };
+    const s = service ? services().find(x => x.id === service) : null;
+    const nm = String(name || (s && s.name) || '').trim().slice(0, 60); if (!nm) return { ok: false, msg: 'აირჩიეთ სერვისი ან ჩაწერეთ სახელი' };
+    const pr = price !== '' && price != null ? Math.max(0, Math.round(+price || 0)) : s ? s.price : 0;
+    const q = Math.max(1, Math.min(999, parseInt(qty) || 1));
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) date = today();
+    const it = { id: uid(), booking, service: s ? s.id : '', name: nm, price: pr, qty: q, amount: pr * q, date, source: 'admin' };
+    if (!state.items) state.items = [];
+    state.items.push(it); save(); post('api/admin/action', { op: 'item', booking, service: it.service || undefined, name: nm, price: pr, qty: q, date }); return { ok: true, item: it };
+  }
+  function removeItem(id) { state.items = (state.items || []).filter(x => x.id !== id); save(); post('api/admin/action', { op: 'unitem', id }); }
   function setPrice(id, price) {
     const b = state.bookings.find(x => x.id === id); if (!b) return;
     b.price = Math.max(0, Math.round(+price || 0)); save(); post('api/admin/action', { op: 'price', id, price: b.price });
@@ -572,7 +629,7 @@ window.JIJI = (() => {
   const emit = () => listeners.forEach(f => { try { f(); } catch (e) { console.error(e); } });
   function applyServer(data) {
     for (const k in data.types) data.types[k].cap = data.types[k].cap ?? (data.types[k].rates.slice(-1)[0]?.guests || 0);
-    state = { types: data.types, settings: data.settings, bookings: data.bookings, payments: data.payments || [], guestNotes: data.guestNotes || {}, guestBdays: data.guestBdays || {} };
+    state = { types: data.types, settings: data.settings, bookings: data.bookings, payments: data.payments || [], services: data.services || [], items: data.items || [], guestNotes: data.guestNotes || {}, guestBdays: data.guestBdays || {} };
     ROOMS.length = 0; data.rooms.forEach(r => ROOMS.push(r));
     if (Array.isArray(data.seasons) && data.seasons.length) {
       seasonList = data.seasons;
@@ -683,6 +740,7 @@ window.JIJI = (() => {
     ROOMS, SEASONS, get hotel() { return hotel; }, priceTable, get settings() { return state.settings; }, setSetting, siteSeason, get types() { return state.types; }, get bookings() { return state.bookings; },
     today, addDays, nights, fmt, fmtRange, weekday, seasonOf, quote, rateFor, fromPrice, findOffer, roomsOffer, kidPrice, nextOffer, partialOffer, splitOffer, groupOffer, fitsOne, gaps, gapDiscount, deals, dealTotal, dealNote, gapKey, gapEdits, promos, setJSON, bestRoom, roomFree,
     get payments() { return state.payments; }, METHODS, priceOf, paymentsOf, paidOf, payState, setPrice, addPayment, removePayment,
+    UNITS, get services() { return services(); }, onlineServices, serviceName, unitsFor, itemsOf, extrasOf, setServices, addItem, removeItem,
     createRequest, localBooking, demoPaid, demoBank, confirm, setRemark, editBooking, moveRoom, decline, addManual, restore, purge, wipe, guests, guestBefore, guestNote, setGuestNote, setGuest, daysToBday, guestKey, setRate, addRate, removeRate, remove, reset, onChange, onError, reload: load,
     get me() { return me; }, get actlog() { return actlog; }, can: p => me.owner || (me.perms || []).includes(p),
     ready, get mode() { return mode; }, onConn, get online() { return online; }, resync
