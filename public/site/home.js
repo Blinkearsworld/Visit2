@@ -44,7 +44,7 @@
     all: ['ყველა', 'All', 'Все'], seeAll: ['ყველას ნახვა', 'See all', 'Смотреть все'],
     rowKind: { mountain: ['მთაში', 'In the mountains', 'В горах'], sea: ['ზღვაზე', 'By the sea', 'У моря'], history: ['ისტორიასთან ახლოს', 'Close to history', 'Рядом с историей'], wine: ['ღვინის მხარეში', 'In wine country', 'В винном крае'],
       food: ['სახლის სამზარეულოთი', 'With home cooking', 'С домашней кухней'], nature: ['ბუნებაში', 'In nature', 'На природе'], city: ['ქალაქში', 'In the city', 'В городе'] },
-    newH: ['ახალი', 'New', 'Новые'],
+    
     saved: ['შენახული', 'Saved', 'Сохранённые'], saveIt: ['შენახვა', 'Save', 'Сохранить'], unsave: ['შენახულიდან ამოღება', 'Remove from saved', 'Убрать из сохранённых'],
     perNight: ['ღამე', 'night', 'ночь'], fromP: ['{p} ₾-დან', 'from {p} ₾', 'от {p} ₾'], totalN: ['{n} ღამე', '{n} nights', 'ночей: {n}'], busy: ['ამ თარიღებზე დაკავებულია', 'Booked on these dates', 'На эти даты занято'],
     skipDates: ['თარიღის გარეშე: ყველა სასტუმრო', 'Without dates: all stays', 'Без дат: все варианты'],
@@ -278,8 +278,6 @@
     let html = '';
     const sv = saved().map(x => by.get(x) || F.find({ g: 2 }).find(r => r.h.slug === x)).filter(Boolean);
     if (sv.length) html += row('saved', h('saved'), '', sv.map(r => card(r.h, r.o, {})).join(''), '');
-    const fresh = all.filter(r => r.h.real);
-    if (!curKind && fresh.length) html += row('', h('newH'), '', [...fresh].reverse().map(r => card(r.h, r.o, {})).join(''), '');
     if (!curKind) {
       for (const k of KIND_ORDER) {
         const rs = all.filter(r => F.kindsOf(r.h).includes(k)); if (!rs.length) continue;
