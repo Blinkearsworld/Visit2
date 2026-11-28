@@ -15,7 +15,7 @@ import { findCode } from './lib/plans.js';
 import { metaStartUrl, pick, pendingPages } from './meta.js';
 import {
   checkLogin, makeCookie, supportSignIn, clearCookie, sessionUser, tooManyFails, noteFail, clearFails, logAct, bookingLog, journal,
-  can, teamList, addMember, updateStaff, setStaffPassword, removeStaff, renameMe, PERMS, hmac,
+  can, teamList, addMember, updateStaff, setStaffPassword, removeStaff, renameMe, changeMyPassword, PERMS, hmac,
 } from './db/users.js';
 
 const DENIED = { ok: false, msg: 'ამის უფლება არ გაქვთ. მიმართეთ მფლობელს.' };
@@ -287,6 +287,7 @@ async function team(request, db, t, me) {
       }
       case 'password': { const s = await setStaffPassword(db, t, b.id, b.password); await logAct(db, t, me, 'user-pass', 'user:' + b.id, s.name); break; }
       case 'remove': { const s = await removeStaff(db, t, b.id); await logAct(db, t, me, 'user-del', 'user:' + b.id, s.name); break; }
+      case 'mypass': { await changeMyPassword(db, t, me, b.old, b.password); await logAct(db, t, me, 'user-pass', 'user:' + me.id, me.name); return json({ ok: true, out: true }); }
       case 'owner': { await renameMe(db, t, me, b.name); await logAct(db, t, { ...me, name: String(b.name).trim() }, 'user-edit', 'user:' + me.id, 'სახელი: ' + String(b.name).trim()); break; }
       default: return json({ ok: false, msg: 'unknown op' }, 400);
     }

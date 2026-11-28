@@ -181,6 +181,15 @@ export async function removeStaff(db, t, id) {
   await db.prepare("DELETE FROM memberships WHERE tenant_id = ? AND user_id = ? AND role = 'staff'").bind(t.id, id).run();
   return s;
 }
+// the signed-in person changes their own password; the old one is asked first. Every device signs out.
+export async function changeMyPassword(db, t, u, oldPw, newPw) {
+  const row = await db.prepare('SELECT salt, hash FROM users WHERE id = ? AND EXISTS (SELECT 1 FROM memberships WHERE tenant_id = ? AND user_id = ?)').bind(u.id, t.id, u.id).first();
+  if (!row || !row.hash || !same(await hashPw(String(oldPw || ''), row.salt), row.hash)) throw new Error('ახლანდელი პაროლი არ ემთხვევა. სცადეთ თავიდან.');
+  const p = pwProblem(newPw); if (p) throw new Error(p);
+  const salt = newSalt();
+  await db.prepare('UPDATE users SET salt = ?, hash = ?, ver = ver + 1 WHERE id = ?').bind(salt, await hashPw(newPw, salt), u.id).run();
+}
+
 export async function renameMe(db, t, u, name) {
   name = String(name || '').trim();
   if (name.length < 2 || name.length > 40) throw new Error('სახელი 2–40 ასო უნდა იყოს');

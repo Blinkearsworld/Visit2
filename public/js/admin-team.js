@@ -61,7 +61,10 @@
       ${msg ? `<div class="msg good" style="margin-bottom:16px">${msg}</div>` : ''}
       <div class="card2"><div class="fh"><b>მთავარი ადმინისტრატორი (ყველა უფლებით)</b></div>
         <div class="trow"><input class="cin" id="tOwner" value="${esc(data.owner)}" aria-label="მთავარი ადმინისტრატორის სახელი"><button type="button" class="btn" id="tOwnerSave">სახელის შენახვა</button></div>
-        <p class="hint">პაროლი იგივეა, რაც Cloudflare-ში ADMIN_PASSWORD. შესვლისას სახელის ველი შეგიძლიათ ცარიელი დატოვოთ.</p></div>
+        <details class="mypw"><summary><b>ჩემი პაროლის შეცვლა</b></summary>
+          <label class="fld"><b>ახლანდელი პაროლი</b><input class="cin" id="tOld" type="password" autocomplete="current-password"></label>
+          <label class="fld"><b>ახალი პაროლი</b><input class="cin" id="tNew" type="password" autocomplete="new-password" minlength="8"><span class="hint">მინიმუმ 8 სიმბოლო. შეცვლის შემდეგ ყველა მოწყობილობიდან გამოხვალთ და ახალი პაროლით შეხვალთ.</span></label>
+          <button type="button" class="btn" id="tMyPw">პაროლის შეცვლა</button></details></div>
       <h2>თანამშრომლები</h2>
       ${users.length ? users.map(u => `<div class="card2 tuser${u.active ? '' : ' off'}" data-id="${u.id}">
         <div class="fh"><span><b>${esc(u.name)}</b> ${u.active ? '' : '<span class="pill p-no">გათიშულია</span>'}<br><small class="hint">${u.lastLogin ? 'ბოლოს შევიდა: ' + esc(when(u.lastLogin)) : 'ჯერ არ შესულა'}</small></span>
@@ -146,6 +149,9 @@
     if (e.target.id === 'tReset') { Object.keys(F).forEach(k => { F[k] = ''; }); loadLog().then(draw); return; }
     if (e.target.id === 'tCsv') { csv(); return; }
     if (e.target.id === 'tGen') $('tPw').value = genPw();
+    else if (e.target.id === 'tMyPw') {
+      act(async () => { await call({ op: 'mypass', old: $('tOld').value, password: $('tNew').value }); alert('პაროლი შეიცვალა. შედით ახალი პაროლით.'); location.reload(); });
+    }
     else if (e.target.id === 'tOwnerSave') act(() => call({ op: 'owner', name: $('tOwner').value }), 'სახელი შეიცვალა. ზემოთ ახალი სახელი გამოჩნდება გვერდის განახლების შემდეგ.');
     else if (e.target.id === 'tAdd') {
       const name = $('tName').value.trim(), email = $('tEmail').value.trim(), password = $('tPw').value, perms = [...p.querySelectorAll('[name="p-new"]:checked')].map(x => x.value);

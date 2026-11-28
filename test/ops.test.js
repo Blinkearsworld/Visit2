@@ -118,3 +118,17 @@ describe('an owner for a hotel Visit2 set up', () => {
     await expect(setOwner(env.DB, t, { id: 'u1', name: 'Visit2' }, 'x@y.test')).rejects.toThrow(/უკვე/);
   });
 });
+
+describe('changing my own password', () => {
+  it('needs the current password, then the new one works and the old does not', async () => {
+    const { changeMyPassword, checkLogin } = await import('../src/db/users.js');
+    const t = await createTenant(env.DB, { slug: 'mypw-a', name: 'A' });
+    const other = await createTenant(env.DB, { slug: 'mypw-b', name: 'B' });
+    const id = await addMember(env.DB, t, { email: 'me@pw.test', name: 'Me', password: 'old-password', role: 'owner' });
+    await expect(changeMyPassword(env.DB, t, { id }, 'wrong', 'new-password')).rejects.toThrow(/არ ემთხვევა/);
+    await expect(changeMyPassword(env.DB, other, { id }, 'old-password', 'new-password')).rejects.toThrow(/არ ემთხვევა/);
+    await changeMyPassword(env.DB, t, { id }, 'old-password', 'new-password');
+    expect(await checkLogin(env.DB, t, 'me@pw.test', 'old-password')).toBeNull();
+    expect(await checkLogin(env.DB, t, 'me@pw.test', 'new-password')).toBeTruthy();
+  });
+});
