@@ -2,6 +2,7 @@
 //   {slug}.visit2.ge, a hotel's own domain → that hotel's site
 //   visit2.ge, www., app.                  → the platform (catalog, owners' page, admin)
 //   {slug}.localhost:8787                  → local development
+import { legacyPath } from './lib/legacy.js';
 import { tenantByHost, tenantBySlug, normHost, allTenants } from './db/tenants.js';
 import { purgeHotel, purgePlatform } from './db/retention.js';
 import { page, esc } from './lib/html.js';
@@ -61,6 +62,13 @@ async function hotelSite(request, env, t, opts) {
   if (p.startsWith('/api/') || p.startsWith('/media/')) return hotelApi(request, env, t, opts);
   if (t.status === 'paused' && (p === '/' || p === '/index.html'))
     return page(t.name, `<h1>${esc(t.name)}</h1><p>სეზონი მალე იხსნება. დაჯავშნეთ წინასწარ.</p>`, { lang: 'ka', tenant: t.slug });
+  // a moved hotel's old addresses (guides, photos) keep working
+  const old = legacyPath(t.slug, p);
+  if (old) {
+    if (old === '/admin') return Response.redirect(new URL((opts.base || '/') + 'admin', request.url).toString(), 301);
+    const u = new URL(request.url); u.pathname = old;
+    return env.ASSETS.fetch(new Request(u, request));
+  }
   // the hotel's own site is the template page; the platform's home page is not served on a hotel's address
   const r = await env.ASSETS.fetch(p === '/' || p === '/index.html' ? new Request(new URL('/hotel', request.url), request) : request);
   // under a preview prefix, keep asset redirects (index.html → /) inside /h/{slug}/
