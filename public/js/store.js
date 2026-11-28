@@ -102,6 +102,8 @@ window.JIJI = (() => {
       payments: [],
       services: JSON.parse(JSON.stringify(DEMO_SERVICES)),
       items: [],
+      blocks: [],
+      hk: {},
       guestNotes: {},
       guestBdays: {}
     };
@@ -112,6 +114,8 @@ window.JIJI = (() => {
     if (!Array.isArray(state.payments)) state.payments = [];
     if (!Array.isArray(state.services)) state.services = JSON.parse(JSON.stringify(DEMO_SERVICES));
     if (!Array.isArray(state.items)) state.items = [];
+    if (!Array.isArray(state.blocks)) state.blocks = [];
+    if (!state.hk) state.hk = {};
     if (!state.guestNotes) state.guestNotes = {};
     if (!state.guestBdays) state.guestBdays = {};
     for (const k in state.types) syncCap(k);
@@ -151,8 +155,10 @@ window.JIJI = (() => {
   // ---------- availability ----------
   const overlaps = (a1, b1, a2, b2) => a1 < b2 && a2 < b1;
   const confirmed = () => state.bookings.filter(x => x.status === 'confirmed');
+  // taken by a booking or closed by the hotel (repairs, own use)
+  const occupied = () => [...confirmed(), ...(state.blocks || [])];
   const roomFree = (roomId, from, to, ignoreId) =>
-    !confirmed().some(x => x.room === roomId && x.id !== ignoreId && overlaps(from, to, x.from, x.to));
+    !occupied().some(x => x.room === roomId && x.id !== ignoreId && overlaps(from, to, x.from, x.to));
   const freeRoomsOfType = (type, from, to) => ROOMS.filter(r => r.type === type && roomFree(r.id, from, to)).map(r => r.id);
 
   // the price version used for a group: the smallest one with enough places
@@ -258,7 +264,7 @@ window.JIJI = (() => {
   }
   // ---------- short gaps (1–3 free nights between bookings) ----------
   const GAP_MAX = 3;
-  const roomBookings = roomId => confirmed().filter(x => x.room === roomId).sort((a, b) => a.from < b.from ? -1 : 1);
+  const roomBookings = roomId => occupied().filter(x => x.room === roomId).sort((a, b) => a.from < b.from ? -1 : 1);
   // free runs of 1..GAP_MAX nights that sit between two bookings
   function gaps(horizon = 60) {
     const t = today(), end = addDays(t, horizon), out = [];
@@ -549,6 +555,40 @@ window.JIJI = (() => {
     if (!state.items) state.items = [];
     state.items.push(it); save(); post('api/admin/action', { op: 'item', booking, service: it.service || undefined, name: nm, price: pr, qty: q, date }); return { ok: true, item: it };
   }
+  // ---------- the day's work: arrivals, departures, cleaning, closed rooms, invoices ----------
+  const nowIso = () => new Date().toISOString();
+  function checkIn(id, undo) {
+    const b = state.bookings.find(x => x.id === id); if (!b) return;
+    b.checkedIn = undo ? '' : nowIso(); save(); post('api/admin/action', { op: 'checkin', id, undo: !!undo });
+  }
+  function checkOut(id, undo) {
+    const b = state.bookings.find(x => x.id === id); if (!b) return;
+    b.checkedOut = undo ? '' : nowIso(); if (!undo && !b.checkedIn) b.checkedIn = b.checkedOut;
+    if (!undo && b.room) state.hk[b.room] = { s: 'dirty', at: nowIso() };
+    save(); post('api/admin/action', { op: 'checkout', id, undo: !!undo });
+  }
+  const HK = { clean: 'დალაგებულია', dirty: 'დასალაგებელია', inspect: 'შესამოწმებელია' };
+  const hkOf = room => (state.hk && state.hk[room]) || { s: 'clean', at: '' };
+  function setHk(room, st) { if (!HK[st]) return; state.hk[room] = { s: st, at: nowIso() }; save(); post('api/admin/action', { op: 'hk', room, state: st }); }
+  function addBlock({ room, from, to, reason }) {
+    if (!ROOMS.some(r => r.id === room) || !/^\d{4}-\d{2}-\d{2}$/.test(from || '') || !/^\d{4}-\d{2}-\d{2}$/.test(to || '') || to <= from) return { ok: false, msg: 'აირჩიეთ ნომერი და თარიღები' };
+    if (!roomFree(room, from, to)) return { ok: false, msg: 'ნომერი ' + room + ' ამ თარიღებზე დაკავებულია ჯავშნით ან უკვე დაბლოკილია' };
+    const x = { id: uid(), room, from, to, reason: String(reason || '').trim().slice(0, 80) };
+    state.blocks.push(x); save(); post('api/admin/action', { op: 'block', room, from, to, reason: x.reason }); return { ok: true };
+  }
+  function removeBlock(id) { state.blocks = state.blocks.filter(x => x.id !== id); save(); post('api/admin/action', { op: 'unblock', id }); }
+  function setInvoice(id, { company, code, address }) {
+    const b = state.bookings.find(x => x.id === id); if (!b) return { ok: false };
+    company = String(company || '').trim().slice(0, 120);
+    if (!company) b.invoice = null;
+    else {
+      let no = b.invoice && b.invoice.no;
+      if (!no && mode !== 'api') { const y = today().slice(0, 4), k = 'invoiceSeq' + y, n = (+state.settings[k] || 0) + 1; state.settings[k] = String(n); no = y + '-' + String(n).padStart(4, '0'); }
+      b.invoice = { no: no || '', company, code: String(code || '').trim().slice(0, 20), address: String(address || '').trim().slice(0, 160), issued: (b.invoice && b.invoice.issued) || today() };
+    }
+    save(); post('api/admin/action', { op: 'invoice', id, company, code, address }); return { ok: true };
+  }
+  const billFrom = () => { try { return JSON.parse(state.settings.billFrom || '{}') || {}; } catch (e) { return {}; } };
   function removeItem(id) { state.items = (state.items || []).filter(x => x.id !== id); save(); post('api/admin/action', { op: 'unitem', id }); }
   function setPrice(id, price) {
     const b = state.bookings.find(x => x.id === id); if (!b) return;
@@ -629,7 +669,8 @@ window.JIJI = (() => {
   const emit = () => listeners.forEach(f => { try { f(); } catch (e) { console.error(e); } });
   function applyServer(data) {
     for (const k in data.types) data.types[k].cap = data.types[k].cap ?? (data.types[k].rates.slice(-1)[0]?.guests || 0);
-    state = { types: data.types, settings: data.settings, bookings: data.bookings, payments: data.payments || [], services: data.services || [], items: data.items || [], guestNotes: data.guestNotes || {}, guestBdays: data.guestBdays || {} };
+    state = { types: data.types, settings: data.settings, bookings: data.bookings, payments: data.payments || [], services: data.services || [], items: data.items || [], blocks: data.blocks || [],
+      hk: Object.fromEntries((data.rooms || []).filter(r => r.hk).map(r => [r.id, { s: r.hk, at: r.hkAt || '' }])), guestNotes: data.guestNotes || {}, guestBdays: data.guestBdays || {} };
     ROOMS.length = 0; data.rooms.forEach(r => ROOMS.push(r));
     if (Array.isArray(data.seasons) && data.seasons.length) {
       seasonList = data.seasons;
@@ -740,6 +781,7 @@ window.JIJI = (() => {
     ROOMS, SEASONS, get hotel() { return hotel; }, priceTable, get settings() { return state.settings; }, setSetting, siteSeason, get types() { return state.types; }, get bookings() { return state.bookings; },
     today, addDays, nights, fmt, fmtRange, weekday, seasonOf, quote, rateFor, fromPrice, findOffer, roomsOffer, kidPrice, nextOffer, partialOffer, splitOffer, groupOffer, fitsOne, gaps, gapDiscount, deals, dealTotal, dealNote, gapKey, gapEdits, promos, setJSON, bestRoom, roomFree,
     get payments() { return state.payments; }, METHODS, priceOf, paymentsOf, paidOf, payState, setPrice, addPayment, removePayment,
+    checkIn, checkOut, HK, hkOf, setHk, get blocks() { return state.blocks || []; }, addBlock, removeBlock, setInvoice, billFrom,
     UNITS, get services() { return services(); }, onlineServices, serviceName, unitsFor, itemsOf, extrasOf, setServices, addItem, removeItem,
     createRequest, localBooking, demoPaid, demoBank, confirm, setRemark, editBooking, moveRoom, decline, addManual, restore, purge, wipe, guests, guestBefore, guestNote, setGuestNote, setGuest, daysToBday, guestKey, setRate, addRate, removeRate, remove, reset, onChange, onError, reload: load,
     get me() { return me; }, get actlog() { return actlog; }, can: p => me.owner || (me.perms || []).includes(p),

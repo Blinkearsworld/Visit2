@@ -2,12 +2,12 @@
 (() => {
   const J = window.JIJI, $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const PERMS = { book: 'ჯავშნები', money: 'შემოსავალი', price: 'ფასები და სეზონი', site: 'საიტის მართვა' };
-  const PHELP = { book: 'დღეს, მოთხოვნები, კალენდარი, სტუმრები, გადახდების მიღება', money: 'შემოსავლების ჩანართი და ანგარიშები', price: 'ფასები, სეზონი, მოკლე ფანჯრების ფასდაკლება', site: 'ტექსტები, ფოტოები, ვიდეო, კონტაქტები, კითხვები' };
+  const PERMS = { book: 'ჯავშნები', money: 'შემოსავალი', price: 'ფასები, სეზონი და სერვისები', site: 'საიტის მართვა', clean: 'დალაგება' };
+  const PHELP = { book: 'დღეს, მოთხოვნები, კალენდარი, სტუმრები, გადახდების მიღება', money: 'შემოსავლების ჩანართი და ანგარიშები', price: 'ფასები, სეზონი, მოკლე ფანჯრების ფასდაკლება', site: 'ტექსტები, ფოტოები, ვიდეო, კონტაქტები, კითხვები', clean: 'რომელი ნომერია დასალაგებელი; სტუმრების სახელები და თანხები არ ჩანს' };
   const VERB = {
     remark: 'შეცვალა ჩვენი შენიშვნა', edit: 'შეცვალა თარიღი ან სტუმრები', confirm: 'დაადასტურა ჯავშანი', decline: 'უარყო მოთხოვნა', add: 'დაამატა ჯავშანი', remove: 'წაშალა ჯავშანი', restore: 'აღადგინა ჯავშანი',
     purge: 'სამუდამოდ წაშალა ჯავშანი', wipe: 'გაასუფთავა ყველა ჯავშანი და ჟურნალი', price: 'შეცვალა ჯავშნის ფასი', pay: 'მიიღო გადახდა', unpay: 'წაშალა გადახდა', move: 'გადაიყვანა სხვა ნომერში',
-    guestnote: 'შეცვალა სტუმრის შენიშვნა', rates: 'შეცვალა ფასები', setting: 'შეცვალა პარამეტრი', site: 'შეცვალა საიტი', login: 'შევიდა პანელში',
+    guestnote: 'შეცვალა სტუმრის შენიშვნა', rates: 'შეცვალა ფასები', setting: 'შეცვალა პარამეტრი', site: 'შეცვალა საიტი', login: 'შევიდა პანელში', item: 'დაამატა სერვისი', unitem: 'წაშალა სერვისი', services: 'შეცვალა სერვისების სია', checkin: 'მონიშნა შესვლა', checkout: 'მონიშნა გასვლა', hk: 'შეცვალა ნომრის დალაგება', block: 'დახურა ნომერი', unblock: 'გახსნა ნომერი', invoice: 'შეცვალა ინვოისი',
     'user-add': 'დაამატა თანამშრომელი', 'user-edit': 'შეცვალა თანამშრომელი', 'user-pass': 'შეცვალა პაროლი', 'user-del': 'წაშალა თანამშრომელი', help: 'შეცვალა Visit2.ge-ს დახმარების უფლება'
   };
   const when = s => { const d = new Date(s); if (isNaN(d)) return ''; const p = n => String(n).padStart(2, '0'); return JIJI.fmt(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`) + (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : '') + ', ' + p(d.getHours()) + ':' + p(d.getMinutes()); };
@@ -16,10 +16,11 @@
   const F = { who: '', cat: '', from: '', to: '', q: '' };
   const CATS = {
     book: ['ჯავშნები (დადასტურება, უარყოფა, დამატება, ცვლილება)', ['confirm', 'decline', 'add', 'edit', 'move', 'restore']],
-    pay: ['გადახდები და ფასი', ['pay', 'unpay', 'price']],
+    pay: ['გადახდები, ფასი და სერვისები', ['pay', 'unpay', 'price', 'item', 'unitem', 'invoice']],
+    stay: ['შესვლა, გასვლა, დალაგება', ['checkin', 'checkout', 'hk', 'block', 'unblock']],
     del: ['წაშლა', ['remove', 'purge']],
     note: ['შენიშვნები', ['remark', 'guestnote']],
-    rates: ['ფასები და სეზონი', ['rates', 'setting']],
+    rates: ['ფასები, სეზონი, სერვისები', ['rates', 'setting', 'services']],
     site: ['საიტის მართვა', ['site']],
     team: ['გუნდი', ['user-add', 'user-edit', 'user-pass', 'user-del']],
     login: ['შესვლები', ['login']]

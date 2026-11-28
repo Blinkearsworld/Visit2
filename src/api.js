@@ -141,8 +141,11 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
     const me = { id: u.id, name: u.name, email: u.email, owner: u.owner, perms: u.perms, support: !!u.support };
     const hotel = { name: t.name, city: t.city, slug: t.slug, status: t.status, trialEnds: t.trialEnds, helpUntil: await helpUntil(db, t), notices: await listNotices(db, { current: true }) };
     if (!can(u, 'book') && !can(u, 'money')) {
-      // site-only staff: room list and prices for the site editor, no guests
-      Object.assign(st, { bookings: [], payments: [], guestNotes: {}, guestBdays: {} });
+      // site-only staff: room list and prices for the site editor, no guests;
+      // housekeeping staff also see which rooms are taken and when guests come and go, without names, phones or money
+      const hk = can(u, 'clean');
+      Object.assign(st, { bookings: hk ? st.bookings.filter(b => b.status === 'confirmed').map(b => ({ id: b.id, room: b.room, type: b.type, from: b.from, to: b.to, guests: b.guests, status: b.status, checkedIn: b.checkedIn, checkedOut: b.checkedOut, name: '', phone: '' })) : [],
+        payments: [], items: [], guestNotes: {}, guestBdays: {} });
       return json({ ...st, me, hotel, actlog: [] });
     }
     return json({ ...st, me, hotel, actlog: await bookingLog(db, t) });

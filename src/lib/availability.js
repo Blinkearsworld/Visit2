@@ -9,8 +9,10 @@ export const seasonOf = (st, d) => seasonFrom(st.seasons || [], d);
 
 // ---------- availability (works on a loaded state) ----------
 const overlaps = (a1, b1, a2, b2) => a1 < b2 && a2 < b1;
+// a room is taken by a confirmed booking or closed by the hotel (repairs, own use)
 export const roomFree = (st, roomId, from, to, ignoreId) =>
-  !st.bookings.some(x => x.status === 'confirmed' && x.room === roomId && x.id !== ignoreId && overlaps(from, to, x.from, x.to));
+  !st.bookings.some(x => x.status === 'confirmed' && x.room === roomId && x.id !== ignoreId && overlaps(from, to, x.from, x.to))
+  && !(st.blocks || []).some(x => x.room === roomId && x.id !== ignoreId && overlaps(from, to, x.from, x.to));
 export const freeRooms = (st, type, from, to) => st.rooms.filter(r => r.type === type && roomFree(st, r.id, from, to)).map(r => r.id);
 export const rateFor = (st, type, guests) => (st.types[type]?.rates || []).find(r => r.guests >= (guests || 1)) || null;
 export function quote(st, type, from, to, guests) {
@@ -114,7 +116,7 @@ export function splitOffer(st, from, to, guests, maxParts = 4) {
 }
 // ---------- short gaps (1–3 free nights between bookings) ----------
 export const GAP_MAX = 3;
-const roomBookings = (st, roomId) => st.bookings.filter(x => x.status === 'confirmed').filter(x => x.room === roomId).sort((a, b) => a.from < b.from ? -1 : 1);
+const roomBookings = (st, roomId) => [...st.bookings.filter(x => x.status === 'confirmed'), ...(st.blocks || [])].filter(x => x.room === roomId).sort((a, b) => a.from < b.from ? -1 : 1);
 // free runs of 1..GAP_MAX nights that sit between two bookings
 export function gaps(st, horizon = 60) {
   const t = today(), end = addDays(t, horizon), out = [];

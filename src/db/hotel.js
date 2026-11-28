@@ -33,15 +33,16 @@ export async function seedSample(db, t, types = SAMPLE_TYPES, rooms = SAMPLE_ROO
 export const rowToBooking = r => ({ id: r.id, room: r.room, type: r.type, from: r.date_from, to: r.date_to, guests: r.guests,
   name: r.name, phone: r.phone, status: r.status, source: r.source, created: r.created, price: r.price, note: r.note,
   prevStatus: r.prev_status, deletedAt: r.deleted_at, remark: r.remark || '', wish: r.wish || '', wantRoom: r.want_room || '', children: r.children || 0, grp: r.grp || '', instant: r.instant ? 1 : 0,
-  payState: r.pay_state || '', payUntil: r.pay_until || '', payAmount: r.pay_amount || 0 });
+  payState: r.pay_state || '', payUntil: r.pay_until || '', payAmount: r.pay_amount || 0,
+  checkedIn: r.checked_in || '', checkedOut: r.checked_out || '', invoice: (() => { try { return r.invoice ? JSON.parse(r.invoice) : null; } catch (e) { return null; } })() });
 
 // Everything needed to answer availability questions. `full` adds guest details (admin only).
 export async function loadState(db, t, { full = false } = {}) {
   const id = t.id;
   await releaseHolds(db, t); // unpaid holds past their time free their rooms before anyone looks
-  const [types, rooms, settings, seasons, bookings, payments, notes, services, items] = await Promise.all([
+  const [types, rooms, settings, seasons, bookings, payments, notes, services, items, blocks] = await Promise.all([
     db.prepare('SELECT * FROM types WHERE tenant_id = ? ORDER BY sort').bind(id).all(),
-    db.prepare('SELECT id, type FROM rooms WHERE tenant_id = ? ORDER BY sort, id').bind(id).all(),
+    db.prepare('SELECT id, type, hk, hk_at FROM rooms WHERE tenant_id = ? ORDER BY sort, id').bind(id).all(),
     db.prepare('SELECT k, v FROM settings WHERE tenant_id = ?').bind(id).all(),
     getSeasons(db, t),
     full
@@ -53,6 +54,7 @@ export async function loadState(db, t, { full = false } = {}) {
     listServices(db, t, { online: !full }),
     full ? db.prepare("SELECT * FROM booking_items WHERE tenant_id = ? AND booking IN (SELECT id FROM bookings WHERE tenant_id = ? AND (status NOT IN ('declined', 'deleted') OR created > ? OR deleted_at > ?)) ORDER BY date, created")
       .bind(id, id, addDays(today(), -60), addDays(today(), -90)).all() : null,
+    db.prepare('SELECT id, room, date_from, date_to, reason FROM room_blocks WHERE tenant_id = ? AND date_to >= ? ORDER BY date_from').bind(id, addDays(today(), full ? -60 : 0)).all(),
   ]);
   const T = {};
   for (const ty of types.results) {
@@ -65,9 +67,11 @@ export async function loadState(db, t, { full = false } = {}) {
   return {
     seasons,
     types: T,
-    rooms: rooms.results.map(r => ({ id: r.id, type: r.type })),
+    rooms: rooms.results.map(r => full ? { id: r.id, type: r.type, hk: r.hk || 'clean', hkAt: r.hk_at || '' } : { id: r.id, type: r.type }),
     settings: S,
     services,
+    // rooms closed by the hotel; the reason is the hotel's own note, not shown to guests
+    blocks: blocks.results.map(x => ({ id: x.id, room: x.room, from: x.date_from, to: x.date_to, ...(full ? { reason: x.reason || '' } : {}) })),
     bookings: bookings.results.map(r => full ? rowToBooking(r)
       : { id: r.id, room: r.room, type: r.type, from: r.date_from, to: r.date_to, status: 'confirmed' }),
     ...(full ? {

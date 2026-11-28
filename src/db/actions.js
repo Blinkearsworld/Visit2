@@ -7,7 +7,8 @@ import { can, logAct } from './users.js';
 import { saveServices, addItem, getItem, removeItem } from './services.js';
 
 // which section each change belongs to (see admin → გუნდი); 'owner' = only the owner
-const NEED = { remark: 'book', edit: 'book', confirm: 'book', decline: 'book', remove: 'book', restore: 'book', add: 'book', price: 'book', pay: 'book', unpay: 'book', move: 'book', guestnote: 'book', purge: 'owner', wipe: 'owner', rates: 'price', setting: 'price', services: 'price', item: 'book', unitem: 'book' };
+const NEED = { remark: 'book', edit: 'book', confirm: 'book', decline: 'book', remove: 'book', restore: 'book', add: 'book', price: 'book', pay: 'book', unpay: 'book', move: 'book', guestnote: 'book', purge: 'owner', wipe: 'owner', rates: 'price', setting: 'price', services: 'price', item: 'book', unitem: 'book', checkin: 'book', checkout: 'book', hk: 'book|clean', block: 'book', unblock: 'book', invoice: 'book' };
+const HK = { clean: 'დალაგებულია', dirty: 'დასალაგებელია', inspect: 'შესამოწმებელია' };
 const METHOD = { card: 'ბარათით', transfer: 'გადარიცხვით', cash: 'ქეშით' };
 const NO = msg => ({ ok: false, msg });
 
@@ -15,9 +16,9 @@ const NO = msg => ({ ok: false, msg });
 export async function adminAction(db, t, u, b) {
   const need = NEED[b?.op];
   if (!need) return { status: 400, body: NO('unknown op') };
-  if (need === 'owner' ? !u?.owner : !can(u, need)) return { status: 403, body: NO('ამის უფლება არ გაქვთ. მიმართეთ მფლობელს.') };
+  if (need === 'owner' ? !u?.owner : !need.split('|').some(p => can(u, p))) return { status: 403, body: NO('ამის უფლება არ გაქვთ. მიმართეთ მფლობელს.') };
   // what the change touched, for the activity log
-  let bid = b.op === 'pay' || b.op === 'item' ? b.booking : b.op === 'services' ? null : b.id;
+  let bid = b.op === 'pay' || b.op === 'item' ? b.booking : ['services', 'hk', 'block', 'unblock'].includes(b.op) ? null : b.id;
   if (b.op === 'unpay') {
     const p = await db.prepare('SELECT booking, amount, method FROM payments WHERE tenant_id = ? AND id = ?').bind(t.id, b.id).first();
     bid = p?.booking; b._pay = p;
@@ -39,6 +40,12 @@ export async function adminAction(db, t, u, b) {
       add: `${b.name || '—'} · ${isDate(b.from) && isDate(b.to) ? fmtRange(b.from, b.to) : ''} · ნომერი ${b.room}`,
       wipe: `წაიშალა ${out.bookings ?? 0} ჯავშანი, ${out.payments ?? 0} გადახდა, ჟურნალი და სტუმრების შენიშვნები`,
       services: `სერვისები: ${out.count ?? 0}`,
+      checkin: `${who} · ${b.undo ? 'შესვლა გაუქმდა' : 'ნომერი ' + (before?.room || '')}`,
+      checkout: `${who} · ${b.undo ? 'გასვლა გაუქმდა' : 'ნომერი ' + (before?.room || '') + (out.left ? ` · დარჩა გადასახდელი ${out.left} ₾` : '')}`,
+      hk: `ნომერი ${b.room} · ${HK[b.state] || ''}`,
+      block: `ნომერი ${b.room} · ${isDate(b.from) && isDate(b.to) ? fmtRange(b.from, b.to) : ''}${b.reason ? ' · ' + String(b.reason).slice(0, 60) : ''}`,
+      unblock: `ნომერი ${out.room || ''} გაიხსნა`,
+      invoice: `${who} · ინვოისი ${out.invoice?.no || ''}${out.invoice?.company ? ' · ' + out.invoice.company : ''}`,
       item: `${who} · ${out.item ? `${out.item.name} × ${out.item.qty} = ${out.item.amount} ₾` : ''}`,
       unitem: `${who} · წაიშალა: ${b._item ? `${b._item.name} × ${b._item.qty} = ${b._item.amount} ₾` : ''}`,
       guestnote: `ტელ. …${String(b.k || '').replace(/\D/g, '').slice(-4)}`,
@@ -121,6 +128,7 @@ async function run(db, t, b) {
       await db.batch([
         db.prepare('DELETE FROM payments WHERE tenant_id = ?').bind(T),
         db.prepare('DELETE FROM booking_items WHERE tenant_id = ?').bind(T),
+        db.prepare('DELETE FROM room_blocks WHERE tenant_id = ?').bind(T),
         db.prepare('DELETE FROM bookings WHERE tenant_id = ?').bind(T),
         db.prepare('DELETE FROM guest_notes WHERE tenant_id = ?').bind(T),
         db.prepare('DELETE FROM convos WHERE tenant_id = ?').bind(T),
@@ -162,6 +170,56 @@ async function run(db, t, b) {
       await removeItem(db, t, b.id);
       return { ok: true };
     }
+    // the guest arrived / left (or the mark is taken back); leaving makes the room due for cleaning
+    case 'checkin': {
+      const r = find(b.id); if (!r || r.status !== 'confirmed') return NO('ჯავშანი ვერ მოიძებნა');
+      await db.prepare('UPDATE bookings SET checked_in = ? WHERE tenant_id = ? AND id = ?').bind(b.undo ? null : nowIso(), T, r.id).run();
+      return { ok: true };
+    }
+    case 'checkout': {
+      const r = find(b.id); if (!r || r.status !== 'confirmed') return NO('ჯავშანი ვერ მოიძებნა');
+      const st2 = [db.prepare('UPDATE bookings SET checked_out = ?, checked_in = COALESCE(checked_in, ?) WHERE tenant_id = ? AND id = ?').bind(b.undo ? null : nowIso(), b.undo ? null : nowIso(), T, r.id)];
+      if (!b.undo && r.room) st2.push(db.prepare("UPDATE rooms SET hk = 'dirty', hk_at = ? WHERE tenant_id = ? AND id = ?").bind(nowIso(), T, r.room));
+      await db.batch(st2);
+      const paid = st.payments.filter(p => p.booking === r.id).reduce((a, p) => a + p.amount, 0), extra = st.items.filter(x => x.booking === r.id).reduce((a, x) => a + x.amount, 0);
+      return { ok: true, left: Math.max(0, (r.price || 0) + extra - paid) };
+    }
+    case 'hk': {
+      if (!HK[b.state] || !st.rooms.some(x => x.id === b.room)) return NO('ნომერი ვერ მოიძებნა');
+      await db.prepare('UPDATE rooms SET hk = ?, hk_at = ? WHERE tenant_id = ? AND id = ?').bind(b.state, nowIso(), T, b.room).run();
+      return { ok: true };
+    }
+    // a room closed for some days: it cannot be booked from the site, the chat or the catalogue
+    case 'block': {
+      if (!st.rooms.some(x => x.id === b.room) || !isDate(b.from) || !isDate(b.to) || b.to <= b.from) return NO('აირჩიეთ ნომერი და თარიღები');
+      if (!roomFree(st, b.room, b.from, b.to)) return NO('ნომერი ' + b.room + ' ამ თარიღებზე დაკავებულია ჯავშნით ან უკვე დაბლოკილია');
+      const id = uid();
+      await db.prepare('INSERT INTO room_blocks (tenant_id, id, room, date_from, date_to, reason, created) VALUES (?, ?, ?, ?, ?, ?, ?)').bind(T, id, b.room, b.from, b.to, String(b.reason || '').trim().slice(0, 80), nowIso()).run();
+      return { ok: true, id };
+    }
+    case 'unblock': {
+      const x = (st.blocks || []).find(y => y.id === b.id); if (!x) return NO('ვერ მოიძებნა');
+      await db.prepare('DELETE FROM room_blocks WHERE tenant_id = ? AND id = ?').bind(T, b.id).run();
+      return { ok: true, room: x.room };
+    }
+    // an invoice to a company: its details and the hotel's own running number (2026-0001, 2026-0002 ...)
+    case 'invoice': {
+      const r = find(b.id); if (!r) return NO('ჯავშანი ვერ მოიძებნა');
+      const company = String(b.company || '').trim().slice(0, 120), code = String(b.code || '').trim().slice(0, 20), address = String(b.address || '').trim().slice(0, 160);
+      if (!company) {
+        await db.prepare('UPDATE bookings SET invoice = NULL WHERE tenant_id = ? AND id = ?').bind(T, r.id).run();
+        return { ok: true, invoice: null };
+      }
+      let no = r.invoice?.no;
+      if (!no) {
+        const y = today().slice(0, 4), k = 'invoiceSeq' + y;
+        const row = await db.prepare("INSERT INTO settings (tenant_id, k, v) VALUES (?, ?, '1') ON CONFLICT (tenant_id, k) DO UPDATE SET v = CAST(CAST(v AS INTEGER) + 1 AS TEXT) RETURNING v").bind(T, k).first();
+        no = `${y}-${String(row?.v || 1).padStart(4, '0')}`;
+      }
+      const invoice = { no, company, code, address, issued: r.invoice?.issued || today() };
+      await db.prepare('UPDATE bookings SET invoice = ? WHERE tenant_id = ? AND id = ?').bind(JSON.stringify(invoice), T, r.id).run();
+      return { ok: true, invoice };
+    }
     case 'rates': {
       if (!st.types[b.type] || !Array.isArray(b.rates)) return NO('bad type');
       const ids = st.seasons.map(s => s.id);
@@ -197,7 +255,7 @@ async function run(db, t, b) {
       await db.prepare('DELETE FROM payments WHERE tenant_id = ? AND id = ?').bind(T, b.id).run();
       return { ok: true };
     case 'setting': {
-      const big = ['gapEdits', 'promos'].includes(b.k); // JSON: edits of short gaps, the hotel's promotions
+      const big = ['gapEdits', 'promos', 'billFrom'].includes(b.k); // JSON: edits of short gaps, the hotel's promotions, the hotel's details on bills
       if (!big && !['seasonMode', 'winterFrom', 'winterTo', 'gapDiscount'].includes(b.k)) return NO('bad setting');
       let v = String(b.v ?? '');
       if (big) { try { JSON.parse(v); } catch (e) { return NO('bad value'); } if (v.length > 20000) return NO('too long'); }

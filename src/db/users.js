@@ -7,8 +7,9 @@ import { nowIso } from '../lib/time.js';
 export const PERMS = {
   book: 'ჯავშნები (დღეს, მოთხოვნები, კალენდარი, სტუმრები, გადახდების მიღება)',
   money: 'შემოსავალი',
-  price: 'ფასები და სეზონი',
+  price: 'ფასები, სეზონი და სერვისები',
   site: 'საიტის მართვა',
+  clean: 'დალაგება (რომელი ნომერია დასალაგებელი; სტუმრების სახელები და თანხები არ ჩანს)',
 };
 export const ALL = Object.keys(PERMS);
 export const cleanPerms = list => ALL.filter(p => (list || []).includes(p));
