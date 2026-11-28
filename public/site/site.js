@@ -254,7 +254,9 @@
   // ---------- Lapis: the night-blue template with winter and summer (Villa JIJI's site) ----------
   // Texts and photos may differ by season: a value is either one ({ka,en,ru} / a photo) or { w, s }.
   let SEA = null;
-  const sea = () => SEA || (SEA = (() => { try { const v = localStorage.getItem('v2-season-' + slug()); if (v === 'winter' || v === 'summer') return v; } catch (e) { /* none */ } return J.siteSeason ? J.siteSeason() : 'winter'; })());
+  // the visitor's own choice wins; otherwise the hotel's season setting, read again on every drawing,
+  // so the page follows the settings once they arrive from the server (as on Villa JIJI's old site)
+  const sea = () => SEA || (() => { try { const v = localStorage.getItem('v2-season-' + slug()); if (v === 'winter' || v === 'summer') return v; } catch (e) { /* none */ } return J.siteSeason ? J.siteSeason() : 'winter'; })();
   const setSea = v => { SEA = v; try { localStorage.setItem('v2-season-' + slug(), v); } catch (e) { /* none */ } redraw(); };
   const L = () => S().lapis || {};
   const sz = v => (v && typeof v === 'object' && ('w' in v || 's' in v) ? v[sea() === 'summer' ? 's' : 'w'] || v.w || v.s : v);
