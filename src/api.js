@@ -10,6 +10,8 @@ import { grantHelp, helpUntil, listNotices } from './db/ops.js';
 import { hotelPages, disconnectPages } from './db/meta.js';
 import { encKey, accountInfo, getAccount, saveAccount, removeAccount, holdToRequest, addOrder, findOrder, lastOrder, settleOrder, HOLD_MIN } from './db/pay.js';
 import { BANKS, checkCreds, createOrder, orderState } from './lib/banks.js';
+import { listFeeds, addFeed, removeFeed, syncFeed, roomIcs } from './db/ical.js';
+import { findCode } from './lib/plans.js';
 import { metaStartUrl, pick, pendingPages } from './meta.js';
 import {
   checkLogin, makeCookie, supportSignIn, clearCookie, sessionUser, tooManyFails, noteFail, clearFails, logAct, bookingLog, journal,
@@ -19,6 +21,8 @@ import {
 const DENIED = { ok: false, msg: 'ამის უფლება არ გაქვთ. მიმართეთ მფლობელს.' };
 
 const bookingKey = async (secret, t, id) => (await hmac(secret, 'booking|' + t.id + '|' + id)).slice(0, 20);
+// the address of a room's calendar for Booking.com / Airbnb: secret per hotel and room
+const icalKey = async (secret, t, room) => (await hmac(secret, 'ical|' + t.id + '|' + room)).slice(0, 24);
 
 // ---------- prepayment through the hotel's own bank ----------
 // on only where Visit2 turned the service on, the owner connected a bank and chose prepayment for instant bookings
@@ -75,6 +79,20 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
       }
       return json({ ok: true, id: r.booking.id, total: r.total, extras: r.extras || [], typeName: r.typeName, instant: !!r.instant, key });
     } catch (e) { return json({ ok: false, error: e.message }, 400); }
+  }
+  // a room's calendar for other booking sites (dates only); ?skip=booking.com leaves out what came from that site
+  const ic = p.match(/^\/api\/ical\/([\w-]{1,20})\.ics$/);
+  if (ic && m === 'GET') {
+    const room = ic[1];
+    if (!secret || url.searchParams.get('k') !== await icalKey(secret, t, room)) return new Response('not found', { status: 404 });
+    const body = await roomIcs(db, t, room, (url.searchParams.get('skip') || '').toLowerCase().slice(0, 60));
+    return new Response(body, { headers: { 'content-type': 'text/calendar; charset=utf-8', 'cache-control': 'no-store' } });
+  }
+  // a promo code typed on the booking form: is it valid, and how much off (the code list itself stays private)
+  if (p === '/api/code' && m === 'GET') {
+    const st = await loadState(db, t, { full: true });
+    const c = findCode(st.settings, url.searchParams.get('c'), url.searchParams.get('from') || '');
+    return json(c ? { ok: true, code: String(c.code).toUpperCase(), pct: +c.pct || 0 } : { ok: false });
   }
   // the guest's own booking, behind the link they got when booking (id + key); nothing else is reachable with it
   if (p === '/api/booking' && m === 'GET') {
@@ -145,10 +163,38 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
       // housekeeping staff also see which rooms are taken and when guests come and go, without names, phones or money
       const hk = can(u, 'clean');
       Object.assign(st, { bookings: hk ? st.bookings.filter(b => b.status === 'confirmed').map(b => ({ id: b.id, room: b.room, type: b.type, from: b.from, to: b.to, guests: b.guests, status: b.status, checkedIn: b.checkedIn, checkedOut: b.checkedOut, name: '', phone: '' })) : [],
-        payments: [], items: [], guestNotes: {}, guestBdays: {} });
+        payments: [], items: [], expenses: [], guestNotes: {}, guestBdays: {} });
       return json({ ...st, me, hotel, actlog: [] });
     }
+    if (!can(u, 'money')) st.expenses = []; // what the hotel spends: only with the "income" right
     return json({ ...st, me, hotel, actlog: await bookingLog(db, t) });
+  }
+  // calendars of Booking.com, Airbnb ... per room, and this hotel's calendar links for them
+  if (route === 'ical') {
+    if (!can(u, 'book')) return json(DENIED, 403);
+    const st = await loadState(db, t);
+    if (m === 'GET') {
+      const base0 = new URL(base.replace(/\/?$/, '/'), url.origin).toString();
+      const links = {};
+      for (const r of st.rooms) links[r.id] = secret ? `${base0}api/ical/${encodeURIComponent(r.id)}.ics?k=${await icalKey(secret, t, r.id)}` : '';
+      return json({ ok: true, feeds: await listFeeds(db, t), links });
+    }
+    const b = (await readJson(request)) || {};
+    try {
+      if (b.op === 'add') {
+        if (!st.rooms.some(r => r.id === b.room)) return json({ ok: false, msg: 'ნომერი ვერ მოიძებნა' }, 400);
+        const id = await addFeed(db, t, b);
+        const f = (await listFeeds(db, t)).find(x => x.id === id);
+        const r = await syncFeed(db, t, f);
+        await logAct(db, t, u, 'ical', 'room:' + b.room, `${f.name} · ნომერი ${b.room}${r.ok ? ` · ${r.events} ჯავშანი` : ' · ' + r.error}`);
+        return json({ ok: true, sync: r });
+      }
+      const f = (await listFeeds(db, t)).find(x => x.id === b.id);
+      if (!f) return json({ ok: false, msg: 'ვერ მოიძებნა' }, 404);
+      if (b.op === 'remove') { await removeFeed(db, t, f.id); await logAct(db, t, u, 'ical', 'room:' + f.room, `${f.name} · ნომერი ${f.room} · მოიხსნა`); return json({ ok: true }); }
+      if (b.op === 'sync') return json({ ok: true, sync: await syncFeed(db, t, f) });
+    } catch (e) { return json({ ok: false, msg: e.message }, 400); }
+    return json({ ok: false, msg: 'unknown op' }, 400);
   }
   if (route === 'help' && m === 'POST') {
     if (!u.owner || u.support) return json({ ok: false, msg: 'დახმარებას მხოლოდ მფლობელი უშვებს' }, 403);

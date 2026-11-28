@@ -4,6 +4,7 @@
 // seasons table (st.seasons) instead of fixed Bakuriani dates.
 import { today, addDays, nights, isDate } from './time.js';
 import { seasonOf as seasonFrom } from './seasons.js';
+import { readRules, nightPct, longPct } from './plans.js';
 
 export const seasonOf = (st, d) => seasonFrom(st.seasons || [], d);
 
@@ -18,9 +19,11 @@ export const rateFor = (st, type, guests) => (st.types[type]?.rates || []).find(
 export function quote(st, type, from, to, guests) {
   const r = rateFor(st, type, guests) || (st.types[type]?.rates || []).slice(-1)[0];
   if (!r) return 0;
-  let sum = 0;
-  for (let d = from; d < to; d = addDays(d, 1)) sum += r.price[seasonOf(st, d)] || 0;
-  return sum;
+  // nightly prices by season, then the hotel's rules: weekend nights, chosen dates, a long-stay discount
+  const R = readRules(st.settings);
+  let sum = 0, n = 0;
+  for (let d = from; d < to; d = addDays(d, 1), n++) sum += (r.price[seasonOf(st, d)] || 0) * (1 + nightPct(R, d) / 100);
+  return Math.round(sum * (1 - longPct(R, n) / 100));
 }
 export function findOffer(st, from, to, guests) {
   let best = null;

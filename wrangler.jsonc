@@ -8,7 +8,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "public", "binding": "ASSETS", "run_worker_first": true },
   // daily at 03:17 UTC: data retention (src/db/retention.js)
-  "triggers": { "crons": ["17 3 * * *"] },
+  "triggers": { "crons": ["17 3 * * *", "23 * * * *"] },
   // visit2.ge: the platform; {slug}.visit2.ge: each hotel's site (needs a proxied "*" DNS record)
   "routes": [
     { "pattern": "visit2.ge", "custom_domain": true },

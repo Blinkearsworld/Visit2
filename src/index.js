@@ -7,6 +7,9 @@ import { purgeHotel, purgePlatform } from './db/retention.js';
 import { page, esc } from './lib/html.js';
 import { hotelApi } from './api.js';
 import { platformApi } from './platform.js';
+import { syncAll } from './db/ical.js';
+
+const DAILY = '17 3 * * *'; // wrangler.jsonc: the daily clean-up; the other trigger is the hourly calendar sync
 
 export default {
   async fetch(request, env, ctx) {
@@ -37,6 +40,13 @@ export default {
   },
   // daily: remove guests' personal data past its retention time (public/privacy.html)
   async scheduled(event, env, ctx) {
+    // every hour: calendars of Booking.com, Airbnb ... (only hotels that connected one)
+    if (event.cron !== DAILY) {
+      for (const t of await allTenants(env.DB)) {
+        try { await syncAll(env.DB, t); } catch (e) { console.log('ical failed', t.slug, e.message); }
+      }
+      return;
+    }
     for (const t of await allTenants(env.DB)) {
       try { await purgeHotel(env.DB, t); } catch (e) { console.log('purge failed', t.slug, e.message); }
     }

@@ -63,6 +63,8 @@
     optional: ['არასავალდებულო', 'optional', 'необязательно'], send: ['მოთხოვნის გაგზავნა', 'Send request', 'Отправить запрос'],
     check: ['თავისუფალი ნომრები', 'Check availability', 'Свободные номера'], perNight: ['ღამე', 'night', 'ночь'], from: ['-დან', 'from', 'от'],
     upTo: ['სტუმრამდე', 'guests max', 'гостей макс.'], left: ['თავისუფალი', 'available', 'свободно'], none: ['ამ თარიღებზე თავისუფალი არ არის', 'Not available on these dates', 'На эти даты нет мест'],
+    codeT: ['ფასდაკლების კოდი', 'Promo code', 'Промокод'], codeOk: ['კოდი მიღებულია: −{p}%', 'Code applied: −{p}%', 'Код применён: −{p}%'], codeBad: ['ასეთი კოდი ვერ მოიძებნა', 'This code was not found', 'Такой код не найден'],
+    minN: ['ამ თარიღებზე მინიმუმ {n} ღამე', 'At least {n} nights for these dates', 'Минимум {n} ночей на эти даты'], noIn: ['ამ დღეს შესვლა არ ხდება, აირჩიეთ სხვა დღე', 'No arrivals on this day, please choose another', 'В этот день заезда нет, выберите другой день'],
     planT: ['ფასის ვარიანტი', 'Rate', 'Тариф'], planStd: ['სტანდარტული', 'Standard', 'Стандартный'], nonRef: ['დაუბრუნებელი', 'non-refundable', 'невозвратный'],
     extrasT: ['დამატებითი სერვისები', 'Extras', 'Дополнительные услуги'], extrasS: ['სერვისები', 'Extras', 'Услуги'], withRoom: ['ნომერი', 'Room', 'Номер'],
     uStay: ['ერთჯერადად', 'once', 'разово'], uNight: ['ღამეში', 'per night', 'за ночь'], uGuest: ['ერთ სტუმარზე', 'per guest', 'с гостя'], uGuestNight: ['სტუმარზე ღამეში', 'per guest per night', 'с гостя за ночь'], uItem: ['ერთეული', 'each', 'за единицу'], qty: ['რაოდენობა', 'Quantity', 'Количество'],
@@ -542,6 +544,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     <label class="wide"><span>${w('wish')} <small>(${w('optional')})</small></span><textarea name="wish" rows="2" maxlength="500"></textarea></label>
     ${plansHtml()}
     ${extrasHtml()}
+    <label class="wide code-f"><span>${w('codeT')} <small>(${w('optional')})</small></span><input name="code" autocomplete="off" autocapitalize="characters" maxlength="30"><small class="code-m" aria-live="polite"></small></label>
     ${rulesHtml()}
     ${inst() ? `<p class="inst-note wide">${w(payOn() ? 'instantPay' : 'instantNote')}</p>` : ''}
     <button class="btn btn-accent wide" type="submit">${w(payOn() ? 'bookPay' : inst() ? 'bookNow' : 'send')}</button>
@@ -554,13 +557,14 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   // the hotel's price plans (with breakfast, non-refundable...): the guest picks one; the server prices it again
   const planList = () => (J.plans ? J.plans() : []);
   const curPlan = () => planList().find(p => p.id === sel.plan) || null;
-  const withPlan = (total, guests, n) => (window.V2PLANS ? window.V2PLANS.planPrice(total, curPlan(), guests, n) : total);
+  // the plan, then a promo code the server accepted
+  const withPlan = (total, guests, n) => { const v = window.V2PLANS ? window.V2PLANS.planPrice(total, curPlan(), guests, n) : total; return sel.code ? Math.round(v * (100 - sel.code.pct) / 100) : v; };
   function plansHtml() {
     const list = planList(); if (!list.length) return '';
     const d = p => [p.pct ? (p.pct > 0 ? '−' + p.pct + '%' : '+' + (-p.pct) + '%') : '', p.add ? '+' + fmtN(p.add) + ' ' + w(p.perGuest ? 'uGuestNight' : 'uNight') : '', p.refundable === false && !/დაუბრუნ|non-?ref|невозвр/i.test(p.name) ? w('nonRef') : ''].filter(Boolean).join(' · ');
     return `<fieldset class="extras wide"><legend>${w('planT')}</legend>
       <label class="ex-ck"><input type="radio" name="plan" value=""${sel.plan ? '' : ' checked'}> <span>${w('planStd')}</span></label>
-      ${list.map(p => `<label class="ex-ck"><input type="radio" name="plan" value="${esc(p.id)}"${sel.plan === p.id ? ' checked' : ''}> <span>${esc(p.name)}</span> <small>${esc(d(p))}</small></label>`).join('')}
+      ${list.map(p => `<label class="ex-ck"><input type="radio" name="plan" value="${esc(p.id)}"${sel.plan === p.id ? ' checked' : ''}> <span>${esc(J.serviceName(p, lang()))}</span> <small>${esc(d(p))}</small></label>`).join('')}
     </fieldset>`;
   }
   // the hotel's services a guest can add when booking (breakfast, transfer, a tour...), at the hotel's own prices
@@ -597,7 +601,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   }
 
   // ---------- booking ----------
-  const sel = { from: '', to: '', adults: 2, kids: 0, babies: 0, pets: 0, rooms: 1, type: '', extras: {}, plan: '' };
+  const sel = { from: '', to: '', adults: 2, kids: 0, babies: 0, pets: 0, rooms: 1, type: '', extras: {}, plan: '', code: null };
   // dates and guests from the Visit2.ge search (hotel.html?h=…&from=…&to=…&g=…)
   if (/^\d{4}-\d{2}-\d{2}$/.test(params.get('from') || '') && /^\d{4}-\d{2}-\d{2}$/.test(params.get('to') || '') && params.get('to') > params.get('from')) {
     sel.from = params.get('from'); sel.to = params.get('to'); sel.adults = Math.max(1, Math.min(16, +params.get('g') || 2));
@@ -619,6 +623,9 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     document.querySelectorAll('.room').forEach(r => { r.classList.toggle('picked', r.dataset.type === sel.type); });
     if (!from || !to || to <= from) { el.innerHTML = w('pickDates'); availability(); return; }
     const n = J.nights(from, to), free = k => roomsOf(k).filter(r => J.roomFree(r.id, from, to)).length;
+    // the hotel's stay rules: fewest nights, days with no arrivals
+    const sc = J.stayOk ? J.stayOk(from, to) : { ok: true };
+    if (!sc.ok) { availability(); sel.offer = ''; el.innerHTML = `<b>${sc.noIn ? w('noIn') : w('minN').replace('{n}', sc.min)}</b>`; return; }
     if (sel.rooms > 1) {
       availability();
       const o = J.roomsOffer(from, to, g, Math.min(sel.rooms, g), sel.kids, kidsRule());
@@ -688,6 +695,12 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     // services ticked on the form: kept in sel (the page may be drawn again) and added to the total
     $('#req').addEventListener('change', e => {
       if (e.target.name === 'plan') { sel.plan = e.target.value; summary(); return; }
+      if (e.target.name === 'code') {
+        const m = e.target.parentElement.querySelector('.code-m'), v = e.target.value.trim();
+        if (!v) { sel.code = null; m.textContent = ''; summary(); return; }
+        J.checkCode(v, sel.from).then(c => { sel.code = c; m.textContent = c ? w('codeOk').replace('{p}', c.pct) : w('codeBad'); m.dataset.ok = c ? '1' : ''; summary(); });
+        return;
+      }
       const c = e.target.closest('[data-ex]'), q = e.target.closest('[data-exq]');
       if (c) { if (c.checked) sel.extras[c.dataset.ex] = +(($('#req').querySelector(`[data-exq="${c.dataset.ex}"]`) || {}).value) || 1; else delete sel.extras[c.dataset.ex]; summary(); }
       if (q) { const v = Math.max(1, Math.min(99, parseInt(q.value) || 1)); q.value = v; const ck = $('#req').querySelector(`[data-ex="${q.dataset.exq}"]`); if (ck) { ck.checked = true; sel.extras[q.dataset.exq] = v; } summary(); }
@@ -722,15 +735,17 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
     const name = f.name.value.trim(), phone = f.phone.value.trim();
     msg.dataset.state = 'bad';
     if (!sel.from || !sel.to || sel.to <= sel.from) { msg.textContent = w('pickDates'); openSheet('when'); return; }
+    const sc = J.stayOk ? J.stayOk(sel.from, sel.to) : { ok: true };
+    if (!sc.ok) { msg.textContent = sc.noIn ? w('noIn') : w('minN').replace('{n}', sc.min); openSheet('when'); return; }
     if (!name || phone.replace(/\D/g, '').length < 9) { msg.textContent = w('needName'); (name ? f.phone : f.name).focus(); return; }
     if (f.rules && !f.rules.checked) { msg.textContent = w('needRules'); f.rules.focus(); return; }
     const btn = f.querySelector('button[type=submit]'); btn.disabled = true;
-    const req = J.createRequest({ instant: inst(), kidRule: kidsRule(), payRule: payOn() ? (S().instant || {}).pay : null, from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · '), extras: chosenExtras().map(x => ({ id: x.id, qty: x.qty })), plan: curPlan() ? curPlan().id : undefined });
+    const req = J.createRequest({ instant: inst(), kidRule: kidsRule(), payRule: payOn() ? (S().instant || {}).pay : null, from: sel.from, to: sel.to, guests: g, children: sel.kids, rooms: sel.rooms, name, phone, source: 'site', type: sel.rooms > 1 ? undefined : sel.offer || sel.type || undefined, wish: [f.wish.value.trim(), sel.babies ? w('babiesN').replace('{n}', sel.babies) : '', sel.pets ? w('petsN') : ''].filter(Boolean).join(' · '), extras: chosenExtras().map(x => ({ id: x.id, qty: x.qty })), plan: curPlan() ? curPlan().id : undefined, code: sel.code ? sel.code.code : undefined, codePct: sel.code ? sel.code.pct : 0 });
     const out = await req.saved;
     btn.disabled = false;
     if (out && out.ok && out.instant && out.pay) { msg.dataset.state = 'ok'; msg.textContent = w('toBank'); location.href = out.pay; return; }
-    if (out && out.ok && out.instant && out.key) { f.reset(); sel.extras = {}; showBooked(out.id, out.key, true); }
-    else if (out && out.ok) { msg.dataset.state = 'ok'; msg.textContent = w(inst() ? 'fellBack' : 'sent'); f.reset(); sel.extras = {}; summary(); }
+    if (out && out.ok && out.instant && out.key) { f.reset(); sel.extras = {}; sel.code = null; showBooked(out.id, out.key, true); }
+    else if (out && out.ok) { msg.dataset.state = 'ok'; msg.textContent = w(inst() ? 'fellBack' : 'sent'); f.reset(); sel.extras = {}; sel.code = null; summary(); }
     else msg.textContent = out && out.free != null ? w('onlyFree').replace('{n}', out.free) : (out && out.msg) || w('err');
   }
 

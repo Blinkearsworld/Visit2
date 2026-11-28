@@ -21,6 +21,8 @@ export async function purgeHotel(db, t, day = today()) {
     // bank payment pages: kept with their booking (the hotel's own records), gone once the booking is gone
     db.prepare('DELETE FROM pay_orders WHERE tenant_id = ? AND booking NOT IN (SELECT id FROM bookings WHERE tenant_id = ?) AND booking NOT IN (SELECT grp FROM bookings WHERE tenant_id = ? AND grp IS NOT NULL)').bind(t.id, t.id, t.id),
     db.prepare('DELETE FROM convos WHERE tenant_id = ? AND updated < ?').bind(t.id, oldCut),
+    // fixed problems in rooms: kept a year
+    db.prepare("DELETE FROM issues WHERE tenant_id = ? AND status = 'done' AND done_at < ?").bind(t.id, addDays(day, -365) + 'T00:00:00Z'),
     // closed-room periods are kept a year for the hotel's own statistics
     db.prepare('DELETE FROM room_blocks WHERE tenant_id = ? AND date_to < ?').bind(t.id, addDays(day, -365)),
     db.prepare('DELETE FROM guest_notes WHERE tenant_id = ? AND updated < ?').bind(t.id, guestCut),

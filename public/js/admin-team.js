@@ -7,7 +7,7 @@
   const VERB = {
     remark: 'შეცვალა ჩვენი შენიშვნა', edit: 'შეცვალა თარიღი ან სტუმრები', confirm: 'დაადასტურა ჯავშანი', decline: 'უარყო მოთხოვნა', add: 'დაამატა ჯავშანი', remove: 'წაშალა ჯავშანი', restore: 'აღადგინა ჯავშანი',
     purge: 'სამუდამოდ წაშალა ჯავშანი', wipe: 'გაასუფთავა ყველა ჯავშანი და ჟურნალი', price: 'შეცვალა ჯავშნის ფასი', pay: 'მიიღო გადახდა', unpay: 'წაშალა გადახდა', move: 'გადაიყვანა სხვა ნომერში',
-    guestnote: 'შეცვალა სტუმრის შენიშვნა', rates: 'შეცვალა ფასები', setting: 'შეცვალა პარამეტრი', site: 'შეცვალა საიტი', login: 'შევიდა პანელში', item: 'დაამატა სერვისი', unitem: 'წაშალა სერვისი', services: 'შეცვალა სერვისების სია', checkin: 'მონიშნა შესვლა', checkout: 'მონიშნა გასვლა', hk: 'შეცვალა ნომრის დალაგება', block: 'დახურა ნომერი', unblock: 'გახსნა ნომერი', invoice: 'შეცვალა ინვოისი',
+    guestnote: 'შეცვალა სტუმრის შენიშვნა', rates: 'შეცვალა ფასები', setting: 'შეცვალა პარამეტრი', site: 'შეცვალა საიტი', login: 'შევიდა პანელში', item: 'დაამატა სერვისი', unitem: 'წაშალა სერვისი', services: 'შეცვალა სერვისების სია', checkin: 'მონიშნა შესვლა', checkout: 'მონიშნა გასვლა', hk: 'შეცვალა ნომრის დალაგება', block: 'დახურა ნომერი', unblock: 'გახსნა ნომერი', invoice: 'შეცვალა ინვოისი', cancel: 'გააუქმა ჯავშანი', uncancel: 'აღადგინა გაუქმებული', noshow: 'მონიშნა „არ მოვიდა“', agent: 'შეცვალა სააგენტო', expense: 'დაამატა ხარჯი', unexpense: 'წაშალა ხარჯი', issue: 'ჩაწერა პრობლემა ნომერში', issuedone: 'მონიშნა პრობლემა გასწორებულად', ical: 'შეცვალა კალენდრის კავშირი',
     'user-add': 'დაამატა თანამშრომელი', 'user-edit': 'შეცვალა თანამშრომელი', 'user-pass': 'შეცვალა პაროლი', 'user-del': 'წაშალა თანამშრომელი', help: 'შეცვალა Visit2.ge-ს დახმარების უფლება'
   };
   const when = s => { const d = new Date(s); if (isNaN(d)) return ''; const p = n => String(n).padStart(2, '0'); return JIJI.fmt(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`) + (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : '') + ', ' + p(d.getHours()) + ':' + p(d.getMinutes()); };
@@ -17,7 +17,8 @@
   const CATS = {
     book: ['ჯავშნები (დადასტურება, უარყოფა, დამატება, ცვლილება)', ['confirm', 'decline', 'add', 'edit', 'move', 'restore']],
     pay: ['გადახდები, ფასი და სერვისები', ['pay', 'unpay', 'price', 'item', 'unitem', 'invoice']],
-    stay: ['შესვლა, გასვლა, დალაგება', ['checkin', 'checkout', 'hk', 'block', 'unblock']],
+    stay: ['შესვლა, გასვლა, დალაგება', ['checkin', 'checkout', 'hk', 'block', 'unblock', 'noshow', 'cancel', 'uncancel', 'issue', 'issuedone', 'ical']],
+    spend: ['ხარჯები', ['expense', 'unexpense']],
     del: ['წაშლა', ['remove', 'purge']],
     note: ['შენიშვნები', ['remark', 'guestnote']],
     rates: ['ფასები, სეზონი, სერვისები', ['rates', 'setting', 'services']],

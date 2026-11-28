@@ -188,7 +188,7 @@ export async function grantHelp(db, t, who, hours) {
   return until;
 }
 // removes a hotel and everything it has, except our payment records (kept for accounting, see retention.js); only a switched-off hotel, and only when its slug is typed again
-const HOTEL_TABLES = ['settings', 'seasons', 'types', 'rooms', 'bookings', 'payments', 'guest_notes', 'convos', 'site_content', 'media', 'actlog', 'support_access', 'meta_pages', 'pay_accounts', 'pay_orders', 'services', 'booking_items', 'room_blocks', 'domains', 'memberships'];
+const HOTEL_TABLES = ['settings', 'seasons', 'types', 'rooms', 'bookings', 'payments', 'guest_notes', 'convos', 'site_content', 'media', 'actlog', 'support_access', 'meta_pages', 'pay_accounts', 'pay_orders', 'services', 'booking_items', 'room_blocks', 'ical_feeds', 'expenses', 'issues', 'domains', 'memberships'];
 export async function deleteHotel(db, t, confirm) {
   if (t.status !== 'closed') throw new Error('ჯერ სასტუმრო გამორთე, მერე წაშალე');
   if (confirm !== t.slug) throw new Error(`დასადასტურებლად ჩაწერე: ${t.slug}`);

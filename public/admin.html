@@ -228,6 +228,9 @@ h2{font-size:17px;font-weight:600;margin:28px 0 12px}
 .pc{display:grid;place-items:center;height:100%;font-weight:600;color:var(--wait)}
 .pcard{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;background:#fbfcfd}
 .snav{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid var(--line)}.snav button{min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:22px;background:#fff;font:inherit;font-size:14px;cursor:pointer}.snav button[aria-selected=true]{background:var(--ink,#1F1A17);color:#fff;border-color:transparent}
+.wdays{display:flex;flex-wrap:wrap;gap:6px}.wdays label{display:flex;align-items:center;gap:6px;min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px;cursor:pointer}.wdays input{width:18px;height:18px}
+.rrow{display:flex;flex-wrap:wrap;gap:8px;align-items:end;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.rrow label{display:grid;gap:4px;font-size:13px;color:var(--mute)}.rrow input,.rrow select{min-height:44px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit;font-size:15px;background:#fff;width:120px;max-width:100%}.rrow input.w{width:200px}.rrow .wdays label{display:flex;min-height:36px;font-size:13px;color:var(--ink)}.rrow .wdays input{width:18px;min-height:0;padding:0}
+.icl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}.icl code{font-size:12px;word-break:break-all;color:var(--mute);flex:1 1 220px}
 .tplc{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcfd;margin-bottom:12px}.tplc h2{font-size:15px;margin:0 0 8px}.tplc label{display:grid;gap:4px;font-size:13px;color:var(--mute);margin-top:8px}.tplc textarea{width:100%;min-height:72px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:15px;box-sizing:border-box}
 .svq{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}.svq button{min-height:40px;padding:0 12px;border:1px dashed var(--line);border-radius:20px;background:#fff;font:inherit;font-size:14px;cursor:pointer}
 .svlist{display:grid;gap:10px}.svrow{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcfd;display:grid;grid-template-columns:minmax(0,2fr) 110px minmax(0,1.4fr) auto auto;gap:10px;align-items:end}
@@ -305,6 +308,7 @@ button.rt:hover{border-color:#9aa8bb}
 .hk-clean{background:#e6f5ec;color:#1d7a46}.hk-dirty{background:#fdecd8;color:#9a5410}.hk-inspect{background:#e8eefc;color:#2f55b3}
 .rt.blk{background:repeating-linear-gradient(135deg,#f3f3f3 0 6px,#e9e9e9 6px 12px)}
 .hkb{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.hkb button{min-height:40px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit;font-size:13px;cursor:pointer}.hkb button[aria-pressed=true]{background:var(--ink,#1F1A17);color:#fff;border-color:transparent}
+.bk.blkc.feed{background:#e9eefb;color:#30437a;border-color:#c5d0ee}
 .bk.blkc{background:repeating-linear-gradient(135deg,#ececec 0 6px,#dedede 6px 12px);color:#555;border-color:#cfcfcf}
 .stay{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 0;font-size:14px}.stay .done{color:var(--ok);font-weight:600}
 .dl{display:grid;gap:8px}
@@ -491,9 +495,12 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 <section class="panel" id="p-price" role="tabpanel" aria-labelledby="t-price" hidden>
 <div class="snav" role="tablist" aria-label="პარამეტრები">
 <button type="button" role="tab" data-sec="prices" aria-selected="true">ფასები და სეზონი</button>
+<button type="button" role="tab" data-sec="rules" aria-selected="false">ფასის წესები</button>
 <button type="button" role="tab" data-sec="plans" aria-selected="false">გეგმები და გაუქმება</button>
 <button type="button" role="tab" data-sec="svc" aria-selected="false">სერვისები</button>
+<button type="button" role="tab" data-sec="codes" aria-selected="false">კოდები და სააგენტოები</button>
 <button type="button" role="tab" data-sec="msg" aria-selected="false">შეტყობინებები</button>
+<button type="button" role="tab" data-sec="ical" aria-selected="false">Booking და Airbnb</button>
 <button type="button" role="tab" data-sec="req" aria-selected="false">რეკვიზიტები</button>
 </div>
 <div class="sec" data-sec="prices">
@@ -538,6 +545,38 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 
 <p class="note" style="margin-top:14px">„საიტზე“ მონიშნული სერვისი სტუმარს ჯავშნისას შესთავაზება თქვენს საიტზე და Visit2.ge-ზე, იმავე ფასით. მინიბარი და მსგავსი რამ ჩვეულებრივ მხოლოდ ადმინში ემატება.</p>
 </div>
+<div class="sec" data-sec="rules" hidden>
+<h1>ფასის წესები</h1>
+<p class="sub">წესები ფასების ცხრილს ემატება და ყველგან ერთნაირად მოქმედებს: საიტზე, ჩატში, Visit2.ge-ზე და ადმინში.</p>
+<div class="pcard"><h2 style="margin:0 0 6px">შაბათ-კვირა</h2><p class="sub" style="margin:0 0 10px">არჩეული ღამეები ძვირდება (ან იაფდება, თუ მინუსს ჩაწერთ).</p>
+<div class="wdays" id="wkDays"></div>
+<div class="pform" style="margin-top:8px"><label>ცვლილება, %<input id="wkPct" type="number" min="-50" max="200" step="1" inputmode="numeric" placeholder="მაგ.: 15"></label></div></div>
+<div class="pcard"><h2 style="margin:0 0 6px">ხანგრძლივი დარჩენა</h2><p class="sub" style="margin:0 0 10px">რამდენიმე ღამეზე მეტზე ფასდაკლება. ითვლება ყველაზე დიდი, რომელსაც ჯავშანი აღწევს.</p><div id="lgList" class="glist"></div><button type="button" class="btn" id="lgAdd" style="margin-top:8px">+ ფასდაკლება</button></div>
+<div class="pcard"><h2 style="margin:0 0 6px">კონკრეტული თარიღები</h2><p class="sub" style="margin:0 0 10px">დღესასწაული, ფესტივალი ან ცარიელი კვირა: ამ დღეებში ფასი იცვლება პროცენტით.</p><div id="dtList" class="glist"></div><button type="button" class="btn" id="dtAdd" style="margin-top:8px">+ თარიღები</button></div>
+<button type="button" class="btn pri" id="rlSave">ფასის წესების შენახვა</button><p class="msg" id="rlMsg" hidden></p>
+<div class="pcard" style="margin-top:18px"><h2 style="margin:0 0 6px">ღამეების მინიმუმი და შესვლის დღეები</h2><p class="sub" style="margin:0 0 10px">მაგალითად: ახალ წელს მინიმუმ 3 ღამე, ან შაბათს შესვლა არ ხდება. თარიღები ყოველ წელს მეორდება (თვე-დღე).</p><div id="srList" class="glist"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn" id="srAdd">+ წესი</button><button type="button" class="btn pri" id="srSave">შენახვა</button></div><p class="msg" id="srMsg" hidden></p></div>
+<div class="pcard"><h2 style="margin:0 0 6px">ყველა ფასის შეცვლა ერთად</h2><p class="sub" style="margin:0 0 10px">ყველა ნომრის ყველა სეზონის ფასი იცვლება პროცენტით და მრგვალდება ლარამდე. უკვე დადასტურებული ჯავშნების ფასი არ იცვლება.</p>
+<div class="pform"><label>ცვლილება, %<input id="bkPct" type="number" min="-50" max="100" step="1" inputmode="numeric" placeholder="მაგ.: 10 ან −5"></label></div><button type="button" class="btn" id="bkGo" style="margin-top:8px">ფასების შეცვლა</button><p class="msg" id="bkMsg" hidden></p></div>
+</div>
+<div class="sec" data-sec="codes" hidden>
+<h1>ფასდაკლების კოდები</h1>
+<p class="sub">სტუმარი კოდს ჯავშნისას წერს და ნომრის ფასი მცირდება. კოდები საიტზე არ ჩანს, სერვერი თითოს ცალკე ამოწმებს.</p>
+<div id="cdList" class="glist"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn" id="cdAdd">+ კოდი</button><button type="button" class="btn pri" id="cdSave">შენახვა</button></div><p class="msg" id="cdMsg" hidden></p>
+<h1 style="margin-top:28px">ტურ-სააგენტოები</h1>
+<p class="sub">სააგენტოს ჯავშანს ხელით ამატებთ ან ჯავშნის ფანჯარაში მიაბამთ. „შემოსავალში“ ჩანს, რამდენი ჯავშანი მოიტანა და რამდენი გეკუთვნით საკომისიოდ.</p>
+<div id="agList" class="glist"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn" id="agAdd">+ სააგენტო</button><button type="button" class="btn pri" id="agSave">შენახვა</button></div><p class="msg" id="agMsg" hidden></p>
+</div>
+<div class="sec" data-sec="ical" hidden>
+<h1>Booking.com, Airbnb და სხვა საიტები</h1>
+<p class="sub">კალენდრები ერთმანეთს ავტომატურად ეუბნება, რომელი დღეებია დაკავებული, საათში ერთხელ. ასე ერთი ნომერი ორჯერ არ გაიყიდება. სტუმრების სახელები და ტელეფონები არ გადადის, მხოლოდ თარიღები.</p>
+<div class="pcard"><h2 style="margin:0 0 6px">1. ჩვენი კალენდარი მათთვის</h2><p class="sub" style="margin:0 0 10px">დააკოპირეთ ნომრის ბმული და ჩასვით Booking.com-ზე (Rates &amp; Availability → Sync calendars → Import) ან Airbnb-ზე (Calendar → Availability → Connect calendars → Import).</p><div id="icOut" class="glist"></div></div>
+<div class="pcard"><h2 style="margin:0 0 6px">2. მათი კალენდარი ჩვენთან</h2><p class="sub" style="margin:0 0 10px">იქვე აიღეთ მათი ბმული (Export) და ჩასვით აქ. მათი ჯავშნები კალენდარში ჩნდება და ამ დღეებში ნომერს ჩვენთან ვერავინ დაჯავშნის.</p>
+<div class="pform"><label>ნომერი<select id="icRoom"></select></label><label>საიტი<select id="icName"><option>Booking.com</option><option>Airbnb</option><option>VRBO</option><option>Google Calendar</option><option>სხვა</option></select></label><label style="grid-column:1/-1">კალენდრის ბმული<input id="icUrl" type="url" inputmode="url" placeholder="https://…" autocomplete="off"></label></div>
+<button type="button" class="btn pri" id="icAdd" style="margin-top:8px">დაკავშირება</button><p class="msg" id="icMsg" hidden></p><div id="icList" class="glist" style="margin-top:12px"></div></div>
+</div>
 <div class="sec" data-sec="plans" hidden>
 <h1>ფასის გეგმები</h1>
 <p class="sub">ერთი და იგივე ნომერი სხვა ფასით: მაგალითად „საუზმით“ (+20 ₾ სტუმარზე ღამეში) ან „დაუბრუნებელი“ (−10%). სტუმარი გეგმას ჯავშნისას ირჩევს. ფასი ნომრის ფასიდან ითვლება.</p>
@@ -568,7 +607,14 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 <p class="sub">სტუმრის გასვლისას ნომერი თავისით ხდება „დასალაგებელი“. დალაგების მერე დააჭირეთ „დალაგებულია“-ს. დამლაგებელს „გუნდში“ მიეცით მხოლოდ „დალაგების“ უფლება: ის ნომრებს დაინახავს, სტუმრების სახელებსა და თანხებს კი ვერა.</p>
 <div class="kpis" id="hkK"></div>
 <div class="rooms" id="hkRooms"></div>
-<div class="pcard" id="blkCard" style="margin-top:18px">
+<div class="pcard" style="margin-top:18px">
+<h2 style="margin:0 0 6px">ტექნიკური პრობლემები</h2>
+<p class="sub" style="margin:0 0 12px">რამე გაფუჭდა ნომერში? ჩაწერეთ აქ, გასწორების მერე კი მონიშნეთ.</p>
+<div class="pform"><label>ნომერი<select id="isRoom"></select></label><label>რა მოხდა<input id="isText" maxlength="200" placeholder="მაგ.: კონდიციონერი არ მუშაობს"></label></div>
+<p class="msg" id="isMsg" hidden></p><button type="button" class="btn pri" id="isAdd" style="margin-top:8px">ჩაწერა</button>
+<div id="isList" class="glist" style="margin-top:12px"></div>
+</div>
+<div class="pcard" id="blkCard">
 <h2 style="margin:0 0 6px">ნომრის დახურვა</h2>
 <p class="sub" style="margin:0 0 12px">რემონტი, საკუთარი სტუმრები ან სხვა მიზეზი: ამ დღეებში ნომერს ვერავინ დაჯავშნის (საიტი, ჩატი, Visit2.ge). კალენდარში ნაცრისფრად ჩანს.</p>
 <div class="pform"><label>ნომერი<select id="blRoom"></select></label><label>მიზეზი (ჩანს მხოლოდ თქვენთვის)<input id="blWhy" maxlength="80" placeholder="მაგ.: რემონტი"></label><label>პირველი დღე<input id="blFrom" type="date"></label><label>გაიხსნება<input id="blTo" type="date"></label></div>
@@ -601,7 +647,36 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 <label for="mTo">მდე<input id="mTo" type="date"></label>
 </div>
 <div class="range" style="margin-top:-4px"><button class="btn" type="button" id="dlBook">⬇ ჯავშნები (Excel)</button><button class="btn" type="button" id="dlPay">⬇ გადახდები (Excel)</button></div>
+<div class="snav" role="tablist" aria-label="შემოსავალი">
+<button type="button" role="tab" data-sec="m-over" aria-selected="true">მიმოხილვა</button>
+<button type="button" role="tab" data-sec="m-exp" aria-selected="false">ხარჯები და მოგება</button>
+<button type="button" role="tab" data-sec="m-cash" aria-selected="false">სალარო</button>
+<button type="button" role="tab" data-sec="m-rep" aria-selected="false">ანგარიშები</button>
+</div>
+<div class="sec" data-sec="m-over">
 <div class="kpis" id="mK"></div>
+
+
+
+<h2>ჯავშნები გადახდის მიხედვით</h2>
+<p class="src" style="margin:-4px 0 10px">შესვლის თარიღით, არჩეულ პერიოდში</p>
+<div class="range" id="mFilter" role="group" aria-label="ფილტრი"></div>
+<div class="scroll"><table class="mt" id="mDebt"></table></div>
+
+</div>
+<div class="sec" data-sec="m-exp" hidden>
+<div class="pcard"><h2 style="margin:0 0 4px">ხარჯები და მოგება</h2><p class="src" style="margin:0 0 8px">ხელფასი, კომუნალური, პროდუქტები და სხვა. მოგება = მიღებული თანხა − ხარჯები, ამ პერიოდში.</p>
+<div class="kpis" id="mProfit" style="margin:0 0 10px"></div>
+<details class="redit"><summary>+ ხარჯის დამატება</summary><div class="pform" style="margin-top:8px"><label>რაზე<input id="exCat" list="exCats" maxlength="40" placeholder="მაგ.: კომუნალური"><datalist id="exCats"><option>ხელფასი</option><option>კომუნალური</option><option>პროდუქტები</option><option>სარეცხი და ქიმია</option><option>რემონტი</option><option>რეკლამა</option><option>გადასახადი</option><option>საკომისიო</option><option>სხვა</option></datalist></label><label>თანხა, ₾<input id="exAmt" type="number" min="1" step="1" inputmode="numeric"></label><label>დღე<input id="exDate" type="date"></label><label>როგორ<select id="exMeth"><option value="cash">ქეში</option><option value="card">ბარათი</option><option value="transfer">გადარიცხვა</option></select></label><label style="grid-column:1/-1">შენიშვნა<input id="exNote" maxlength="120"></label></div>
+<button type="button" class="btn" id="exAdd" style="margin-top:8px">დამატება</button><p class="msg" id="exMsg" hidden></p></details>
+<div class="scroll"><table class="mt" id="mExp"></table></div></div>
+</div>
+<div class="sec" data-sec="m-cash" hidden>
+<div class="pcard"><h2 style="margin:0 0 4px">სალაროს დახურვა</h2><p class="src" style="margin:0 0 8px">ვინ რამდენი მიიღო ერთ დღეს, და რამდენი ქეში უნდა იყოს სალაროში.</p>
+<div class="range" style="margin:0 0 8px"><label for="ccDay">დღე<input id="ccDay" type="date"></label><button type="button" class="btn" id="ccPrint">🖨 დაბეჭდვა</button></div>
+<div class="scroll"><table class="mt" id="mCash"></table></div></div>
+</div>
+<div class="sec" data-sec="m-rep" hidden>
 <div class="mgrid">
 <div class="pcard"><h2 style="margin:0 0 4px">დატვირთვა და ფასი</h2><p class="src" style="margin:0 0 8px">ღამეები, რომლებიც ამ პერიოდში მოდის; დახურული ნომრები არ ითვლება</p><div class="kpis" id="mOcc" style="margin:0"></div></div>
 <div class="pcard"><h2 style="margin:0 0 4px">სერვისები</h2><p class="src" style="margin:0 0 8px">ჯავშნებზე დამატებული სერვისები, გამოყენების დღით</p><table class="mt" id="mSvc"></table></div>
@@ -610,12 +685,10 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 <div class="pcard"><h2 style="margin:0 0 4px">ჯავშნები, ნომრის ტიპით</h2><p class="src" style="margin:0 0 8px">შესვლის თარიღით</p><div class="scroll"><table class="mt" id="mType"></table></div></div>
 <div class="pcard"><h2 style="margin:0 0 4px">ჯავშნები, წყაროთი</h2><p class="src" style="margin:0 0 8px">საიდან მოვიდა სტუმარი</p><div class="scroll"><table class="mt" id="mSrc"></table></div></div>
 </div>
-<h2>ჯავშნები გადახდის მიხედვით</h2>
-<p class="src" style="margin:-4px 0 10px">შესვლის თარიღით, არჩეულ პერიოდში</p>
-<div class="range" id="mFilter" role="group" aria-label="ფილტრი"></div>
-<div class="scroll"><table class="mt" id="mDebt"></table></div>
+<div class="pcard" id="mAgCard"><h2 style="margin:0 0 4px">სააგენტოები</h2><p class="src" style="margin:0 0 8px">ჯავშნები შესვლის თარიღით და საკომისიო</p><div class="scroll"><table class="mt" id="mAg"></table></div></div>
 <h2>გადახდები</h2>
 <div class="scroll"><table class="mt" id="mPay"></table></div>
+</div>
 </section>
 </main>
 </div>
@@ -668,6 +741,7 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 <label for="aPrice">ჯამი, ₾<input id="aPrice" type="number" min="0" step="1" inputmode="numeric"></label>
 </div>
 <p class="hint" id="aSum" style="margin:-4px 0 0;font-size:13px;color:var(--mute)"></p>
+<label for="aAgent" id="aAgentL">სააგენტო (თუ მან გამოგზავნა)<select id="aAgent"></select></label>
 <p class="msg" id="aMsg" hidden></p>
 <div class="acts"><button class="btn" value="cancel" formnovalidate>გაუქმება</button><button class="btn pri" id="aSave" value="save">შენახვა</button></div>
 </form>
@@ -690,7 +764,7 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 {
 const J=JIJI,$=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const SRC={site:'საიტი',chat:'ჩატბოტი',admin:'ხელით',instagram:'Instagram',facebook:'Facebook'};
+const SRC={site:'საიტი',chat:'ჩატბოტი',admin:'ხელით',agent:'სააგენტო',instagram:'Instagram',facebook:'Facebook'};
 const typeName=t=>J.types[t]?.name||t;
 
 /* --- sign-in: on the real server a password (checked by the server), in the demo a PIN --- */
@@ -713,7 +787,7 @@ function applyPerms(){
 }
 J.onChange(()=>{if(!$('app').hidden)applyPerms()});
 /* who changed a booking: from the activity log */
-const VERB={wipe:'გაასუფთავა ყველა ჯავშანი და ჟურნალი',remark:'შეცვალა ჩვენი შენიშვნა',edit:'შეცვალა თარიღი/სტუმრები',confirm:'დაადასტურა',decline:'უარყო',add:'დაამატა',remove:'წაშალა',restore:'აღადგინა',purge:'სამუდამოდ წაშალა',price:'შეცვალა ფასი',pay:'მიიღო გადახდა',unpay:'წაშალა გადახდა',move:'გადაიყვანა სხვა ნომერში',guestnote:'შეცვალა შენიშვნა',hk:'შეცვალა დალაგება',block:'დახურა ნომერი',unblock:'გახსნა ნომერი',item:'დაამატა სერვისი',checkin:'მონიშნა შესვლა',cancel:'გააუქმა (სტუმარმა)',uncancel:'აღადგინა გაუქმებული',checkout:'მონიშნა გასვლა',invoice:'შეცვალა ინვოისი',unitem:'წაშალა სერვისი',services:'შეცვალა სერვისების სია'};
+const VERB={wipe:'გაასუფთავა ყველა ჯავშანი და ჟურნალი',remark:'შეცვალა ჩვენი შენიშვნა',edit:'შეცვალა თარიღი/სტუმრები',confirm:'დაადასტურა',decline:'უარყო',add:'დაამატა',remove:'წაშალა',restore:'აღადგინა',purge:'სამუდამოდ წაშალა',price:'შეცვალა ფასი',pay:'მიიღო გადახდა',unpay:'წაშალა გადახდა',move:'გადაიყვანა სხვა ნომერში',guestnote:'შეცვალა შენიშვნა',hk:'შეცვალა დალაგება',block:'დახურა ნომერი',unblock:'გახსნა ნომერი',item:'დაამატა სერვისი',checkin:'მონიშნა შესვლა',cancel:'გააუქმა (სტუმარმა)',noshow:'მონიშნა „არ მოვიდა“',agent:'შეცვალა სააგენტო',uncancel:'აღადგინა გაუქმებული',checkout:'მონიშნა გასვლა',invoice:'შეცვალა ინვოისი',unitem:'წაშალა სერვისი',services:'შეცვალა სერვისების სია'};
 const logOf=id=>J.actlog.filter(x=>x.target==='bk:'+id);
 const decidedBy=b=>{const l=logOf(b.id).filter(x=>['confirm','decline','add'].includes(x.op)).pop();return l?l.who:''};
 const at=s=>{const d=new Date(s);if(isNaN(d))return '';const p=n=>String(n).padStart(2,'0');return J.fmt(`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`)+', '+p(d.getHours())+':'+p(d.getMinutes())};
@@ -892,7 +966,7 @@ function renderCal(){
   let i=0;
   while(i<DAYS){
    const d=days[i],b=conf.find(x=>x.room===r.id&&x.from<=d&&d<x.to),bl=!b&&J.blocks.find(x=>x.room===r.id&&x.from<=d&&d<x.to);
-   if(bl){const until=bl.to<end?bl.to:end,span=J.nights(d,until);h+=`<td colspan="${span}"><button class="bk blkc ${bl.from===d?'start':''}" data-blk="${bl.id}" title="დახურულია: ${J.fmtRange(bl.from,bl.to)}${bl.reason?' · '+esc(bl.reason):''}">🔧 ${esc(bl.reason||'დახურულია')}</button></td>`;i+=span;continue}
+   if(bl){const until=bl.to<end?bl.to:end,span=J.nights(d,until);h+=`<td colspan="${span}"><button class="bk blkc ${bl.from===d?'start':''}${bl.feed?' feed':''}" data-blk="${bl.id}" title="${bl.feed?esc(bl.reason)+': ':'დახურულია: '}${J.fmtRange(bl.from,bl.to)}">${bl.feed?'🔗':'🔧'} ${esc(bl.reason||'დახურულია')}</button></td>`;i+=span;continue}
    if(b){const until=b.to<end?b.to:end,span=J.nights(d,until);const ps=J.payState(b).status;const c=colorOf[b.id]||PAL[0];h+=`<td colspan="${span}"><button class="bk ${b.from===d?'start':''} pay-${ps}" style="--bk:${c[0]};--bka:${c[1]}" data-id="${b.id}" title="${esc(b.name)}, ${J.fmtRange(b.from,b.to)}, ${gTxt(b)}, ${PS[ps]}${b.wish?' · 💬 '+esc(b.wish):''}${b.remark?' · 📌 '+esc(b.remark):''}${J.guestNote(b.phone)?' · 📝 '+esc(J.guestNote(b.phone)):''}">${b.wish?'<i class="mk">💬</i>':''}${b.remark?'<i class="mk">📌</i>':''}${J.guestNote(b.phone)?'<i class="mk">📝</i>':''}${+b.children?`<i class="mk">👶${b.children}</i>`:''}${esc(b.name)}</button></td>`;i+=span}
    else{const g=inGap(r.id,d);h+=`<td><button class="cell${g?' gap':''}" data-room="${r.id}" data-day="${d}" aria-label="ნომერი ${r.id}, ${J.fmt(d)}, ${g?'მოკლე ფანჯარა':'თავისუფალი'}"${g?' title="მოკლე ფანჯარა: ჩატბოტი სთავაზობს"':''}></button></td>`;i++}
   }
@@ -906,7 +980,7 @@ $('next').onclick=()=>{if(view==='month'){start=shiftMonth(start,1);DAYS=monthLe
 $('todayBtn').onclick=()=>{start=view==='month'?monthStart(J.today()):J.today();if(view==='month')DAYS=monthLen(start);renderCal()};
 $('cal').addEventListener('click',e=>{
  const c=e.target.closest('.cell');if(c)return openAdd(c.dataset.room,c.dataset.day);
- const bl=e.target.closest('[data-blk]');if(bl){const x=J.blocks.find(y=>y.id===bl.dataset.blk);if(x&&J.can('book')&&confirm('გავხსნათ ნომერი '+x.room+' ('+J.fmtRange(x.from,x.to)+')?')){J.removeBlock(x.id);renderAll()}return}
+ const bl=e.target.closest('[data-blk]');if(bl){const x=J.blocks.find(y=>y.id===bl.dataset.blk);if(x&&x.feed){alert('ეს დღეები '+(x.reason||'სხვა საიტიდან')+' მოვიდა ('+J.fmtRange(x.from,x.to)+'). თუ იქ გაუქმდება, აქაც თავისით მოიხსნება.');return}if(x&&J.can('book')&&confirm('გავხსნათ ნომერი '+x.room+' ('+J.fmtRange(x.from,x.to)+')?')){J.removeBlock(x.id);renderAll()}return}
  const b=e.target.closest('.bk');if(b)openInfo(b.dataset.id);
 });
 
@@ -924,12 +998,12 @@ const addQuote=()=>{const rm=J.ROOMS.find(x=>x.id===$('aRoom').value),f=$('aFrom
 ['aRoom','aFrom','aN'].forEach(id=>$(id).addEventListener('input',addQuote));
 $('aNight').addEventListener('input',()=>{priceBy='night';$('aPrice').value=$('aNight').value===''?'':Math.round((+$('aNight').value||0)*nOf());addSum()});
 $('aPrice').addEventListener('input',()=>{priceBy='total';$('aNight').value=$('aPrice').value===''?'':r2((+$('aPrice').value||0)/nOf());addSum()});
-function openAdd(room,day){$('aRoom').value=room||J.ROOMS[0].id;$('aFrom').value=day||J.today();$('aN').value=2;$('aName').value='';$('aTel').value='';$('aMsg').hidden=true;priceBy='auto';addQuote();$('dlg').showModal()}
+function openAdd(room,day){const AG=J.agents();$('aAgentL').hidden=!AG.length;$('aAgent').innerHTML='<option value="">—</option>'+AG.map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');$('aRoom').value=room||J.ROOMS[0].id;$('aFrom').value=day||J.today();$('aN').value=2;$('aName').value='';$('aTel').value='';$('aMsg').hidden=true;priceBy='auto';addQuote();$('dlg').showModal()}
 $('addBtn').onclick=()=>openAdd();
 $('aSave').addEventListener('click',e=>{
  e.preventDefault();const f=$('aFrom').value,n=Math.max(1,+$('aN').value||1),nm=$('aName').value.trim();
  if(!f||!nm){$('aMsg').textContent='შეავსეთ თარიღი და სახელი.';$('aMsg').hidden=false;return}
- const r=J.addManual({room:$('aRoom').value,from:f,to:J.addDays(f,n),name:nm,phone:$('aTel').value.trim(),guests:J.types[J.ROOMS.find(x=>x.id===$('aRoom').value).type].cap,price:$('aPrice').value});
+ const r=J.addManual({room:$('aRoom').value,from:f,to:J.addDays(f,n),name:nm,phone:$('aTel').value.trim(),guests:J.types[J.ROOMS.find(x=>x.id===$('aRoom').value).type].cap,price:$('aPrice').value,agent:$('aAgent').value});
  if(!r.ok){$('aMsg').textContent=r.msg;$('aMsg').hidden=false;return}
  $('dlg').close();renderAll();
 });
@@ -1003,8 +1077,9 @@ function msgLinkHtml(b,txt){const n=waNum(b.phone),tel=String(b.phone||'').repla
 function msgLinks(b){const l=$('mLinks');if(l)l.innerHTML=msgLinkHtml(b,$('mText').value)}
 document.addEventListener('input',e=>{if(e.target.id==='mText'&&infoId){const b=J.bookings.find(x=>x.id===infoId);if(b)msgLinks(b)}});
 /* --- settings: one tab, a few sections --- */
-const secBtns=[...document.querySelectorAll('.snav [data-sec]')];
-secBtns.forEach(bt=>bt.addEventListener('click',()=>{secBtns.forEach(x=>x.setAttribute('aria-selected',x===bt));document.querySelectorAll('#p-price .sec').forEach(x=>{x.hidden=x.dataset.sec!==bt.dataset.sec});window.scrollTo({top:0})}));
+// a panel's parts (settings, income): one part shown at a time
+document.querySelectorAll('.snav').forEach(nav=>{const panel=nav.closest('.panel'),bs=[...nav.querySelectorAll('[data-sec]')];
+ bs.forEach(bt=>bt.addEventListener('click',()=>{bs.forEach(x=>x.setAttribute('aria-selected',x===bt));panel.querySelectorAll(':scope > .sec').forEach(x=>{x.hidden=x.dataset.sec!==bt.dataset.sec})}))});
 let plDraft=null,plDirty=false;
 function renderPlans(){
  if(!plDraft)plDraft=J.allPlans().map(x=>({...x}));
@@ -1012,20 +1087,92 @@ function renderPlans(){
  <label>ფასდაკლება, %<input type="number" data-p="pct" min="-100" max="90" step="1" inputmode="numeric" value="${x.pct??''}" placeholder="0"></label>
  <label class="su">დამატება ღამეში, ₾<span style="display:flex;gap:8px;align-items:center"><input type="number" data-p="add" min="0" step="1" inputmode="numeric" value="${x.add??''}" placeholder="0" style="max-width:110px"><span class="ck" style="min-height:0"><input type="checkbox" data-p="perGuest"${x.perGuest?' checked':''}> სტუმარზე</span></span></label>
  <label class="ck"><input type="checkbox" data-p="nonref"${x.refundable===false?' checked':''}>დაუბრუნებელი</label>
- <button type="button" class="btn nob" data-pldel="${i}" aria-label="წაშლა: ${esc(x.name||'')}">✕</button></div>`).join(''):'<p class="src" style="margin:0">გეგმა ჯერ არ არის. სტუმარი ნომრის ჩვეულებრივ ფასს ხედავს.</p>';
+ <button type="button" class="btn nob" data-pldel="${i}" aria-label="წაშლა: ${esc(x.name||'')}">✕</button>
+ <details><summary>სახელი ინგლისურად და რუსულად${x.nameEn||x.nameRu?' ✓':''}</summary><div class="tr"><label>English<input type="text" data-p="nameEn" maxlength="40" value="${esc(x.nameEn||'')}"></label><label>Русский<input type="text" data-p="nameRu" maxlength="40" value="${esc(x.nameRu||'')}"></label></div></details></div>`).join(''):'<p class="src" style="margin:0">გეგმა ჯერ არ არის. სტუმარი ნომრის ჩვეულებრივ ფასს ხედავს.</p>';
  const r=J.cancelRule();if(document.activeElement!==$('crDays'))$('crDays').value=r.days??'';if(document.activeElement!==$('crPct'))$('crPct').value=r.pct??'';
 }
 const plSet=e=>{const r=e.target.closest('.svrow'),f=e.target.dataset.p;if(!r||!f)return;const x=plDraft[+r.dataset.i];if(f==='nonref')x.refundable=!e.target.checked;else x[f]=e.target.type==='checkbox'?e.target.checked:e.target.value;plDirty=true};
 $('plList').addEventListener('input',plSet);$('plList').addEventListener('change',plSet);
 $('plList').addEventListener('click',e=>{const d=e.target.closest('[data-pldel]');if(!d)return;plDraft.splice(+d.dataset.pldel,1);plDirty=true;renderPlans()});
 $('plAdd').addEventListener('click',()=>{plDraft.push({id:Math.random().toString(36).slice(2,8),name:'',pct:'',add:'',perGuest:true});plDirty=true;renderPlans();const ins=$('plList').querySelectorAll('[data-p=name]');ins[ins.length-1]?.focus()});
-$('plSave').addEventListener('click',()=>{const list=plDraft.filter(x=>String(x.name||'').trim()).map(x=>({id:x.id||Math.random().toString(36).slice(2,8),name:String(x.name).trim().slice(0,40),pct:Math.round(+x.pct||0),add:Math.max(0,Math.round(+x.add||0)),perGuest:!!x.perGuest,refundable:x.refundable===false?false:true}));
+$('plSave').addEventListener('click',()=>{const list=plDraft.filter(x=>String(x.name||'').trim()).map(x=>({id:x.id||Math.random().toString(36).slice(2,8),name:String(x.name).trim().slice(0,40),nameEn:String(x.nameEn||'').trim().slice(0,40),nameRu:String(x.nameRu||'').trim().slice(0,40),pct:Math.round(+x.pct||0),add:Math.max(0,Math.round(+x.add||0)),perGuest:!!x.perGuest,refundable:x.refundable===false?false:true}));
  J.setSetting('plans',JSON.stringify(list));plDraft=null;plDirty=false;renderPlans();const m=$('plMsg');m.hidden=false;m.className='msg good';m.textContent='შენახულია: '+list.length+' გეგმა.'});
 $('crSave').addEventListener('click',()=>{J.setSetting('cancelRule',JSON.stringify({days:Math.max(0,Math.round(+$('crDays').value||0)),pct:Math.max(0,Math.min(100,Math.round(+$('crPct').value||0)))}));const m=$('crMsg');m.hidden=false;m.className='msg good';m.textContent='გაუქმების წესი შეინახა.'});
 let tplDirty=false;
 function renderTpl(){if(tplDirty)return;const T=J.templates();$('tplList').innerHTML=Object.entries(T).map(([k,v])=>`<div class="tplc"><h2>${esc(v.title)}</h2>${[['ka','ქართულად'],['en','English'],['ru','Русский']].map(([l,n])=>`<label>${n}<textarea data-tk="${k}" data-tl="${l}" rows="3">${esc(v[l])}</textarea></label>`).join('')}</div>`).join('')}
 $('tplList').addEventListener('input',()=>{tplDirty=true});
 $('tplSave').addEventListener('click',()=>{const o={};$('tplList').querySelectorAll('[data-tk]').forEach(t=>{(o[t.dataset.tk]=o[t.dataset.tk]||{})[t.dataset.tl]=t.value.trim().slice(0,1000)});J.setSetting('msgTpl',JSON.stringify(o));tplDirty=false;renderTpl();const m=$('tplMsg');m.hidden=false;m.className='msg good';m.textContent='ტექსტები შეინახა.'});
+/* --- price rules, stay rules, codes, agencies (settings → their sections) --- */
+const WD=[['1','ორშ'],['2','სამ'],['3','ოთხ'],['4','ხუთ'],['5','პარ'],['6','შაბ'],['0','კვი']];
+const wdBoxes=(name,sel)=>WD.map(([v,n])=>`<label><input type="checkbox" data-${name}="${v}"${(sel||[]).includes(+v)?' checked':''}>${n}</label>`).join('');
+let rl=null,rlDirty=false,sr=null,srDirty=false,cd=null,cdDirty=false,ag=null,agDirty=false;
+const rid=()=>Math.random().toString(36).slice(2,8);
+function renderRules(){
+ if(!rlDirty){const r=J.priceRules();rl={wk:(r.weekend&&r.weekend.days)||[5,6],wkPct:(r.weekend&&r.weekend.pct)??'',long:(r.long||[]).map(x=>({...x})),dates:(r.dates||[]).map(x=>({...x}))}}
+ $('wkDays').innerHTML=WD.map(([v,n])=>`<label><input type="checkbox" data-wk="${v}"${rl.wk.includes(+v)?' checked':''}>${n} ღამე</label>`).join('');
+ if(document.activeElement!==$('wkPct'))$('wkPct').value=rl.wkPct;
+ $('lgList').innerHTML=rl.long.map((x,i)=>`<div class="rrow" data-lg="${i}"><label>ღამე და მეტი<input type="number" data-k="nights" min="2" max="60" inputmode="numeric" value="${x.nights??''}"></label><label>ფასდაკლება, %<input type="number" data-k="pct" min="0" max="90" inputmode="numeric" value="${x.pct??''}"></label><button type="button" class="btn nob" data-lgdel="${i}" aria-label="წაშლა">✕</button></div>`).join('')||'<p class="src" style="margin:0">არ არის.</p>';
+ $('dtList').innerHTML=rl.dates.map((x,i)=>`<div class="rrow" data-dt="${i}"><label>პირველი ღამე<input type="date" data-k="from" value="${x.from||''}" class="w" style="width:170px"></label><label>ბოლო ღამის მერე<input type="date" data-k="to" value="${x.to||''}" style="width:170px"></label><label>ცვლილება, %<input type="number" data-k="pct" min="-90" max="300" inputmode="numeric" value="${x.pct??''}"></label><label>შენიშვნა<input data-k="label" maxlength="40" value="${esc(x.label||'')}" class="w"></label><button type="button" class="btn nob" data-dtdel="${i}" aria-label="წაშლა">✕</button></div>`).join('')||'<p class="src" style="margin:0">არ არის.</p>';
+ if(!srDirty)sr=J.stayRules().map(x=>({...x}));
+ $('srList').innerHTML=sr.map((x,i)=>`<div class="rrow" data-sr="${i}"><label>დან (თვე-დღე)<input data-k="from" placeholder="12-25" maxlength="5" value="${esc(x.from||'')}" inputmode="numeric"></label><label>მდე<input data-k="to" placeholder="01-07" maxlength="5" value="${esc(x.to||'')}" inputmode="numeric"></label><label>მინიმუმ ღამე<input type="number" data-k="min" min="1" max="30" inputmode="numeric" value="${x.min??''}"></label><div><span class="src" style="font-size:13px">შესვლა არ ხდება</span><div class="wdays">${wdBoxes('ni',x.noIn)}</div></div><button type="button" class="btn nob" data-srdel="${i}" aria-label="წაშლა">✕</button></div>`).join('')||'<p class="src" style="margin:0">წესი არ არის: ნებისმიერი ღამე და ნებისმიერი დღე.</p>';
+}
+$('p-price').addEventListener('input',e=>{const t=e.target;
+ if(t.dataset.wk!=null){rl.wk=[...$('wkDays').querySelectorAll('input:checked')].map(x=>+x.dataset.wk);rlDirty=true}
+ if(t.id==='wkPct'){rl.wkPct=t.value;rlDirty=true}
+ const lg=t.closest('[data-lg]');if(lg){rl.long[+lg.dataset.lg][t.dataset.k]=t.value;rlDirty=true}
+ const dt=t.closest('[data-dt]');if(dt){rl.dates[+dt.dataset.dt][t.dataset.k]=t.value;rlDirty=true}
+ const r=t.closest('[data-sr]');if(r){const x=sr[+r.dataset.sr];if(t.dataset.ni!=null)x.noIn=[...r.querySelectorAll('[data-ni]:checked')].map(y=>+y.dataset.ni);else x[t.dataset.k]=t.value;srDirty=true}
+ const c=t.closest('[data-cd]');if(c){const x=cd[+c.dataset.cd];x[t.dataset.k]=t.type==='checkbox'?t.checked:t.value;cdDirty=true}
+ const a=t.closest('[data-ag]');if(a){ag[+a.dataset.ag][t.dataset.k]=t.value;agDirty=true}
+});
+$('p-price').addEventListener('click',e=>{const t=e.target;
+ const del=(k,arr,dirty)=>{const b=t.closest('[data-'+k+']');if(!b)return false;arr.splice(+b.getAttribute('data-'+k),1);dirty();return true};
+ if(del('lgdel',rl?.long||[],()=>{rlDirty=true;renderRules()}))return;
+ if(del('dtdel',rl?.dates||[],()=>{rlDirty=true;renderRules()}))return;
+ if(del('srdel',sr||[],()=>{srDirty=true;renderRules()}))return;
+ if(del('cddel',cd||[],()=>{cdDirty=true;renderCodes()}))return;
+ if(del('agdel',ag||[],()=>{agDirty=true;renderCodes()}))return;
+ if(t.id==='lgAdd'){rl.long.push({nights:7,pct:10});rlDirty=true;renderRules()}
+ if(t.id==='dtAdd'){rl.dates.push({from:'',to:'',pct:20,label:''});rlDirty=true;renderRules()}
+ if(t.id==='srAdd'){sr.push({from:'12-25',to:'01-07',min:3,noIn:[]});srDirty=true;renderRules()}
+ if(t.id==='cdAdd'){cd.push({code:'',pct:10,from:'',to:'',on:true});cdDirty=true;renderCodes()}
+ if(t.id==='agAdd'){ag.push({id:rid(),name:'',pct:10,phone:''});agDirty=true;renderCodes()}
+ if(t.id==='rlSave'){const v={weekend:{days:rl.wk,pct:Math.round(+rl.wkPct||0)},long:rl.long.filter(x=>+x.nights>1&&+x.pct>0).map(x=>({nights:Math.round(+x.nights),pct:Math.round(+x.pct)})),dates:rl.dates.filter(x=>x.from&&x.to&&x.to>x.from&&+x.pct).map(x=>({from:x.from,to:x.to,pct:Math.round(+x.pct),label:String(x.label||'').slice(0,40)}))};
+  J.setSetting('priceRules',JSON.stringify(v));rlDirty=false;renderRules();const m=$('rlMsg');m.hidden=false;m.className='msg good';m.textContent='ფასის წესები შეინახა.'}
+ if(t.id==='srSave'){const ok=x=>/^\d\d-\d\d$/.test(x.from||'')&&/^\d\d-\d\d$/.test(x.to||'');const bad=sr.find(x=>!ok(x));const m=$('srMsg');m.hidden=false;
+  if(bad){m.className='msg';m.textContent='თარიღი ჩაწერეთ ასე: თვე-დღე, მაგ.: 12-25';return}
+  J.setSetting('stayRules',JSON.stringify(sr.map(x=>({from:x.from,to:x.to,min:Math.max(1,Math.round(+x.min||1)),noIn:x.noIn||[]}))));srDirty=false;renderRules();m.className='msg good';m.textContent='წესები შეინახა.'}
+ if(t.id==='bkGo'){const v=Math.round(+$('bkPct').value||0),m=$('bkMsg');m.hidden=false;if(!v){m.className='msg';m.textContent='ჩაწერეთ პროცენტი, მაგ.: 10';return}
+  if(!confirm('ყველა ფასი '+(v>0?'გაიზრდება ':'შემცირდება ')+Math.abs(v)+'%-ით. გავაგრძელოთ?'))return;J.bulkPrices(v);$('bkPct').value='';renderAll();m.className='msg good';m.textContent='ფასები შეიცვალა '+(v>0?'+':'')+v+'%-ით.'}
+ if(t.id==='cdSave'){const list=cd.filter(x=>String(x.code||'').trim()).map(x=>({code:String(x.code).trim().toUpperCase().replace(/\s+/g,'').slice(0,30),pct:Math.max(1,Math.min(90,Math.round(+x.pct||0))),from:x.from||'',to:x.to||'',on:x.on!==false}));
+  J.setSetting('codes',JSON.stringify(list));cdDirty=false;renderCodes();const m=$('cdMsg');m.hidden=false;m.className='msg good';m.textContent='შენახულია: '+list.length+' კოდი.'}
+ if(t.id==='agSave'){const list=ag.filter(x=>String(x.name||'').trim()).map(x=>({id:x.id||rid(),name:String(x.name).trim().slice(0,60),pct:Math.max(0,Math.min(50,+x.pct||0)),phone:String(x.phone||'').trim().slice(0,30)}));
+  J.setSetting('agents',JSON.stringify(list));agDirty=false;renderCodes();const m=$('agMsg');m.hidden=false;m.className='msg good';m.textContent='შენახულია: '+list.length+' სააგენტო.'}
+});
+function renderCodes(){
+ if(!cdDirty)cd=J.codes().map(x=>({...x}));if(!agDirty)ag=J.agents().map(x=>({...x}));
+ $('cdList').innerHTML=cd.map((x,i)=>`<div class="rrow" data-cd="${i}"><label>კოდი<input data-k="code" maxlength="30" value="${esc(x.code||'')}" placeholder="WINTER" style="text-transform:uppercase"></label><label>ფასდაკლება, %<input type="number" data-k="pct" min="1" max="90" inputmode="numeric" value="${x.pct??''}"></label><label>მოქმედებს დან<input type="date" data-k="from" value="${x.from||''}" style="width:170px"></label><label>მდე<input type="date" data-k="to" value="${x.to||''}" style="width:170px"></label><label class="ck" style="display:flex;align-items:center;gap:6px;min-height:44px;color:var(--ink)"><input type="checkbox" data-k="on" style="width:20px"${x.on!==false?' checked':''}>ჩართულია</label><button type="button" class="btn nob" data-cddel="${i}" aria-label="წაშლა">✕</button></div>`).join('')||'<p class="src" style="margin:0">კოდი ჯერ არ არის.</p>';
+ $('agList').innerHTML=ag.map((x,i)=>`<div class="rrow" data-ag="${i}"><label>სახელი<input data-k="name" maxlength="60" value="${esc(x.name||'')}" class="w"></label><label>საკომისიო, %<input type="number" data-k="pct" min="0" max="50" step="0.5" inputmode="decimal" value="${x.pct??''}"></label><label>ტელეფონი<input data-k="phone" maxlength="30" value="${esc(x.phone||'')}" class="w" inputmode="tel"></label><button type="button" class="btn nob" data-agdel="${i}" aria-label="წაშლა">✕</button></div>`).join('')||'<p class="src" style="margin:0">სააგენტო ჯერ არ არის.</p>';
+}
+/* --- Booking.com, Airbnb: calendar links both ways (works on the real site; the demo has no server) --- */
+let icData=null;
+async function loadIcal(){if(J.mode!=='api'){$('icOut').innerHTML='<p class="src" style="margin:0">ეს ნამდვილ საიტზე მუშაობს. დემოში კალენდრები არ ერთდება.</p>';$('icList').innerHTML='';return}
+ try{const r=await fetch('api/admin/ical',{cache:'no-store'});icData=await r.json()}catch(e){icData=null}renderIcal()}
+function renderIcal(){if(!icData||!icData.ok)return;
+ if(!$('icRoom').options.length)$('icRoom').innerHTML=J.ROOMS.map(r=>`<option value="${r.id}">${r.id} · ${esc(typeName(r.type))}</option>`).join('');
+ $('icOut').innerHTML=J.ROOMS.map(r=>`<div class="icl"><b>ნომერი ${esc(r.id)}</b><code>${esc(icData.links[r.id]||'')}</code><button type="button" class="btn" data-copy="${esc(icData.links[r.id]||'')}">კოპირება</button></div>`).join('');
+ $('icList').innerHTML=icData.feeds.length?icData.feeds.map(f=>`<div class="icl"><div><b>${esc(f.name)}</b> · ნომერი ${esc(f.room)}<br><span class="src">${f.lastError?'⚠️ '+esc(f.lastError):f.lastSync?'განახლდა '+esc(at(f.lastSync)):'ჯერ არ განახლებულა'}</span></div><div style="display:flex;gap:6px"><button type="button" class="btn" data-icsync="${f.id}">განახლება</button><button type="button" class="btn nob" data-icdel="${f.id}">მოხსნა</button></div></div>`).join(''):'<p class="src" style="margin:0">ჯერ არცერთი საიტი არ არის დაკავშირებული.</p>'}
+const icPost=async b=>{const r=await fetch('api/admin/ical',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)});return r.json().catch(()=>({ok:false}))};
+$('p-price').addEventListener('click',async e=>{
+ const cp=e.target.closest('[data-copy]');if(cp){navigator.clipboard?.writeText(cp.dataset.copy).then(()=>flash('ბმული დაკოპირდა.',true),()=>{});return}
+ const m=$('icMsg');
+ if(e.target.id==='icAdd'){m.hidden=false;m.className='msg';m.textContent='ვამოწმებ…';const o=await icPost({op:'add',room:$('icRoom').value,name:$('icName').value,url:$('icUrl').value});
+  m.className='msg'+(o.ok&&o.sync&&o.sync.ok?' good':'');m.textContent=!o.ok?(o.msg||'ვერ დაემატა'):o.sync.ok?'დაკავშირდა. მოვიდა '+o.sync.events+' ჯავშანი.':'დაემატა, მაგრამ კალენდარი ვერ წავიკითხე: '+o.sync.error;if(o.ok){$('icUrl').value='';await loadIcal();J.resync&&J.resync()}return}
+ const sy=e.target.closest('[data-icsync]');if(sy){sy.disabled=true;const o=await icPost({op:'sync',id:sy.dataset.icsync});m.hidden=false;m.className='msg'+(o.sync&&o.sync.ok?' good':'');m.textContent=o.sync&&o.sync.ok?'განახლდა: '+o.sync.events+' ჯავშანი.':'ვერ განახლდა: '+((o.sync&&o.sync.error)||o.msg||'');await loadIcal();J.resync&&J.resync();return}
+ const dl=e.target.closest('[data-icdel]');if(dl&&confirm('მოვხსნათ ეს კალენდარი? მისი დღეები ჩვენს კალენდარში აღარ იქნება დაკავებული.')){await icPost({op:'remove',id:dl.dataset.icdel});await loadIcal();J.resync&&J.resync()}
+});
+document.querySelector('.snav [data-sec="ical"]').addEventListener('click',loadIcal);
+function noShowAsk(id){const b=J.bookings.find(x=>x.id===id);if(!b)return;const f=J.noShowFee(b),v=prompt('სტუმარი არ მოვიდა: ნომერი გათავისუფლდება. საფასური, ₾ (თქვენი წესით: '+f+' ₾):',f);if(v===null)return;const r=J.noShow(id,v);if(infoId===id)drawInfo();renderAll();flash(r.ok?'მოინიშნა „არ მოვიდა“. საფასური '+r.fee+' ₾.':r.msg,r.ok)}
 /* --- housekeeping and closed rooms --- */
 function renderHk(){
  const t=J.today(),conf=J.bookings.filter(b=>b.status==='confirmed'),cb=J.can('book');
@@ -1033,12 +1180,20 @@ function renderHk(){
  $('hkK').innerHTML=`<div class="kpi ${cnt('dirty')?'warn':''}"><small>დასალაგებელი</small><b>${cnt('dirty')}</b><span>ნომერი</span></div><div class="kpi"><small>შესამოწმებელი</small><b>${cnt('inspect')}</b><span>ნომერი</span></div><div class="kpi"><small>დალაგებული</small><b>${cnt('clean')}</b><span>${J.ROOMS.length}-დან</span></div>`;
  $('hkRooms').innerHTML=J.ROOMS.map(r=>{const h=J.hkOf(r.id),o=conf.find(b=>b.room===r.id&&b.to===t),i=conf.find(b=>b.room===r.id&&b.from===t),s=conf.find(b=>b.room===r.id&&b.from<t&&t<b.to),bl=J.blocks.find(x=>x.room===r.id&&x.from<=t&&t<x.to);
   const what=bl?'🔧 დახურულია'+(bl.reason?': '+esc(bl.reason):''):o&&i?'გადის და შემოდის დღეს':o?(o.checkedOut?'სტუმარი გავიდა':'სტუმარი გადის დღეს'):i?'სტუმარი შემოდის დღეს':s?'სტუმარი რჩება':'თავისუფალი';
-  return `<div class="rt ${bl?'blk':o?'out':i?'in':s?'busy':'free'}"><b>${r.id}</b><small>${esc(typeName(r.type))}</small><span class="st">${what}</span><span class="hk hk-${h.s}">${J.HK[h.s]}${h.at?' · '+esc(at(h.at)):''}</span><div class="hkb">${Object.entries(J.HK).map(([k,v])=>`<button type="button" data-hk="${k}" data-room="${r.id}" aria-pressed="${k===h.s}">${v}</button>`).join('')}</div></div>`}).join('');
+  return `<div class="rt ${bl?'blk':o?'out':i?'in':s?'busy':'free'}"><b>${r.id}</b><small>${esc(typeName(r.type))}</small><span class="st">${what}</span><span class="hk hk-${h.s}">${J.HK[h.s]}${h.at?' · '+esc(at(h.at)):''}</span>${J.issues.some(x=>x.room===r.id&&x.status==='open')?`<span class="hk hk-dirty">🔧 ${esc(J.issues.filter(x=>x.room===r.id&&x.status==='open').map(x=>x.text).join('; ').slice(0,60))}</span>`:''}<div class="hkb">${Object.entries(J.HK).map(([k,v])=>`<button type="button" data-hk="${k}" data-room="${r.id}" aria-pressed="${k===h.s}">${v}</button>`).join('')}</div></div>`}).join('');
  $('blkCard').hidden=!cb;if(!cb)return;
  if(!$('blRoom').options.length)$('blRoom').innerHTML=J.ROOMS.map(r=>`<option value="${r.id}">${r.id} · ${esc(typeName(r.type))}</option>`).join('');
- const list=J.blocks.filter(x=>x.to>=t).sort((a,b)=>a.from<b.from?-1:1);
+ const list=J.blocks.filter(x=>x.to>=t&&!x.feed).sort((a,b)=>a.from<b.from?-1:1);
  $('blList').innerHTML=list.length?list.map(x=>`<div class="gi2"><div><b>ნომერი ${esc(x.room)}</b> · ${J.fmtRange(x.from,x.to)}${x.reason?' · '+esc(x.reason):''}</div><button type="button" class="btn" data-unblk="${x.id}">გახსნა</button></div>`).join(''):'<p class="src" style="margin:0">დახურული ნომერი არ არის.</p>';
 }
+function renderIssues(){
+ if(!$('isRoom').options.length)$('isRoom').innerHTML=J.ROOMS.map(r=>`<option value="${r.id}">${r.id} · ${esc(typeName(r.type))}</option>`).join('');
+ const open=J.issues.filter(x=>x.status==='open'),done=J.issues.filter(x=>x.status==='done').slice(0,10);
+ $('isList').innerHTML=(open.length?open.map(x=>`<div class="gi2"><div><b>ნომერი ${esc(x.room)}</b> · ${esc(x.text)}<br><span class="src">${esc(x.by||'')} · ${esc(at(x.created))}</span></div><button type="button" class="btn okb" data-isdone="${x.id}">გასწორდა</button></div>`).join(''):'<p class="src" style="margin:0">ღია პრობლემა არ არის.</p>')
+  +(done.length?`<details class="redit"><summary>გასწორებული (${done.length})</summary>${done.map(x=>`<div class="gi2"><div>✓ ნომერი ${esc(x.room)} · ${esc(x.text)}<br><span class="src">${esc(x.doneBy||'')} · ${esc(at(x.doneAt))}</span></div><button type="button" class="btn" data-isundo="${x.id}">ხელახლა გახსნა</button></div>`).join('')}</details>`:'');
+}
+$('isAdd').addEventListener('click',()=>{const r=J.addIssue($('isRoom').value,$('isText').value);const m=$('isMsg');m.hidden=false;m.className='msg'+(r.ok?' good':'');m.textContent=r.ok?'ჩაიწერა.':r.msg;if(r.ok){$('isText').value='';renderAll()}});
+$('isList').addEventListener('click',e=>{const d=e.target.closest('[data-isdone]');if(d){J.issueDone(d.dataset.isdone);renderAll();return}const u=e.target.closest('[data-isundo]');if(u){J.issueDone(u.dataset.isundo,true);renderAll()}});
 $('hkRooms').addEventListener('click',e=>{const b=e.target.closest('[data-hk]');if(!b)return;J.setHk(b.dataset.room,b.dataset.hk);renderAll()});
 $('blAdd').addEventListener('click',()=>{const r=J.addBlock({room:$('blRoom').value,from:$('blFrom').value,to:$('blTo').value,reason:$('blWhy').value});const m=$('blMsg');m.hidden=false;m.className='msg'+(r.ok?' good':'');m.textContent=r.ok?'ნომერი დაიხურა ამ დღეებში.':r.msg;if(r.ok){$('blWhy').value='';renderAll()}});
 $('blList').addEventListener('click',e=>{const b=e.target.closest('[data-unblk]');if(!b)return;J.removeBlock(b.dataset.unblk);renderAll()});
@@ -1079,6 +1234,9 @@ function drawInfo(){
  <p style="margin:8px 0 0">ნომერი ${b.room||'—'} · ${esc(typeName(b.type))} · ${gTxt(b)}${b.plan?` · <b>${esc(b.plan.name)}</b>${b.plan.refundable===false?' (დაუბრუნებელი)':''}`:''}<br>${J.fmtRange(b.from,b.to)} · ${J.nights(b.from,b.to)} ღამე · ${SRC[b.source]||esc(b.source)}${b.note?' · '+esc(b.note):''}</p>
  ${payLine(b)}
  ${b.status==='confirmed'?`<div class="stay">${b.checkedIn?`<span class="done">✓ შემოვიდა ${esc(at(b.checkedIn))}</span>${b.checkedOut?'':`<button type="button" class="btn" data-cundo="in">გაუქმება</button>`}`:`<button type="button" class="btn okb" id="iCin">შემოვიდა</button>`}${b.checkedIn?(b.checkedOut?`<span class="done">✓ გავიდა ${esc(at(b.checkedOut))}</span><button type="button" class="btn" data-cundo="out">გაუქმება</button>`:`<button type="button" class="btn okb" id="iCout">გავიდა</button>`):''}</div>`:''}
+ ${b.status==='confirmed'&&!b.checkedIn&&b.from<=J.today()?`<p style="margin:8px 0 0"><button type="button" class="btn nob" data-nos="${b.id}">არ მოვიდა</button></p>`:''}
+ ${b.noShow?'<p class="msg" style="margin:8px 0 0">სტუმარი არ მოვიდა.</p>':''}
+ ${J.agents().length&&!dead?`<label style="display:grid;gap:6px;font-size:14px;color:var(--mute);margin-top:10px">სააგენტო<select id="iAgent" style="min-height:44px;padding:0 10px;border:1px solid var(--line);border-radius:8px;font-size:15px;max-width:320px"><option value="">—</option>${J.agents().map(a=>`<option value="${esc(a.id)}"${a.id===b.agent?' selected':''}>${esc(a.name)} (${a.pct||0}%)</option>`).join('')}</select></label>`:''}
  ${reviewAsk(b)}
  ${b.wish?`<div class="wish"><small>სტუმრის მოთხოვნა</small>💬 ${esc(b.wish)}</div>`:''}
  ${dead?(b.remark?`<div class="remark">📌 ${esc(b.remark)}</div>`:''):`<label class="rml">ჩვენი შენიშვნა (სტუმარი ვერ ხედავს)<textarea id="iRemark" rows="2" maxlength="500" placeholder="მაგ.: ბავშვის საწოლი, გვიან ჩამოსვლა 23:00-ზე">${esc(b.remark||'')}</textarea></label>`}
@@ -1104,6 +1262,7 @@ $('infoBody').addEventListener('change',e=>{
  if(e.target.id==='iPrice'){J.setPrice(infoId,e.target.value);drawInfo();renderAll()}
  if(e.target.id==='iRoom'){const r=J.moveRoom(infoId,e.target.value);drawInfo();renderAll();const m2=$('iMsg');m2.hidden=false;m2.className='msg'+(r.ok?' good':'');m2.textContent=r.ok?'სტუმარი გადავიდა ნომერში '+r.room+'. ფასი იგივე დარჩა; საჭიროების შემთხვევაში შეცვალეთ ზემოთ.':r.msg}
  if(e.target.name==='pm')payMethod=e.target.value;
+ if(e.target.id==='iAgent'){J.setAgent(infoId,e.target.value);renderAll();return}
  if(e.target.id==='mTpl'){const b=J.bookings.find(x=>x.id===infoId),l=$('mText').dataset.l||'ka';$('mText').value=J.fillTpl(J.templates()[e.target.value][l],b,hotelPhone(),l);msgLinks(b)}
  if(e.target.id==='xSvc'){const b=J.bookings.find(x=>x.id===infoId),sv=J.services.find(x=>x.id===e.target.value);$('xName').closest('label').hidden=e.target.value!=='_';
   $('xPrice').value=sv?sv.price:'';$('xQty').value=sv?J.unitsFor(sv.unit,b):1}
@@ -1128,6 +1287,7 @@ $('infoBody').addEventListener('click',async e=>{
  if(e.target.id==='iUncancel'){const r=J.uncancel(infoId);drawInfo();renderAll();flash(r.ok?'ჯავშანი აღდგა.':r.msg,r.ok);return}
  const mg=e.target.closest('[data-msgl]');if(mg){const b=J.bookings.find(x=>x.id===infoId),k=$('mTpl').value,T=J.templates()[k],txt=J.fillTpl(T[mg.dataset.msgl],b,hotelPhone(),mg.dataset.msgl);$('mText').value=txt;$('mText').dataset.l=mg.dataset.msgl;msgLinks(b);return}
  if(e.target.id==='mCopy'){navigator.clipboard?.writeText($('mText').value).then(()=>flash('ტექსტი დაკოპირდა.',true),()=>{});return}
+ const nos=e.target.closest('[data-nos]');if(nos){noShowAsk(nos.dataset.nos);return}
  if(e.target.id==='iCin'){J.checkIn(infoId);drawInfo();renderAll();return}
  if(e.target.id==='iCout'){const b=J.bookings.find(x=>x.id===infoId),left=J.payState(b).left;if(left&&!confirm('სტუმარს დარჩა გადასახდელი '+left+' ₾. მაინც მოვნიშნოთ გასვლა?'))return;J.checkOut(infoId);drawInfo();renderAll();return}
  const cu=e.target.closest('[data-cundo]');if(cu){cu.dataset.cundo==='in'?J.checkIn(infoId,true):J.checkOut(infoId,true);drawInfo();renderAll();return}
@@ -1220,6 +1380,10 @@ function presetRange(k){const t=J.today(),y=+t.slice(0,4),m=+t.slice(5,7),pad=n=
  return[`${y}-01-01`,`${y}-12-31`]}
 function setPreset(k){mPreset=k;const[a,b]=presetRange(k);$('mFrom').value=a;$('mTo').value=b;renderMoney()}
 $('mRange').addEventListener('click',e=>{const b=e.target.closest('[data-pr]');if(b)setPreset(b.dataset.pr)});
+$('ccDay').addEventListener('change',()=>renderMoney());
+$('exAdd').addEventListener('click',()=>{const r=J.addExpense({date:$('exDate').value,category:$('exCat').value,amount:$('exAmt').value,method:$('exMeth').value,note:$('exNote').value});const m=$('exMsg');m.hidden=false;m.className='msg'+(r.ok?' good':'');m.textContent=r.ok?'ხარჯი დაემატა.':r.msg;if(r.ok){$('exAmt').value='';$('exNote').value='';renderAll()}});
+$('mExp').addEventListener('click',e=>{const b=e.target.closest('[data-unexp]');if(!b)return;if(confirm('წავშალოთ ეს ხარჯი?')){J.removeExpense(b.dataset.unexp);renderAll()}});
+$('ccPrint').addEventListener('click',()=>{const w=window.open('','_blank');if(!w)return;w.document.write(`<!doctype html><html lang="ka"><head><meta charset="utf-8"><title>სალარო · ${esc($('ccDay').value)}</title><style>body{font-family:system-ui,'Noto Sans Georgian',sans-serif;max-width:720px;margin:24px auto;padding:0 16px}table{width:100%;border-collapse:collapse}td,th{padding:8px 4px;border-bottom:1px solid #ddd;text-align:left}tfoot td{font-weight:700}</style></head><body><h1 style="font-size:20px">${esc((J.hotel||{}).name||'')}: სალარო, ${esc(J.fmt($('ccDay').value))}</h1><table>${$('mCash').innerHTML}</table><script>print()<\/script></body></html>`);w.document.close()});
 ['mFrom','mTo'].forEach(id=>$(id).addEventListener('change',()=>{mPreset='';renderMoney()}));
 const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
 // payments of deleted bookings are not counted
@@ -1250,6 +1414,19 @@ function renderMoney(){
   const g={};its.forEach(x=>{(g[x.name]=g[x.name]||{n:0,q:0,s:0});g[x.name].n++;g[x.name].q+=+x.qty||1;g[x.name].s+=+x.amount||0});
   const ks=Object.keys(g).sort((a,b)=>g[b].s-g[a].s),tot=sum(its,x=>+x.amount||0);
   $('mSvc').innerHTML=ks.length?`<thead><tr><th>სერვისი</th><th>რაოდენობა</th><th>თანხა</th><th>%</th></tr></thead><tbody>${ks.map(k=>`<tr><td>${esc(k)}<div class="bar2"><i style="width:${tot?100*g[k].s/tot:0}%"></i></div></td><td>${g[k].q}</td><td>${money(g[k].s)}</td><td>${tot?Math.round(100*g[k].s/tot):0}%</td></tr>`).join('')}</tbody><tfoot><tr><td>სულ</td><td>${sum(ks,k=>g[k].q)}</td><td>${money(tot)}</td><td></td></tr></tfoot>`:'<tbody><tr><td style="color:var(--mute)">ამ პერიოდში სერვისი არ დამატებულა.</td></tr></tbody>';}
+ // expenses, profit, cash at the end of a day, agencies
+ {const ex=J.expenses.filter(x=>x.date>=from&&x.date<=to),spent=sum(ex,x=>x.amount);
+  $('mProfit').innerHTML=`<div class="kpi"><small>მიღებული</small><b>${money(got)}</b></div><div class="kpi warn"><small>ხარჯები</small><b>${money(spent)}</b><span>${ex.length} ჩანაწერი</span></div><div class="kpi main"><small>მოგება</small><b style="color:${got-spent<0?'var(--no)':'inherit'}">${money(got-spent)}</b></div>`;
+  const cats={};ex.forEach(x=>{cats[x.category]=(cats[x.category]||0)+x.amount});
+  $('mExp').innerHTML=ex.length?`<thead><tr><th>დღე</th><th>რაზე</th><th>როგორ</th><th>თანხა</th><th></th></tr></thead><tbody>${ex.map(x=>`<tr><td class="d">${J.fmt(x.date)}</td><td>${esc(x.category)}${x.note?`<br><span class="src">${esc(x.note)}</span>`:''}${x.by?`<br><span class="src">${esc(x.by)}</span>`:''}</td><td>${J.METHODS_OUT[x.method]||''}</td><td>${money(x.amount)}</td><td><button type="button" class="x" data-unexp="${x.id}" aria-label="ხარჯის წაშლა: ${esc(x.category)}, ${money(x.amount)}">×</button></td></tr>`).join('')}</tbody><tfoot>${Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td></td><td>${esc(k)}</td><td></td><td>${money(v)}</td><td></td></tr>`).join('')}<tr><td>სულ</td><td></td><td></td><td>${money(spent)}</td><td></td></tr></tfoot>`:'<tbody><tr><td style="color:var(--mute)">ამ პერიოდში ხარჯი არ არის.</td></tr></tbody>';
+  if(!$('ccDay').value)$('ccDay').value=J.today();if(!$('exDate').value)$('exDate').value=J.today();
+  const cday=$('ccDay').value,dp=livePays().filter(p=>p.date===cday),whoOf=p=>{const w=J.actlog.find(l=>l.op==='pay'&&l.ref===p.id);return w?w.who:'—'};
+  const people={};dp.forEach(p=>{const w=whoOf(p);(people[w]=people[w]||{});people[w][p.method]=(people[w][p.method]||0)+p.amount});
+  const exc=J.expenses.filter(x=>x.date===cday&&x.method==='cash'),cashIn=sum(dp.filter(p=>p.method==='cash'),p=>p.amount),cashOut=sum(exc,x=>x.amount);
+  $('mCash').innerHTML=`<thead><tr><th>ვინ მიიღო</th>${Object.values(J.METHODS).map(v=>`<th>${v}</th>`).join('')}<th>სულ</th></tr></thead><tbody>${Object.keys(people).length?Object.entries(people).map(([w,m])=>`<tr><td>${esc(w)}</td>${Object.keys(J.METHODS).map(k=>`<td>${m[k]?money(m[k]):'—'}</td>`).join('')}<td><b>${money(Object.values(m).reduce((a,b)=>a+b,0))}</b></td></tr>`).join(''):`<tr><td colspan="${Object.keys(J.METHODS).length+2}" style="color:var(--mute)">ამ დღეს გადახდა არ მიუღიათ.</td></tr>`}</tbody><tfoot><tr><td>ქეში შემოვიდა</td><td colspan="${Object.keys(J.METHODS).length}"></td><td>${money(cashIn)}</td></tr><tr><td>ქეშით დაიხარჯა</td><td colspan="${Object.keys(J.METHODS).length}"></td><td>−${money(cashOut)}</td></tr><tr><td>სალაროში უნდა იყოს (დღის შემოსავალი)</td><td colspan="${Object.keys(J.METHODS).length}"></td><td>${money(cashIn-cashOut)}</td></tr></tfoot>`;
+  const AG=J.agents();$('mAgCard').hidden=!AG.length;
+  if(AG.length){const rows=AG.map(a=>{const l=books.filter(x=>x.b.agent===a.id);const s=sum(l,x=>x.price);return{a,n:l.length,s,c:Math.round(s*(+a.pct||0)/100)}});
+   $('mAg').innerHTML=`<thead><tr><th>სააგენტო</th><th>ჯავშანი</th><th>ჯამი</th><th>საკომისიო</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.a.name)} <span class="src">${x.a.pct||0}%</span></td><td>${x.n}</td><td>${money(x.s)}</td><td>${money(x.c)}</td></tr>`).join('')}</tbody><tfoot><tr><td>სულ</td><td>${sum(rows,x=>x.n)}</td><td>${money(sum(rows,x=>x.s))}</td><td>${money(sum(rows,x=>x.c))}</td></tr></tfoot>`}}
  // by method
  const meth=Object.keys(J.METHODS).map(k=>{const l=pays.filter(p=>p.method===k);return{k,n:l.length,s:sum(l,p=>p.amount)}});
  $('mMethod').innerHTML=`<thead><tr><th>ხერხი</th><th>გადახდა</th><th>თანხა</th><th>%</th></tr></thead><tbody>${meth.map(m=>`<tr><td>${J.METHODS[m.k]}<div class="bar2"><i style="width:${got?100*m.s/got:0}%"></i></div></td><td>${m.n}</td><td>${money(m.s)}</td><td>${got?Math.round(100*m.s/got):0}%</td></tr>`).join('')}</tbody><tfoot><tr><td>სულ</td><td>${pays.length}</td><td>${money(got)}</td><td></td></tr></tfoot>`;
@@ -1297,7 +1474,7 @@ $('p-money').addEventListener('keydown',e=>{const r=e.target.closest('[data-open
 /* --- today: the daily screen --- */
 let day=J.today();
 const tel=p=>p?`<a href="tel:${esc(p.replace(/\s/g,''))}">${esc(p)}</a>`:'';
-function item(b,extra,act){const p=J.payState(b);return `<div class="it"><div><b>${esc(b.name)}</b> · ნომერი ${b.room}<br>${tel(b.phone)}${b.phone?' · ':''}<span class="src">${J.fmtRange(b.from,b.to)}, ${J.nights(b.from,b.to)} ღამე${extra||''}</span>${b.wish?`<div class="wish">💬 ${esc(b.wish)}</div>`:''}${b.remark?`<div class="remark">📌 ${esc(b.remark)}</div>`:''}${J.guestNote(b.phone)?`<div class="gnote">📝 ${esc(J.guestNote(b.phone))}</div>`:''}</div><div class="r">${p.left?`<span class="owe">დარჩა ${money(p.left)}</span>`:`<span class="pill p-ok">გადახდილი</span>`}${act==='in'?(b.checkedIn?`<span class="pill p-ok">✓ შემოვიდა</span>`:`<button type="button" class="btn okb" data-cin="${b.id}">შემოვიდა</button>`):act==='out'?(b.checkedOut?`<span class="pill p-ok">✓ გავიდა</span>`:`<button type="button" class="btn okb" data-cout="${b.id}">გავიდა</button>`):''}<button type="button" class="btn" data-open="${b.id}">${p.left?'გადახდა':'გახსნა'}</button></div></div>`}
+function item(b,extra,act){const p=J.payState(b);return `<div class="it"><div><b>${esc(b.name)}</b> · ნომერი ${b.room}<br>${tel(b.phone)}${b.phone?' · ':''}<span class="src">${J.fmtRange(b.from,b.to)}, ${J.nights(b.from,b.to)} ღამე${extra||''}</span>${b.wish?`<div class="wish">💬 ${esc(b.wish)}</div>`:''}${b.remark?`<div class="remark">📌 ${esc(b.remark)}</div>`:''}${J.guestNote(b.phone)?`<div class="gnote">📝 ${esc(J.guestNote(b.phone))}</div>`:''}</div><div class="r">${p.left?`<span class="owe">დარჩა ${money(p.left)}</span>`:`<span class="pill p-ok">გადახდილი</span>`}${act==='in'?(b.checkedIn?`<span class="pill p-ok">✓ შემოვიდა</span>`:`<button type="button" class="btn okb" data-cin="${b.id}">შემოვიდა</button><button type="button" class="btn nob" data-nos="${b.id}">არ მოვიდა</button>`):act==='out'?(b.checkedOut?`<span class="pill p-ok">✓ გავიდა</span>`:`<button type="button" class="btn okb" data-cout="${b.id}">გავიდა</button>`):''}<button type="button" class="btn" data-open="${b.id}">${p.left?'გადახდა':'გახსნა'}</button></div></div>`}
 /* new instant bookings (confirmed by themselves): shown on top until someone presses "ვნახე" */
 /* online prepayment at the hotel's bank (src/db/pay.js): how it stands for one booking */
 const PAYS={waiting:'⏳ ელოდება ონლაინ გადახდას',paid:'💳 გადახდილია ონლაინ',expired:'გადახდის დრო ამოიწურა, ნომერი გათავისუფლდა',late:'⚠️ გადახდა დაგვიანებით მოვიდა, როცა ნომერი უკვე გათავისუფლებული იყო. დაუკავშირდით სტუმარს: დაუდასტურეთ ან დაუბრუნეთ თანხა თქვენი ბანკიდან.'};
@@ -1318,6 +1495,8 @@ function renderDay(){
  const ins=conf.filter(b=>b.from===day),outs=conf.filter(b=>b.to===day),stay=conf.filter(b=>b.from<=day&&day<b.to),tomIn=conf.filter(b=>b.from===tom);
  const got=sum(livePays().filter(p=>p.date===day),p=>p.amount),pend=J.bookings.filter(b=>b.status==='pending').length;
  const owe=sum([...outs,...stay.filter(b=>!outs.includes(b))].map(b=>J.payState(b)),x=>x.left);
+ const clash=J.blocks.filter(x=>x.feed&&x.to>t).map(x=>({x,b:conf.find(b=>b.room===x.room&&b.from<x.to&&x.from<b.to)})).filter(y=>y.b);
+ $('dNew').insertAdjacentHTML('beforeend',clash.length?`<div class="pcard" style="border-color:#e9a5a0;background:#fff4f3;margin:0 0 16px"><h2 style="margin:0 0 8px">⚠️ ორმაგი ჯავშანი</h2>${clash.map(y=>`<p style="margin:4px 0">ნომერი ${esc(y.x.room)}: ${esc(y.x.reason)} (${J.fmtRange(y.x.from,y.x.to)}) და ${esc(y.b.name)} (${J.fmtRange(y.b.from,y.b.to)}). <button type="button" class="btn" data-open="${y.b.id}">გახსნა</button></p>`).join('')}<p class="src" style="margin:6px 0 0">ერთ-ერთს სხვა ნომერი შესთავაზეთ ან დაუკავშირდით.</p></div>`:'');
  $('dK').innerHTML=`<div class="kpi main"><small>დაკავებული ნომერი ღამით</small><b>${stay.length} / ${J.ROOMS.length}</b><span>${stay.reduce((s,b)=>s+(b.guests||0),0)} სტუმარი</span></div>
   <div class="kpi"><small>შემოდის</small><b>${ins.length}</b><span>ხვალ ${tomIn.length}</span></div>
   <div class="kpi"><small>გადის</small><b>${outs.length}</b><span>${outs.filter(b=>J.payState(b).left).length} გადასახდელით</span></div>
@@ -1347,6 +1526,7 @@ $('dPrev').onclick=()=>{day=J.addDays(day,-1);renderDay()};
 $('dNext').onclick=()=>{day=J.addDays(day,1);renderDay()};
 $('dToday').onclick=()=>{day=J.today();renderDay()};
 $('p-day').addEventListener('click',e=>{
+ const ns=e.target.closest('[data-nos]');if(ns){noShowAsk(ns.dataset.nos);return}
  const ci=e.target.closest('[data-cin]');if(ci){J.checkIn(ci.dataset.cin);renderAll();flash('შესვლა მოინიშნა.',true);return}
  const co=e.target.closest('[data-cout]');if(co){const b=J.bookings.find(x=>x.id===co.dataset.cout),left=J.payState(b).left;
   if(left&&!confirm('სტუმარს დარჩა გადასახდელი '+left+' ₾. მაინც მოვნიშნოთ გასვლა?'))return;J.checkOut(b.id);renderAll();flash('გასვლა მოინიშნა. ნომერი '+(b.room||'')+' დასალაგებელია.',true);return}
@@ -1390,7 +1570,7 @@ $('infoBody').addEventListener('click',e=>{const g=e.target.closest('[data-guest
 $('dlGuests').addEventListener('click',()=>{const rows=[['სახელი','ტელეფონი','ვიზიტი','ღამე','გადახდილი ₾','პირველი','ბოლო','დაბადების დღე','შენიშვნა']];
  J.guests().sort((a,b)=>b.visits-a.visits).forEach(g=>rows.push([g.name,g.phone,g.visits,g.nights,g.paid,g.first||'',g.last||'',g.bday||'',g.note]));
  downloadCsv(`${(J.hotel&&J.hotel.slug)||'hotel'}-stumrebi-${J.today()}.csv`,rows)});
-function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderSeason();renderGaps();renderMoney();renderGuests();renderHk();renderBillFrom();if(!plDirty){plDraft=null;renderPlans()}renderTpl();if(!svcDirty){svcDraft=null;renderServices()}}
+function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderSeason();renderGaps();renderMoney();renderGuests();renderHk();renderIssues();renderBillFrom();if(!plDirty){plDraft=null;renderPlans()}renderTpl();renderRules();renderCodes();if(!svcDirty){svcDraft=null;renderServices()}}
 J.onChange(()=>{if(!$('app').hidden){renderAll();checkNew()}});
 }
 </script>

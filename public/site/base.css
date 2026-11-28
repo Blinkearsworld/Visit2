@@ -268,6 +268,8 @@ main > section:nth-of-type(even):not(.hero) { background: var(--soft); }
 .ex-ck small { opacity: .8; padding-left: 32px; flex-basis: 100%; }
 @media (min-width: 640px) { .ex-ck small { padding-left: 0; flex-basis: auto; } }
 .ex-q input { width: 72px; min-height: 44px; }
+.code-f small.code-m { display: block; margin-top: 4px; font-size: 14px; color: #8a3b12; }
+.code-f small.code-m[data-ok='1'] { color: var(--accent-ink, #0B7A73); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .inst-note { margin: 0; color: var(--accent-ink, #0B7A73); font-weight: 600; font-size: 15px; }
 .booked { display: grid; gap: 8px; margin: 0 0 18px; padding: 18px 20px; border-radius: 16px; background: #F0F8F6; border: 1px solid #9FD0C8; line-height: 1.55; overflow-wrap: anywhere; }
