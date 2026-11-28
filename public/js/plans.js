@@ -28,7 +28,7 @@ function cancelFee(settings, { from, price, plan }, day) {
 }
 // settings the public site never gets: message texts (may hold door codes), the hotel's bank details, invoice counters;
 // promo codes and agencies too: a code is checked by the server, one at a time (/api/code)
-const PRIVATE_SETTINGS = k => ['msgTpl', 'billFrom', 'codes', 'agents'].includes(k) || /^invoiceSeq/.test(k);
+const PRIVATE_SETTINGS = k => ['msgTpl', 'billFrom', 'codes', 'agents'].includes(k) || /^(invoiceSeq|icalPull:)/.test(k);
 
 // ---------- price rules: weekend nights, chosen dates, long stays (JSON in settings.priceRules) ----------
 // { weekend: { days: [5, 6], pct: 15 }, dates: [{ from: 'YYYY-MM-DD', to: 'YYYY-MM-DD', pct: 20 }], long: [{ nights: 7, pct: 10 }] }

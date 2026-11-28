@@ -68,3 +68,16 @@ export async function roomIcs(db, t, room, skipFeedHost) {
   ];
   return buildIcs({ name: `${t.name} · ${room}`, events, stamp: nowIso().replace(/[-:]/g, '').replace(/\.\d+/, '') });
 }
+
+// when another site last read a room's calendar (so the hotel sees the link was pasted there); one settings row per room
+export async function notePull(db, t, room, ua) {
+  const who = /booking/i.test(ua) ? 'Booking.com' : /airbnb/i.test(ua) ? 'Airbnb' : /vrbo|expedia|homeaway/i.test(ua) ? 'Vrbo' : /agoda/i.test(ua) ? 'Agoda' : /google/i.test(ua) ? 'Google' : 'სხვა';
+  await db.prepare('INSERT INTO settings (tenant_id, k, v) VALUES (?, ?, ?) ON CONFLICT (tenant_id, k) DO UPDATE SET v = excluded.v')
+    .bind(t.id, 'icalPull:' + room + ':' + who, nowIso()).run();
+}
+export async function pulls(db, t) {
+  const r = await db.prepare("SELECT k, v FROM settings WHERE tenant_id = ? AND k LIKE 'icalPull:%'").bind(t.id).all();
+  const out = {};
+  for (const x of r.results || []) { const [, room, who] = x.k.split(':'); (out[room] = out[room] || []).push({ who, at: x.v }); }
+  return out;
+}

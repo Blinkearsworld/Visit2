@@ -571,6 +571,7 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 </div>
 <div class="sec" data-sec="ical" hidden>
 <h1>Booking.com, Airbnb და სხვა საიტები</h1>
+<div class="pcard"><h2 style="margin:0 0 6px">რა არის დაკავშირებული</h2><p class="sub" style="margin:0 0 10px">ორივე მიმართულება საჭიროა: ✓ „იქიდან აქ“ და ✓ „აქედან იქ“. ახალ ნომერზე ან ახალ განცხადებაზე ეს ერთხელ კეთდება.</p><div class="scroll"><table class="mt" id="icState"></table></div></div>
 <p class="sub">კალენდრები ერთმანეთს ავტომატურად ეუბნება, რომელი დღეებია დაკავებული, საათში ერთხელ. ასე ერთი ნომერი ორჯერ არ გაიყიდება. სტუმრების სახელები და ტელეფონები არ გადადის, მხოლოდ თარიღები.</p>
 <div class="pcard"><h2 style="margin:0 0 6px">1. ჩვენი კალენდარი მათთვის</h2><p class="sub" style="margin:0 0 10px">დააკოპირეთ ნომრის ბმული და ჩასვით Booking.com-ზე (Rates &amp; Availability → Sync calendars → Import) ან Airbnb-ზე (Calendar → Availability → Connect calendars → Import).</p><div id="icOut" class="glist"></div></div>
 <div class="pcard"><h2 style="margin:0 0 6px">2. მათი კალენდარი ჩვენთან</h2><p class="sub" style="margin:0 0 10px">იქვე აიღეთ მათი ბმული (Export) და ჩასვით აქ. მათი ჯავშნები კალენდარში ჩნდება და ამ დღეებში ნომერს ჩვენთან ვერავინ დაჯავშნის.</p>
@@ -1159,6 +1160,9 @@ let icData=null;
 async function loadIcal(){if(J.mode!=='api'){$('icOut').innerHTML='<p class="src" style="margin:0">ეს ნამდვილ საიტზე მუშაობს. დემოში კალენდრები არ ერთდება.</p>';$('icList').innerHTML='';return}
  try{const r=await fetch('api/admin/ical',{cache:'no-store'});icData=await r.json()}catch(e){icData=null}renderIcal()}
 function renderIcal(){if(!icData||!icData.ok)return;
+ const ago=s=>{const h=Math.round((Date.now()-Date.parse(s))/36e5);return h<1?'ახლახან':h<48?h+' სთ წინ':Math.round(h/24)+' დღის წინ'};
+ $('icState').innerHTML=`<thead><tr><th>ნომერი</th><th>იქიდან აქ (მათი ჯავშნები ჩვენთან)</th><th>აქედან იქ (ჩვენი ჯავშნები მათთან)</th></tr></thead><tbody>${J.ROOMS.map(r=>{const f=icData.feeds.filter(x=>x.room===r.id),pl=(icData.pulls||{})[r.id]||[];
+  return `<tr><td><b>${esc(r.id)}</b><br><span class="src">${esc(typeName(r.type))}</span></td><td>${f.length?f.map(x=>`${x.lastError?'⚠️':'✓'} ${esc(x.name)}`).join('<br>'):'<span style="color:var(--wait)">ჯერ არცერთი</span>'}</td><td>${pl.length?pl.map(x=>`✓ ${esc(x.who)} <span class="src">· წაიკითხა ${ago(x.at)}</span>`).join('<br>'):'<span style="color:var(--wait)">ჯერ არცერთს არ წაუკითხავს</span>'}</td></tr>`}).join('')}</tbody>`;
  if(!$('icRoom').options.length)$('icRoom').innerHTML=J.ROOMS.map(r=>`<option value="${r.id}">${r.id} · ${esc(typeName(r.type))}</option>`).join('');
  $('icOut').innerHTML=J.ROOMS.map(r=>`<div class="icl"><b>ნომერი ${esc(r.id)}</b><code>${esc(icData.links[r.id]||'')}</code><button type="button" class="btn" data-copy="${esc(icData.links[r.id]||'')}">კოპირება</button></div>`).join('');
  $('icList').innerHTML=icData.feeds.length?icData.feeds.map(f=>`<div class="icl"><div><b>${esc(f.name)}</b> · ნომერი ${esc(f.room)}<br><span class="src">${f.lastError?'⚠️ '+esc(f.lastError):f.lastSync?'განახლდა '+esc(at(f.lastSync)):'ჯერ არ განახლებულა'}</span></div><div style="display:flex;gap:6px"><button type="button" class="btn" data-icsync="${f.id}">განახლება</button><button type="button" class="btn nob" data-icdel="${f.id}">მოხსნა</button></div></div>`).join(''):'<p class="src" style="margin:0">ჯერ არცერთი საიტი არ არის დაკავშირებული.</p>'}

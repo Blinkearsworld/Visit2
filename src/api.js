@@ -10,7 +10,7 @@ import { grantHelp, helpUntil, listNotices } from './db/ops.js';
 import { hotelPages, disconnectPages } from './db/meta.js';
 import { encKey, accountInfo, getAccount, saveAccount, removeAccount, holdToRequest, addOrder, findOrder, lastOrder, settleOrder, HOLD_MIN } from './db/pay.js';
 import { BANKS, checkCreds, createOrder, orderState } from './lib/banks.js';
-import { listFeeds, addFeed, removeFeed, syncFeed, roomIcs } from './db/ical.js';
+import { listFeeds, addFeed, removeFeed, syncFeed, roomIcs, notePull, pulls } from './db/ical.js';
 import { findCode } from './lib/plans.js';
 import { metaStartUrl, pick, pendingPages } from './meta.js';
 import {
@@ -86,6 +86,7 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
     const room = ic[1];
     if (!secret || url.searchParams.get('k') !== await icalKey(secret, t, room)) return new Response('not found', { status: 404 });
     const body = await roomIcs(db, t, room, (url.searchParams.get('skip') || '').toLowerCase().slice(0, 60));
+    await notePull(db, t, room, request.headers.get('user-agent') || '').catch(() => {});
     return new Response(body, { headers: { 'content-type': 'text/calendar; charset=utf-8', 'cache-control': 'no-store' } });
   }
   // a promo code typed on the booking form: is it valid, and how much off (the code list itself stays private)
@@ -177,7 +178,7 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
       const base0 = new URL(base.replace(/\/?$/, '/'), url.origin).toString();
       const links = {};
       for (const r of st.rooms) links[r.id] = secret ? `${base0}api/ical/${encodeURIComponent(r.id)}.ics?k=${await icalKey(secret, t, r.id)}` : '';
-      return json({ ok: true, feeds: await listFeeds(db, t), links });
+      return json({ ok: true, feeds: await listFeeds(db, t), links, pulls: await pulls(db, t) });
     }
     const b = (await readJson(request)) || {};
     try {

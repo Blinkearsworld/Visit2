@@ -108,3 +108,14 @@ describe('calendars of other sites, rules of stay and price, codes, agencies, ex
     expect(roomFree(st, '4', today(), addDays(today(), 2))).toBe(true);
   });
 });
+
+describe('which site read a room\'s calendar', () => {
+  it('notes the reader by its name, per hotel and room', async () => {
+    const { notePull, pulls } = await import('../src/db/ical.js');
+    const A = await createTenant(db(), { slug: 'pull-a', name: 'Pull A' }), B = await createTenant(db(), { slug: 'pull-b', name: 'Pull B' });
+    await notePull(db(), A, '1', 'Mozilla/5.0 (compatible; Airbnb calendar)');
+    expect((await pulls(db(), A))['1'][0].who).toBe('Airbnb');
+    expect(await pulls(db(), B)).toEqual({});
+    expect((await loadState(db(), A)).settings['icalPull:1:Airbnb']).toBeUndefined();
+  });
+});
