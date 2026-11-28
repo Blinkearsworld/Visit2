@@ -9,6 +9,7 @@ const DAYS = 14;
 
 export async function opsLogin(db, email, password) {
   email = normEmail(email);
+  if (typeof password === 'string') password = password.trim();
   if (!email || typeof password !== 'string' || !password) return null;
   const u = await db.prepare('SELECT id, name, email, salt, hash, ver, platform FROM users WHERE email = ?').bind(email).first();
   if (!u || !u.platform || !u.hash || !same(await hashPw(password, u.salt), u.hash)) return null;

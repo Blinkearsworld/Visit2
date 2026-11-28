@@ -22,6 +22,7 @@ const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, 
 
 // ---------- passwords (PBKDF2, salted) ----------
 export async function hashPw(pw, salt) {
+  pw = String(pw).trim();
   const key = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
   return hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(salt), iterations: 100000 }, key, 256));
 }
@@ -50,6 +51,7 @@ async function member(db, t, userId) {
 // email + password → the person at this hotel, or null (wrong password, or no access to this hotel)
 export async function checkLogin(db, t, email, password) {
   email = normEmail(email);
+  if (typeof password === 'string') password = password.trim(); // a copied password often brings a space or line break
   if (!email || typeof password !== 'string' || !password) return null;
   const u = await db.prepare('SELECT id, salt, hash FROM users WHERE email = ?').bind(email).first();
   if (!u || !u.hash || !same(await hashPw(password, u.salt), u.hash)) return null;

@@ -132,3 +132,13 @@ describe('changing my own password', () => {
     expect(await checkLogin(env.DB, t, 'me@pw.test', 'new-password')).toBeTruthy();
   });
 });
+
+describe('a copied password with a space or line break at the end', () => {
+  it('still signs in', async () => {
+    const { checkLogin } = await import('../src/db/users.js');
+    const t = await createTenant(env.DB, { slug: 'pw-trim', name: 'T' });
+    await addMember(env.DB, t, { email: 'trim@pw.test', name: 'Trim', password: 'abcd-efgh-jkmn', role: 'owner' });
+    expect(await checkLogin(env.DB, t, 'trim@pw.test', 'abcd-efgh-jkmn \n')).toBeTruthy();
+    expect(await checkLogin(env.DB, t, 'trim@pw.test', 'abcd')).toBeNull();
+  });
+});

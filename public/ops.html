@@ -317,7 +317,7 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
       ${!h.team.some(x => x.owner) ? `<div class="box"><h3>მფლობელი</h3><p class="mute">ამ სასტუმროს მფლობელი ჯერ არ ჰყავს. ჩაწერე მისი ელფოსტა: თუ Visit2-ზე ანგარიში არ აქვს, შეიქმნება და პაროლი აქ ერთხელ გამოჩნდება.</p>
         <div class="row"><input class="grow" id="oEmail" type="email" placeholder="ელფოსტა"><button class="btn pri" type="button" data-do="owner">მფლობელის მიბმა</button></div></div>` : ''}
       <div class="box"><h3>მფლობელის პაროლი</h3>
-        ${pw ? `<p>ახალი პაროლი. გადაეცი მფლობელს, მეორედ აღარ გამოჩნდება:</p><p class="pw">${esc(pw)}</p>` : `<p class="mute">ახალი პაროლი შეიქმნება და მფლობელი ყველა მოწყობილობიდან გავა. პაროლს ტელეფონით ან შეხვედრისას გადაეცი.</p><div class="row"><button class="btn" type="button" data-do="password">ახალი პაროლის შექმნა</button></div>`}</div>
+        ${pw ? `<p>ახალი პაროლი. გადაეცი მფლობელს, მეორედ აღარ გამოჩნდება:</p><p class="pw">${esc(pw)}</p><div class="row"><button class="btn" type="button" id="pwCopy" data-pw="${esc(pw)}">კოპირება</button></div>` : `<p class="mute">ახალი პაროლი შეიქმნება და მფლობელი ყველა მოწყობილობიდან გავა. პაროლს ტელეფონით ან შეხვედრისას გადაეცი.</p><div class="row"><button class="btn" type="button" data-do="password">ახალი პაროლის შექმნა</button></div>`}</div>
 
       ${h.ourLog.length ? `<div class="box"><h3>რა გავაკეთეთ ჩვენ</h3><ul class="list">${h.ourLog.map(l => `<li><span>${esc(l.op)}: ${esc(l.detail)}<br><small class="mute">${esc(String(l.at).slice(0, 10))} · ${esc(l.who)}</small></span></li>`).join('')}</ul></div>` : ''}
 
@@ -351,6 +351,10 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
     const slug = H.slug; await openHotel(slug);
     pw = o.password || ''; said = { status: 'მდგომარეობა შეინახა.', trial: `საცდელი გაგრძელდა ${fmt(o.until || '')}-მდე.`, addons: 'სერვისები შეინახა.', pay: 'გადახდა ჩაიწერა.', 'pay-del': 'გადახდა წაიშალა.', 'domain-add': 'დომენი მიება. თუ Cloudflare-ში უკვე მიბმულია, საიტი რამდენიმე წუთში გაიხსნება.', 'domain-del': 'დომენი მოიხსნა.', free: 'შეინახა.', password: '', owner: o.password ? '' : 'მფლობელი მიება. შედის თავისი არსებული პაროლით.' }[body.do] || '';
     drawHotel(); load();
+  });
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('#pwCopy'); if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.pw); b.textContent = '✓ დაკოპირდა'; } catch (er) { b.textContent = 'ხელით მონიშნე და დააკოპირე'; }
   });
   $('#hotels').addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b) openHotel(b.dataset.open); });
   $('#jijiGo').addEventListener('click', async e => {
