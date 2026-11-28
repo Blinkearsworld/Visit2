@@ -66,6 +66,11 @@ async function hotelSite(request, env, t, opts) {
   const old = legacyPath(t.slug, p);
   if (old) {
     if (old === '/admin') return Response.redirect(new URL((opts.base || '/') + 'admin', request.url).toString(), 301);
+    // Visit2's own files come first (the admin's /img/brand/...); the old site's photos fill the rest
+    if (old.startsWith('/files/jiji/img/') || old.startsWith('/files/jiji/video/')) {
+      const own = await env.ASSETS.fetch(request);
+      if (own.status !== 404) return own;
+    }
     const u = new URL(request.url); u.pathname = old;
     return env.ASSETS.fetch(new Request(u, request));
   }

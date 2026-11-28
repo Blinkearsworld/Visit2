@@ -27,6 +27,12 @@ describe("a moved hotel's old addresses", () => {
     expect(await o.text()).not.toContain('ზამთარი ბაკურიანში');
   });
 
+  it("keeps Visit2's own images (the admin logo) on the hotel's domain", async () => {
+    const r = await get('villajiji.visit2.ge', '/img/brand/visit2.svg');
+    expect(r.status).toBe(200);
+    expect(await r.text()).toContain('<svg');
+  });
+
   it('sends the old admin address to the new admin', async () => {
     const r = await get('villajiji.visit2.ge', '/admin.html');
     expect(r.status).toBe(301);
