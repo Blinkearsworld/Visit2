@@ -24,6 +24,10 @@
     // local development: {slug}.localhost:8787 serves that hotel
     "DEV_SUFFIX": ".localhost",
     // preview before visit2.ge is bought: /h/{slug}/ on these hosts serves that hotel
-    "PREVIEW_HOSTS": "*.workers.dev,localhost,127.0.0.1"
+    "PREVIEW_HOSTS": "*.workers.dev,localhost,127.0.0.1",
+    // Villa JIJI's old database (another Cloudflare account), read once to move the hotel here;
+    // the read-only token is the secret JIJI_D1_TOKEN
+    "JIJI_ACCOUNT": "ce5fd1160511630e42abc8e2cc33b923",
+    "JIJI_DB_ID": "7f6ad11d-87af-4837-84ca-02cc99b0ac9a"
   }
 }

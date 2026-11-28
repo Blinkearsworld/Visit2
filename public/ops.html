@@ -151,6 +151,13 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
       <p class="msg wide" id="noteMsg" role="status"></p>
     </form>
   </section>
+
+  <section class="sec" aria-labelledby="jH">
+    <h2 id="jH">ვილა ჯიჯის გადმოტანა</h2>
+    <p class="sub">ძველი საიტის ბაზიდან კოპირდება ნომრები, ფასები, ჯავშნები, გადახდები, სტუმრების შენიშვნები და ფოტოები. ძველი საიტი არ იცვლება. გადართვამდე შეგიძლია ხელახლა გაუშვა: ახალი ჯავშნებიც გადმოვა. villajiji.com-ის გადართვის შემდეგ ეს ღილაკი აღარ მუშაობს.</p>
+    <button class="btn pri" type="button" id="jijiGo">გადმოტანა</button>
+    <p class="msg" id="jijiMsg" role="status"></p>
+  </section>
 </main>
 
 <dialog class="hd" id="hd" aria-labelledby="hdName"><div class="hh"><h2 id="hdName"></h2><button class="x" type="button" id="hdX" aria-label="დახურვა">×</button></div><div class="hb" id="hdBody"></div></dialog>
@@ -324,6 +331,15 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
     drawHotel(); load();
   });
   $('#hotels').addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b) openHotel(b.dataset.open); });
+  $('#jijiGo').addEventListener('click', async e => {
+    const b = e.currentTarget, m = $('#jijiMsg'); b.disabled = true; m.textContent = 'ვაკოპირებ…';
+    try {
+      const o = await (await api('jiji-import', {})).json();
+      m.textContent = o.ok ? `მზადაა: ${o.done.rooms} ნომერი, ${o.done.types} ტიპი, ${o.done.bookings} ჯავშანი, ${o.done.payments} გადახდა, ${o.done.notes} შენიშვნა, ${o.done.media} ფოტო. სასტუმრო: ${o.done.slug} (კატალოგში დამალულია).` : o.msg;
+      if (o.ok) load();
+    } catch (er) { m.textContent = 'კავშირი ვერ დამყარდა. სცადე ხელახლა.'; }
+    b.disabled = false;
+  });
   $('#notes').addEventListener('click', async e => { const b = e.target.closest('[data-ndel]'); if (!b) return; await api('notice-del', { id: b.dataset.ndel }); load(); });
   $('#noteForm').addEventListener('submit', async e => {
     e.preventDefault();

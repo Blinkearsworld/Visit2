@@ -14,6 +14,7 @@ import { supportToken } from './db/users.js';
 import { today, addDays } from './lib/time.js';
 import { catalog } from './db/catalog.js';
 import { metaApi } from './meta.js';
+import { importJiji, d1Reader } from './db/jiji.js';
 
 export async function platformApi(request, env, { preview = false } = {}) {
   const url = new URL(request.url), p = url.pathname, m = request.method, db = env.DB;
@@ -111,6 +112,13 @@ async function opsApi(request, env, url, preview) {
         default: return json({ ok: false, msg: 'უცნობი მოქმედება' }, 400);
       }
       return json({ ok: true });
+    } catch (e) { return json({ ok: false, msg: e.message }, 400); }
+  }
+  // Villa JIJI from its old site: copies (or refreshes) the hotel; refused once villajiji.com points here
+  if (p === 'jiji-import' && m === 'POST') {
+    try {
+      const read = d1Reader({ account: env.JIJI_ACCOUNT, database: env.JIJI_DB_ID, token: env.JIJI_D1_TOKEN });
+      return json({ ok: true, done: await importJiji(db, read, me) });
     } catch (e) { return json({ ok: false, msg: e.message }, 400); }
   }
   if (p === 'notice' && m === 'POST') {
