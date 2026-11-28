@@ -133,6 +133,6 @@ window.V2DEMO = (() => {
     return h;
   }
   const list = () => [...(mine() ? [mine()] : []), ...HOTELS];
-  const get = slug => list().find(h => h.slug === slug) || (slug === STRESS.slug ? STRESS : null);
-  return { list, get, mine, saveMine, ROOMS, KINDS, THEMES: ['opal', 'amber', 'cobalt', 'alba', 'jade'] };
+  const get = slug => list().find(h => h.slug === slug) || (slug === STRESS.slug ? STRESS : slug === 'jiji' && window.V2JIJI ? window.V2JIJI : null);
+  return { list, get, mine, saveMine, ROOMS, KINDS, THEMES: ['opal', 'amber', 'cobalt', 'alba', 'jade', 'lapis'] };
 })();

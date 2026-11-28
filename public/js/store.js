@@ -18,8 +18,9 @@ window.JIJI = (() => {
     family: { name: 'საოჯახო, 1 საძინებლით (4+1)', rates: [R(2, 150, 200, 240, 320), R(3, 165, 220, 265, 350), R(4, 180, 240, 290, 380), R(5, 195, 260, 310, 410)] },
     suite: { name: 'ლუქსი, 2 საძინებლით', rates: [R(2, 210, 290, 370, 480), R(4, 280, 380, 460, 600), R(6, 340, 460, 550, 710)] },
   };
-  if (DEMO_H && DEMO_H.types) Object.keys(DEFAULT_TYPES).forEach(k => { DEFAULT_TYPES[k] = DEMO_H.types[k] || DEFAULT_TYPES[k]; });
-  const ROOMS = [{ id: '1', type: 'std' }, { id: '2', type: 'std' }, { id: '3', type: 'family' }, { id: '4', type: 'family' }, { id: '5', type: 'suite' }];
+  if (DEMO_H && DEMO_H.ownTypes) { Object.keys(DEFAULT_TYPES).forEach(k => delete DEFAULT_TYPES[k]); Object.assign(DEFAULT_TYPES, DEMO_H.ownTypes); }
+  else if (DEMO_H && DEMO_H.types) Object.keys(DEFAULT_TYPES).forEach(k => { DEFAULT_TYPES[k] = DEMO_H.types[k] || DEFAULT_TYPES[k]; });
+  const ROOMS = (DEMO_H && DEMO_H.ownRooms) || [{ id: '1', type: 'std' }, { id: '2', type: 'std' }, { id: '3', type: 'family' }, { id: '4', type: 'family' }, { id: '5', type: 'suite' }];
   const SEASONS = { peak: 'ახალი წელი', winter: 'ზამთარი', summer: 'ზაფხული', off: 'დანარჩენი' };
 
   // ---------- dates as 'YYYY-MM-DD', math in UTC ----------

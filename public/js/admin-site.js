@@ -336,10 +336,10 @@
 
   // ---------- look: template, colour, font; and what children cost ----------
   const LOOK_T = [['opal', 'Opal', 'სრული ფოტო, სახელი შუაში'], ['amber', 'Amber', 'ფოტო და ტექსტი გვერდიგვერდ'], ['cobalt', 'Cobalt', 'ფოტოების მოზაიკა'],
-    ['alba', 'Alba', 'ნომრები და ფასები თავიდანვე'], ['jade', 'Jade', 'ისტორია და მასპინძელი წინ']];
+    ['alba', 'Alba', 'ნომრები და ფასები თავიდანვე'], ['jade', 'Jade', 'ისტორია და მასპინძელი წინ'], ['lapis', 'Lapis', 'ღამის ფერები, ზამთარი და ზაფხული']];
   const LOOK_OLD = { onyx: 'opal', indigo: 'cobalt', ivory: 'amber', lilac: 'jade', umber: 'alba' };
   const LOOK_C = ['#0E857D', '#3F7A4E', '#1F6FA8', '#2F5A8A', '#B4472F', '#C2410C', '#7A2638', '#8A5A2B', '#6B4A8A', '#1F1A17'];
-  const LOOK_DEF = { opal: '#0E857D', amber: '#B4472F', cobalt: '#1F6FA8', alba: '#1F1A17', jade: '#3F7A4E' };
+  const LOOK_DEF = { opal: '#0E857D', amber: '#B4472F', cobalt: '#1F6FA8', alba: '#1F1A17', jade: '#3F7A4E', lapis: '#F3C27A' };
   function drawLook() {
     const p = $('s-look'); if (!p) return;
     const st = D.site || {}, th = LOOK_OLD[st.theme] || st.theme || 'opal', col = st.accent || LOOK_DEF[th] || LOOK_C[0], font = st.font === 'serif' ? 'serif' : 'sans', k = st.kids || {};

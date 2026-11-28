@@ -37,7 +37,7 @@ export async function allHotels(db) {
     let addons = []; try { addons = JSON.parse(x.addons || '[]'); } catch (e) { /* none */ }
     const free = x.plan === 'free';
     return { slug: x.slug, name: x.name, city: x.city, status: x.status, free, trialEnds: x.trial_ends, pausedUntil: x.paused_until, paidUntil: x.paid_until, addons, closedAt: x.closed_at, created: x.created, owner: x.owner || '',
-      monthly: free ? 0 : x.status === 'paused' ? PAUSE_PRICE : BASE_PRICE + addons.reduce((s, a) => s + (ADDONS[a] || 0), 0) };
+      monthly: free ? 0 : x.status === 'paused' ? PAUSE_PRICE : BASE_PRICE + addons.reduce((s, a) => s + (ADDONS[a] || 0), 0), hidden: addons.includes('hidden') };
   });
 }
 
@@ -175,9 +175,10 @@ export async function extendTrial(db, t, me, days) {
   return until;
 }
 export async function setAddons(db, t, me, list) {
-  const a = Object.keys(ADDONS).filter(k => (list || []).includes(k));
+  // 'hidden' is not a service: a hotel still being set up stays out of the catalogue
+  const a = [...Object.keys(ADDONS), 'hidden'].filter(k => (list || []).includes(k));
   await db.batch([db.prepare('UPDATE tenants SET addons = ? WHERE id = ?').bind(JSON.stringify(a), t.id),
-    note(db, t, me, 'სერვისები', a.length ? a.map(k => ({ catalog: 'კატალოგი', domain: 'საკუთარი დომენი' }[k])).join(', ') : 'მხოლოდ სისტემა')]);
+    note(db, t, me, 'სერვისები', a.length ? a.map(k => ({ catalog: 'კატალოგი', domain: 'საკუთარი დომენი', pay: 'ონლაინ გადახდა', hidden: 'კატალოგში დამალულია (მზადდება)' }[k])).join(', ') : 'მხოლოდ სისტემა')]);
   forgetTenants();
 }
 // a payment entered by hand (bank transfer, cash) moves "paid until" forward and turns the service on

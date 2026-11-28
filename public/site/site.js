@@ -18,6 +18,7 @@
     cobalt: { name: 'Cobalt', accent: '#1F6FA8' }, // a mosaic of photos
     alba: { name: 'Alba', accent: '#1F1A17' },    // rooms and prices first
     jade: { name: 'Jade', accent: '#3F7A4E' },    // the story and the host first
+    lapis: { name: 'Lapis', accent: '#F3C27A' },  // a night-blue page with winter and summer, built from Villa JIJI's site
   };
   // Earlier template ids, so saved sites and old links still open the nearest of the five.
   const OLD = { kva: 'opal', ezo: 'jade', kalaki: 'alba', zghva: 'cobalt', ghvino: 'jade', minimali: 'alba', tye: 'opal', butiki: 'cobalt', peradi: 'amber', klasika: 'amber',
@@ -68,6 +69,11 @@
     planT: ['ფასის ვარიანტი', 'Rate', 'Тариф'], planStd: ['სტანდარტული', 'Standard', 'Стандартный'], nonRef: ['დაუბრუნებელი', 'non-refundable', 'невозвратный'],
     extrasT: ['დამატებითი სერვისები', 'Extras', 'Дополнительные услуги'], extrasS: ['სერვისები', 'Extras', 'Услуги'], withRoom: ['ნომერი', 'Room', 'Номер'],
     uStay: ['ერთჯერადად', 'once', 'разово'], uNight: ['ღამეში', 'per night', 'за ночь'], uGuest: ['ერთ სტუმარზე', 'per guest', 'с гостя'], uGuestNight: ['სტუმარზე ღამეში', 'per guest per night', 'с гостя за ночь'], uItem: ['ერთეული', 'each', 'за единицу'], qty: ['რაოდენობა', 'Quantity', 'Количество'],
+    seasonW: ['ზამთარი', 'Winter', 'Зима'], seasonS: ['ზაფხული', 'Summer', 'Лето'], season: ['სეზონი', 'Season', 'Сезон'], freeRooms: ['თავისუფალი ნომრები', 'Available rooms', 'Свободные номера'],
+    seeRooms: ['ნომრების ნახვა', 'See the rooms', 'Посмотреть номера'], playVideo: ['ვიდეოს ნახვა', 'Watch the video', 'Смотреть видео'], spacesNav: ['სივრცეები', 'Spaces', 'Пространства'],
+    groundsNav: ['ეზო', 'Grounds', 'Двор'], nearNav: ['ახლოს', 'Nearby', 'Рядом'], contactNav: ['კონტაქტი', 'Contact', 'Контакты'], addrW: ['მისამართი', 'Address', 'Адрес'],
+    hoursW: ['მიღება', 'Reception', 'Приём'], daily: ['ყოველდღე, {a}–{b}', 'Daily, {a}–{b}', 'Ежедневно, {a}–{b}'], phoneW: ['ტელეფონი', 'Phone', 'Телефон'], privacyW: ['კონფიდენციალურობა', 'Privacy', 'Конфиденциальность'],
+    rightsW: ['ყველა უფლება დაცულია.', 'All rights reserved.', 'Все права защищены.'], feats: ['რა არის ნომერში', 'In the room', 'В номере'],
     pickDates: ['აირჩიეთ თარიღები', 'Choose dates', 'Выберите даты'], nights: ['ღამე', 'nights', 'ночей'], total: ['სულ', 'Total', 'Итого'],
     nearest: ['უახლოესი თავისუფალი', 'Nearest available', 'Ближайшие свободные'], choose: ['ეს ნომერი', 'This room', 'Этот номер'],
     consent: ['მოთხოვნის გაგზავნით თქვენი სახელი და ტელეფონი გადაეცემა სასტუმროს ჯავშნის დასადასტურებლად. <a href="privacy.html" target="_blank">კონფიდენციალურობა</a>', 'By sending a request, your name and phone go to the hotel to confirm the booking. <a href="privacy.html" target="_blank">Privacy</a>', 'Отправляя запрос, вы передаёте имя и телефон отелю для подтверждения брони. <a href="privacy.html" target="_blank">Конфиденциальность</a>'],
@@ -151,7 +157,8 @@
   const saveLocal = o => { try { localStorage.setItem(lookKey(), JSON.stringify({ ...(loadLocal() || {}), ...o })); } catch (e) {} };
   const theme = () => { const t = themeId(params.get('theme') || S().theme); return THEMES[t] ? t : 'opal'; };
   // a template preview (?theme=…) shows the template's own colour; otherwise the hotel's
-  const accent = () => (params.get('theme') && THEMES[themeId(params.get('theme'))] ? THEMES[theme()].accent : S().accent || THEMES[theme()].accent);
+  // Lapis has its own night palette with warm window light, so the hotel's colour is not used there
+  const accent = () => (theme() === 'lapis' ? THEMES.lapis.accent : params.get('theme') && THEMES[themeId(params.get('theme'))] ? THEMES[theme()].accent : S().accent || THEMES[theme()].accent);
   const contact = () => (window.JC ? window.JC.contact() : {});
 
   async function loadContent() {
@@ -159,7 +166,7 @@
     const ls = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
     const KP = window.JC ? window.JC.K_PREVIEW : '';
     if (params.get('preview') === '1' && KP && ls(KP)) { C = ls(KP); return; }
-    if (isDemo()) { if (J.hotel && J.hotel.mine) C = ls('v2-content-demo') || {}; return; }
+    if (isDemo()) { if (J.hotel && J.hotel.mine) C = ls('v2-content-demo') || {}; else if (demoHotel()?.content) C = demoHotel().content; return; }
     try { const r = await fetch('api/content', { cache: 'no-store' }); if (r.ok) { const o = await r.json(); C = o.content || {}; PAY = !!o.pay; PAYMIN = o.payMinutes || 20; } } catch (e) { /* keep defaults */ }
   }
 
@@ -178,9 +185,10 @@
     cobalt: ['heroMosaic', 'rooms', 'amen', 'about', 'gallery', 'where', 'food', 'book'],
     alba: ['heroPlain', 'compare', 'rooms', 'book', 'about', 'amen', 'gallery', 'where', 'food'],
     jade: ['heroStory', 'about', 'amen', 'rooms', 'gallery', 'where', 'food', 'book'],
+    lapis: ['lpHero', 'lpAbout', 'lpStories', 'lpFire', 'lpStrip', 'lpSpaces', 'lpGrounds', 'lpNear', 'lpRooms', 'food', 'lpBook'],
   };
   const LAYOUT_OF = th => LAYOUT[th] || LAYOUT.opal;
-  const PHOTO_TOP = ['heroFull', 'heroStory'];
+  const PHOTO_TOP = ['heroFull', 'heroStory', 'lpHero'];
   const heroWords = (s, h) => `${h.city ? `<p class="hero-city">${esc(h.city)}</p>` : ''}
       <h1 class="hero-name">${esc(h.name || '')}</h1>
       ${pick(s.hero?.tagline) ? `<p class="hero-tag">${esc(pick(s.hero?.tagline))}</p>` : ''}`;
@@ -242,12 +250,106 @@
     </a>`; }).join('')}</div></section>`;
   }
 
+
+  // ---------- Lapis: the night-blue template with winter and summer (Villa JIJI's site) ----------
+  // Texts and photos may differ by season: a value is either one ({ka,en,ru} / a photo) or { w, s }.
+  let SEA = null;
+  const sea = () => SEA || (SEA = (() => { try { const v = localStorage.getItem('v2-season-' + slug()); if (v === 'winter' || v === 'summer') return v; } catch (e) { /* none */ } return J.siteSeason ? J.siteSeason() : 'winter'; })());
+  const setSea = v => { SEA = v; try { localStorage.setItem('v2-season-' + slug(), v); } catch (e) { /* none */ } redraw(); };
+  const L = () => S().lapis || {};
+  const sz = v => (v && typeof v === 'object' && ('w' in v || 's' in v) ? v[sea() === 'summer' ? 's' : 'w'] || v.w || v.s : v);
+  const T2 = v => pick(sz(v));
+  const I2 = v => sz(v) || '';
+  const inSea = x => !x || !x.season || (x.season === 'w') === (sea() === 'winter');
+  const chips = l => ((l || []).length ? `<div class="lp-chips">${l.map(c => `<span>${esc(pick(c))}</span>`).join('')}</div>` : '');
+  const vid = (x, i) => `<div class="lp-vbox" data-video="${esc(x.video || '')}">${img(x.img)}${x.video ? `<button class="lp-play" type="button" data-play="${i}"><span><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>${w('playVideo')}</span></button>` : ''}${x.len ? `<span class="lp-len">${esc(x.len)}</span>` : ''}</div>`;
+  function lapisNav(h) {
+    return `<nav class="lp-nav" aria-label="${w('menu')}"><a href="#rooms">${w('rooms')}</a>${L().spaces ? `<a href="#spaces">${w('spacesNav')}</a>` : ''}${L().grounds ? `<a href="#grounds">${w('groundsNav')}</a>` : ''}${L().near ? `<a href="#near">${w('nearNav')}</a>` : ''}<a href="#contact">${w('contactNav')}</a></nav>
+  <div class="lp-sw" role="group" aria-label="${w('season')}"><button type="button" data-sea="winter" aria-pressed="${sea() === 'winter'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/></svg><span>${w('seasonW')}</span></button><button type="button" data-sea="summer" aria-pressed="${sea() === 'summer'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></svg><span>${w('seasonS')}</span></button></div>
+  <div class="lp-lang" role="group" aria-label="Language">${['ka', 'en', 'ru'].map(l => `<button type="button" data-lang="${l}" aria-pressed="${l === lang()}">${l.toUpperCase()}</button>`).join('')}</div>`;
+  }
+  const LP = {
+    lpHero: (s, h) => { const l = L(), im = I2(l.heroImg) || s.hero?.img;
+      return `<section class="lp-hero" id="hero" aria-label="${esc(h.name || '')}" style="${im ? `--hero-bg:url('${esc(im)}')` : ''}">${img(im, h.name)}<canvas id="snow" aria-hidden="true"></canvas>
+    <div class="lp-cap"><div class="lp-wrap"><h1 class="lp-name">${pick(l.kick) ? `<span class="lp-kick">${esc(pick(l.kick))}</span>` : ''}${esc(h.name || '')}</h1>
+    ${pick(s.hero?.tagline) ? `<p class="lp-tag">${esc(pick(s.hero.tagline))}</p>` : ''}
+    <div class="lp-acts"><a class="btn lp-lamp" href="#book">${esc(pick(l.heroBtn) || w('freeRooms'))}</a><a class="btn lp-ghost" href="#rooms">${w('seeRooms')}</a></div>${pill()}</div></div></section>`; },
+    lpAbout: s => { const l = L(); if (!pick(s.about?.text)) return '';
+      return `<section class="lp-state" id="about"><div class="lp-wrap">${img(I2(l.aboutImg) || s.about?.img)}<div><p class="lp-big">${esc(pick(s.about.text))}</p>
+    ${(l.facts || []).length ? `<div class="lp-facts">${l.facts.map(f => `<div><b>${esc(pick(f.n))}</b><span>${esc(pick(f.t))}</span></div>`).join('')}</div>` : ''}</div></div></section>`; },
+    lpStories: () => (L().stories || []).map((x, i) => (x.off || !inSea(x) ? '' : `<section class="lp-ny" id="${esc(x.id || 'story' + i)}"><div class="lp-wrap"><div>
+    <h2>${esc(pick(x.h))}</h2>${pick(x.p) ? `<p class="lp-lead">${esc(pick(x.p))}</p>` : ''}${chips(x.chips)}
+    ${pick(x.btn) ? `<div class="lp-act"><a class="btn lp-lamp" href="#book">${esc(pick(x.btn))}</a></div>` : ''}${pick(x.note) ? `<p class="lp-small">${esc(pick(x.note))}</p>` : ''}</div>
+    ${x.img || x.video ? vid(x, i) : ''}</div></section>`)).join(''),
+    lpFire: () => { const f = L().fire; if (!f || f.off || !T2(f.h)) return '';
+      return `<section class="lp-fire" id="fire"><div class="lp-wrap"><div><h2>${esc(T2(f.h))}</h2>${pick(f.p) ? `<p>${esc(pick(f.p))}</p>` : ''}${chips(f.chips)}</div>
+    <div class="lp-lit">${img(I2(f.img))}<div class="lp-glow" aria-hidden="true"></div></div></div></section>`; },
+    lpStrip: () => { const g = (L().strip || []).filter(inSea); if (!g.length) return '';
+      return `<section id="photos" aria-label="${w('gallery')}"><div class="lp-strip" tabindex="0">${g.map(x => `<figure>${img(x.img, pick(x.cap))}${pick(x.cap) ? `<figcaption>${esc(pick(x.cap))}</figcaption>` : ''}</figure>`).join('')}</div></section>`; },
+    lpSpaces: () => { const x = L().spaces; if (!x || x.off) return '';
+      return `<section class="lp-sec" id="spaces"><div class="lp-wrap"><h2>${esc(pick(x.h))}</h2>${pick(x.p) ? `<p class="lp-lead">${esc(pick(x.p))}</p>` : ''}
+    <div class="lp-spaces">${(x.items || []).map(it => `<div class="lp-sp">${img(it.img, pick(it.h))}<div class="lp-t"><h3>${esc(pick(it.h))}</h3>${pick(it.p) ? `<p>${esc(pick(it.p))}</p>` : ''}</div></div>`).join('')}</div></div></section>`; },
+    lpGrounds: () => { const x = L().grounds; if (!x || x.off) return ''; const li = (x.list || {})[sea() === 'summer' ? 's' : 'w'] || [];
+      return `<section class="lp-sec lp-grounds" id="grounds"><div class="lp-wrap"><div class="lp-where">${img(I2(x.img))}<div><h2>${esc(pick(x.h))}</h2>${T2(x.p) ? `<p class="lp-lead">${esc(T2(x.p))}</p>` : ''}
+    ${li.length ? `<ul class="lp-ticks">${li.map(t => `<li>${esc(pick(t))}</li>`).join('')}</ul>` : ''}</div></div>
+    ${(x.photos || []).length ? `<div class="lp-yard">${x.photos.map(p => `<figure>${img(I2(p.img), T2(p.cap))}${T2(p.cap) ? `<figcaption>${esc(T2(p.cap))}</figcaption>` : ''}</figure>`).join('')}</div>` : ''}</div></section>`; },
+    lpNear: () => { const x = L().near; if (!x || x.off) return '';
+      return `<section class="lp-sec lp-nearsec" id="near"><div class="lp-wrap"><h2>${esc(pick(x.h))}</h2>${pick(x.p) ? `<p class="lp-lead">${esc(pick(x.p))}</p>` : ''}
+    <div class="lp-near">${(x.items || []).map(it => `<div class="lp-nr"><h3>${esc(pick(it.h))}</h3><p>${esc(T2(it.p))}</p><span class="lp-d">${esc(pick(it.d))}</span></div>`).join('')}</div>
+    ${pick(x.note) ? `<p class="lp-small">${esc(pick(x.note))}</p>` : ''}${guidesNav()}</div></section>`; },
+    lpRooms: () => { const x = L().rooms || {};
+      return `<section class="rooms lp-rooms" id="rooms"><div class="lp-wrap"><div class="lp-head"><h2>${esc(pick(x.h) || w('rooms'))}</h2>${pick(x.p) ? `<p>${esc(pick(x.p))}</p>` : ''}</div>
+    <div class="room-list">${typeIds().map(roomCard).join('')}</div></div></section>`; },
+    lpBook: (s, h, c, tel) => { const x = L().book || {};
+      return `<section class="lp-book" id="contact"><div class="lp-wrap"><div class="lp-grid"><div>
+    <h2>${esc(pick(x.h) || w('book'))}</h2>${tel ? `<a class="lp-phone" href="${tel}">${esc(c.local || c.phone)}</a>` : ''}
+    <div class="lp-act">${c.waDigits ? `<a class="btn lp-lamp" href="https://wa.me/${esc(c.waDigits)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}${c.fb ? `<a class="btn lp-ghost" href="${esc(c.fb)}" target="_blank" rel="noopener">Facebook</a>` : ''}${c.ig ? `<a class="btn lp-ghost" href="${esc(c.ig)}" target="_blank" rel="noopener">Instagram</a>` : ''}</div>
+    <div class="lp-info">${c.addrText ? `<div><b>${w('addrW')}</b>${c.map ? `<a href="${esc(c.map)}" target="_blank" rel="noopener">${esc(c.addrText)}</a>` : esc(c.addrText)}</div>` : ''}${c.from && c.to ? `<div><b>${w('hoursW')}</b>${esc(w('daily').replace('{a}', c.from).replace('{b}', c.to))}</div>` : ''}${tel ? `<div><b>${w('phoneW')}</b><a href="${tel}">${esc(c.phone)}</a></div>` : ''}</div>
+    ${pick(x.note) ? `<p class="lp-small">${esc(pick(x.note))}</p>` : ''}</div>
+    <div>${bookForm()}</div></div></div></section>`; },
+  };
+  function guidesNav() { const g = L().guides || []; return g.length ? `<nav class="lp-guides" aria-label="${w('nearNav')}">${g.map(x => `<a href="${esc(x.href)}">${esc(pick(x.t))}</a>`).join('')}</nav>` : ''; }
+  function lapisFoot(h, c) {
+    const soc = [['ig', 'Instagram', '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/>'], ['fb', 'Facebook', '<path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H7.9v3h2.6V21z" fill="currentColor" stroke="none"/>'], ['tk', 'TikTok', '<path d="M16.6 3c.4 2.2 1.8 3.6 4 3.8v3.1c-1.5 0-2.9-.5-4-1.3v6.2c0 3.3-2.6 5.7-5.8 5.7S5 17.9 5 14.8s2.6-5.7 5.8-5.7c.3 0 .6 0 .9.1v3.2a2.6 2.6 0 0 0-.9-.2 2.6 2.6 0 1 0 2.6 2.6V3z" fill="currentColor" stroke="none"/>']].filter(([k]) => c[k]);
+    return `<footer class="foot lp-foot"><span class="lp-fname">${esc(h.name || '')}</span><span>${esc(c.addrText || h.city || '')} · <a href="privacy.html">${w('privacyW')}</a></span>${guidesNav()}
+  ${soc.length ? `<nav class="lp-soc" aria-label="Social">${soc.map(([k, n, svg]) => `<a href="${esc(c[k])}" target="_blank" rel="noopener" aria-label="${n}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">${svg}</svg></a>`).join('')}</nav>` : ''}
+  <small class="lp-copy">© ${new Date().getFullYear()} ${esc(h.name || '')}. ${w('rightsW')}</small>
+  <a class="made-by" href="https://visit2.ge" rel="noopener">${w('madeBy')} <b>Visit2.ge</b></a></footer>`;
+  }
+  // falling snow over the hero in winter (off when the visitor asks for less motion)
+  let snowStop = null;
+  function snow() {
+    if (snowStop) { snowStop(); snowStop = null; }
+    const cv = document.getElementById('snow'); if (!cv || sea() !== 'winter' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const ctx = cv.getContext('2d'); let W = 0, H = 0, run = true, raf = 0;
+    const size = () => { W = cv.width = cv.offsetWidth; H = cv.height = cv.offsetHeight; };
+    // the template's stylesheet may arrive after the first drawing, so follow the canvas's real size
+    size(); const ro = window.ResizeObserver ? new ResizeObserver(size) : null; if (ro) ro.observe(cv); else addEventListener('resize', size);
+    const flakes = Array.from({ length: 120 }, () => ({ x: Math.random() * 1600, y: Math.random() * 1000, r: Math.random() * 2.2 + .6, s: Math.random() * .6 + .3, d: Math.random() * 1.2 - .6 }));
+    const tick = () => { if (!run) return; ctx.clearRect(0, 0, W, H); ctx.fillStyle = 'rgba(255,255,255,.85)';
+      for (const f of flakes) { f.y += f.s; f.x += f.d * .4; if (f.y > H) { f.y = -4; f.x = Math.random() * W; } if (f.x > W || f.x < 0) f.x = Math.random() * W; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.283); ctx.fill(); }
+      raf = requestAnimationFrame(tick); };
+    tick();
+    snowStop = () => { run = false; cancelAnimationFrame(raf); if (ro) ro.disconnect(); else removeEventListener('resize', size); };
+  }
+  function wireLapis() {
+    document.querySelectorAll('[data-sea]').forEach(b => b.addEventListener('click', () => setSea(b.dataset.sea)));
+    document.querySelectorAll('[data-play]').forEach(b => b.addEventListener('click', () => {
+      const box = b.closest('.lp-vbox'), v = box.dataset.video, yt = v.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
+      box.innerHTML = yt ? `<iframe src="https://www.youtube-nocookie.com/embed/${yt[1]}?autoplay=1&rel=0" allow="autoplay; fullscreen" allowfullscreen title="video"></iframe>`
+        : `<video src="${esc(v)}" controls autoplay playsinline></video>`;
+    }));
+    
+    snow();
+  }
+
   function render() {
     // a template sample (?sample=1) shows placeholder words instead of a real hotel's name and texts
     const s = sample ? { ...S(), hero: { ...S().hero, tagline: w('sampleTag') }, about: { ...S().about, text: w('sampleAbout') }, location: { ...S().location, text: w('sampleAddr') } } : S();
     const h = sample ? { ...(J.hotel || {}), name: w('sampleName'), city: w('sampleCity') } : (J.hotel || {}), c = contact(), th = theme();
     const root = document.documentElement, lay = LAYOUT_OF(th);
     root.dataset.theme = th;
+    if (th === 'lapis') root.dataset.season = sea(); else delete root.dataset.season;
     root.style.setProperty('--accent', accent());
     root.dataset.font = S().font === 'serif' ? 'serif' : 'sans';
     root.toggleAttribute('data-photo', PHOTO_TOP.includes(lay[0]));
@@ -258,7 +360,8 @@
     const has = id => lay.includes(id) && (id !== 'gallery' || (s.gallery || []).length) && (id !== 'food' || foodList().length);
     $('#app').innerHTML = `
 <header class="top" id="topbar">
-  <a class="brand" href="#top">${esc(h.name || '')}</a>
+  <a class="brand" href="#top">${th === 'lapis' ? '<svg width="40" height="24" viewBox="0 0 46 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true" class="lp-logo"><path d="M2 19 15 6l10 9"/><path d="M19 11 30 1.5 44 15"/><path d="M9 15v11h30V12"/><path d="M22 26v-6h5v6"/></svg>' : ''}${th === 'lapis' ? `<span class="lp-bn">${esc(h.name || '')}</span>` : esc(h.name || '')}</a>
+  ${th === 'lapis' ? lapisNav(h) : ''}
   <a class="btn btn-accent top-book" href="#book">${w('bookShort')}</a>
   <button type="button" class="menu-btn" id="menuBtn" aria-haspopup="dialog" aria-controls="menu" aria-label="${w('menu')}"><span class="burger" aria-hidden="true"><i></i><i></i><i></i></span></button>
 </header>
@@ -266,6 +369,7 @@
   <div class="menu-in">
     <div class="menu-head"><b>${esc(h.name || '')}</b><button type="button" class="x" data-close aria-label="${w('close')}">×</button></div>
     <div class="menu-langs" role="group" aria-label="Language">${[['ka', 'ქართული'], ['en', 'English'], ['ru', 'Русский']].map(([l, n]) => `<button type="button" data-lang="${l}" aria-pressed="${l === lang()}">${n}</button>`).join('')}</div>
+    ${th === 'lapis' ? `<div class="menu-langs lp-msea" role="group" aria-label="${w('season')}"><button type="button" data-sea="winter" aria-pressed="${sea() === 'winter'}">${w('seasonW')}</button><button type="button" data-sea="summer" aria-pressed="${sea() === 'summer'}">${w('seasonS')}</button></div>` : ''}
     <nav class="menu-links">
       <a href="#rooms" data-close>${w('rooms')}</a>
       ${has('gallery') ? `<a href="#photos" data-close>${w('gallery')}</a>` : ''}
@@ -278,15 +382,16 @@
   </div>
 </dialog>
 <main id="top">
-  ${lay.map(k => (BLOCK[k] ? BLOCK[k](s, h, c, tel) : '')).join('\n  ')}
+  ${lay.map(k => ((BLOCK[k] || LP[k]) ? (BLOCK[k] || LP[k])(s, h, c, tel) : '')).join('\n  ')}
 </main>
 <!-- Visit2.ge credit: always shown, also on the hotel's own domain; not editable in the admin -->
-<footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span>
-  <a class="made-by" href="https://visit2.ge" rel="noopener">${w('madeBy')} <b>Visit2.ge</b></a></footer>
+${th === 'lapis' ? lapisFoot(h, c) : `<footer class="foot"><span>${esc(h.name || '')}${h.city ? ', ' + esc(h.city) : ''}</span>
+  <a class="made-by" href="https://visit2.ge" rel="noopener">${w('madeBy')} <b>Visit2.ge</b></a></footer>`}
 ${sheetHtml()}
 ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ? backLink() : ''}`;
     if (wasOpen) { const d = document.querySelector('.demo'); if (d) d.open = true; }
     wire();
+    if (th === 'lapis') wireLapis(); else if (snowStop) { snowStop(); snowStop = null; }
   }
 
   // ---------- places to eat nearby ----------
@@ -438,6 +543,7 @@ ${isDemo() && !sample && J.hotel && J.hotel.mine ? demoPanel() : ''}${isDemo() ?
   <div class="room-body">
     <h3>${esc(typeName(t.name))}</h3>
     ${pick(s.text) ? `<p class="room-text">${esc(pick(s.text))}</p>` : ''}
+    ${(s.feats || []).length ? `<ul class="room-feats" aria-label="${w('feats')}">${s.feats.map(f => `<li>${esc(pick(f))}</li>`).join('')}</ul>` : ''}
     <p class="room-meta">${t.cap} ${w('upTo')} · ${roomsOf(k).length} ${lang() === 'ka' ? 'ნომერი' : lang() === 'ru' ? 'ном.' : 'rooms'}</p>
     <p class="room-price"><span class="amount">${lang() === 'ka' ? `${minPrice(k)} ₾${w('from')}` : `${w('from')} ${minPrice(k)} ₾`}</span><span class="per"> / ${w('perNight')}</span></p>
     <p class="room-avail" aria-live="polite"></p>

@@ -2,7 +2,7 @@
 // The admin builds this JSON; anything else (unknown keys, odd links, very long texts) is dropped here,
 // so a hotel's page never carries script links or junk, whatever is sent to the API.
 const LANGS = ['ka', 'en', 'ru'];
-const THEMES = ['opal', 'amber', 'cobalt', 'alba', 'jade'];
+const THEMES = ['opal', 'amber', 'cobalt', 'alba', 'jade', 'lapis'];
 const OLD_THEME = { onyx: 'opal', indigo: 'cobalt', ivory: 'amber', lilac: 'jade', umber: 'alba' }; // earlier templates, retired
 const AMEN = ['wifi', 'parking', 'breakfast', 'kitchen', 'fireplace', 'pool', 'garden', 'bbq', 'balcony', 'kids', 'pets', 'ski', 'sea', 'center', 'transfer'];
 const KINDS = ['restaurant', 'georgian', 'cafe', 'bakery', 'wine', 'bar', 'fish', 'grill', 'pizza', 'fast'];
@@ -15,12 +15,38 @@ const tri = (v, max = 2000) => {
   return Object.keys(o).length ? o : undefined;
 };
 // photos: our own uploads (media/…), the template images (img/…), or https
-const img = v => (typeof v === 'string' && (/^media\/[\w.-]{1,60}$/.test(v) || /^img\/[\w./-]{1,120}\.(jpe?g|webp|png)$/.test(v) || /^https:\/\/[^\s"'<>]{1,300}$/.test(v)) ? v : undefined);
+const img = v => (typeof v === 'string' && (/^media\/[\w.-]{1,60}$/.test(v) || /^(img|files)\/[\w./-]{1,120}\.(jpe?g|webp|png)$/.test(v) && !v.includes('..') || /^https:\/\/[^\s"'<>]{1,300}$/.test(v)) ? v : undefined);
+// a video: a file kept with the site (files/…mp4) or a YouTube link
+const video = v => (typeof v === 'string' && ((/^files\/[\w./-]{1,120}\.mp4$/.test(v) && !v.includes('..')) || /^https:\/\/(www\.)?(youtube\.com|youtu\.be)\/[^\s"'<>]{1,200}$/.test(v)) ? v : undefined);
 const url = v => (typeof v === 'string' && /^https?:\/\/[^\s"'<>]{1,300}$/.test(v) ? v : undefined);
 const gmap = v => (typeof v === 'string' && /^https:\/\/(www\.)?(google\.[a-z.]+\/maps|maps\.app\.goo\.gl|goo\.gl\/maps|maps\.google\.)[^\s"'<>]{0,300}$/.test(v) ? v : undefined);
 const num = (v, lo, hi) => (Number.isFinite(+v) && +v >= lo && +v <= hi ? +v : undefined);
 const prune = o => { for (const k of Object.keys(o)) if (o[k] === undefined || (typeof o[k] === 'object' && o[k] !== null && !Array.isArray(o[k]) && !Object.keys(o[k]).length)) delete o[k]; return o; };
 const list = (v, max, f) => (Array.isArray(v) ? v.slice(0, max).map(f).filter(x => x !== undefined) : undefined);
+
+// the Lapis template: texts and photos may differ by season (winter / summer)
+const sv = (v, max) => (v && typeof v === 'object' && ('w' in v || 's' in v) ? prune({ w: tri(v.w, max), s: tri(v.s, max) }) : tri(v, max));
+const sim = v => (v && typeof v === 'object' ? prune({ w: img(v.w), s: img(v.s) }) : img(v));
+const season = v => (v === 'w' || v === 's' ? v : undefined);
+const href = v => (typeof v === 'string' && (/^\/[\w-]{1,60}$/.test(v) || url(v)) ? v : undefined);
+function cleanLapis(l) {
+  if (!l || typeof l !== 'object') return undefined;
+  const obj = (v, f) => (v && typeof v === 'object' ? prune(f(v)) : undefined);
+  return prune({
+    kick: tri(l.kick, 120), heroImg: sim(l.heroImg), heroBtn: tri(l.heroBtn, 60), aboutImg: sim(l.aboutImg),
+    facts: list(l.facts, 4, x => obj(x, y => ({ n: tri(y.n, 20), t: tri(y.t, 40) }))),
+    stories: list(l.stories, 6, x => obj(x, y => ({ id: /^[\w-]{1,20}$/.test(y.id || '') ? y.id : undefined, season: season(y.season), h: tri(y.h, 120), p: tri(y.p, 800), chips: list(y.chips, 8, c => tri(c, 60)), btn: tri(y.btn, 60), note: tri(y.note, 200), img: img(y.img), video: video(y.video), len: str(y.len, 8) || undefined, off: y.off === true || undefined }))),
+    fire: obj(l.fire, y => ({ h: sv(y.h, 120), p: tri(y.p, 800), chips: list(y.chips, 8, c => tri(c, 60)), img: sim(y.img), off: y.off === true || undefined })),
+    strip: list(l.strip, 30, x => obj(x, y => ({ img: img(y.img), cap: tri(y.cap, 80), season: season(y.season) }))),
+    spaces: obj(l.spaces, y => ({ h: tri(y.h, 120), p: tri(y.p, 600), items: list(y.items, 8, x => obj(x, z => ({ img: img(z.img), h: tri(z.h, 80), p: tri(z.p, 200) }))), off: y.off === true || undefined })),
+    grounds: obj(l.grounds, y => ({ img: sim(y.img), h: tri(y.h, 120), p: sv(y.p, 800), list: obj(y.list, z => ({ w: list(z.w, 10, c => tri(c, 140)), s: list(z.s, 10, c => tri(c, 140)) })),
+      photos: list(y.photos, 8, x => obj(x, z => ({ img: sim(z.img), cap: sv(z.cap, 80) }))), off: y.off === true || undefined })),
+    near: obj(l.near, y => ({ h: tri(y.h, 120), p: tri(y.p, 600), note: tri(y.note, 300), items: list(y.items, 12, x => obj(x, z => ({ h: tri(z.h, 80), p: sv(z.p, 200), d: tri(z.d, 20) }))), off: y.off === true || undefined })),
+    guides: list(l.guides, 6, x => obj(x, y => ({ href: href(y.href), t: tri(y.t, 60) }))),
+    rooms: obj(l.rooms, y => ({ h: tri(y.h, 120), p: tri(y.p, 400) })),
+    book: obj(l.book, y => ({ h: tri(y.h, 160), note: tri(y.note, 300) })),
+  });
+}
 
 function cleanSite(s) {
   if (!s || typeof s !== 'object' || Array.isArray(s)) return undefined;
@@ -43,7 +69,7 @@ function cleanSite(s) {
     for (const k of Object.keys(s.rooms).slice(0, 30)) {
       if (!/^[\w-]{1,40}$/.test(k)) continue;
       const r = s.rooms[k] || {};
-      o.rooms[k] = prune({ text: tri(r.text, 1500), photos: list(r.photos, 12, img) });
+      o.rooms[k] = prune({ text: tri(r.text, 1500), photos: list(r.photos, 20, img), feats: list(r.feats, 12, x => tri(x, 120)) });
     }
     prune(o.rooms);
   }
@@ -53,6 +79,7 @@ function cleanSite(s) {
       ? { on: true, part: s.instant.pay.part === 'deposit' ? 'deposit' : 'full', pct: s.instant.pay.part === 'deposit' ? num(s.instant.pay.pct, 10, 100) || 30 : undefined } : undefined;
     o.instant = prune({ on: s.instant.on === true ? true : undefined, cancel: tri(s.instant.cancel, 500), prepay: tri(s.instant.prepay, 500), pay: py ? prune(py) : undefined });
   }
+  if (s.lapis) o.lapis = cleanLapis(s.lapis);
   if (s.kids && ['free', 'fixed'].includes(s.kids.mode)) o.kids = prune({ mode: s.kids.mode, price: s.kids.mode === 'fixed' ? num(s.kids.price, 0, 10000) : undefined });
   if (s.pin) { const lat = num(s.pin.lat, -90, 90), lng = num(s.pin.lng, -180, 180); if (lat != null && lng != null) o.pin = { lat, lng }; }
   if (s.food && typeof s.food === 'object') {

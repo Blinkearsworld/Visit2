@@ -29,7 +29,9 @@
     roomText: {}
   };
 
-  let C = (isPreview && ls.get(K_PREVIEW)) || ls.get(DEMO ? K_DEMO : K_CACHE) || {};
+  // the Lapis preview (hotel.html?h=jiji) shows Villa JIJI's own contacts and questions
+  const SAMPLE = DEMO && window.V2JIJI && /[?&]h=jiji(&|$)/.test(location.search) ? window.V2JIJI.content : null;
+  let C = (isPreview && ls.get(K_PREVIEW)) || SAMPLE || ls.get(DEMO ? K_DEMO : K_CACHE) || {};
   const listeners = [];
   const emit = () => listeners.forEach(f => { try { f(); } catch (e) { console.error(e); } });
 
