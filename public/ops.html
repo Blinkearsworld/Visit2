@@ -199,7 +199,7 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
       ${t.how ? `<p class="how">${esc(t.how)}</p>` : ''}
       <div class="acts">${t.status === 'done' ? `<button class="btn sm" data-st="todo" data-id="${t.id}">დაბრუნება</button>` : `${t.status === 'todo' ? `<button class="btn sm" data-st="doing" data-id="${t.id}">ვიწყებ</button>` : ''}<button class="btn sm pri" data-st="done" data-id="${t.id}">✓ გაკეთდა</button>`}<button class="btn sm" data-edit="${t.id}">შეცვლა</button></div>
     </li>`; }).join('') || `<li class="empty">${filter === 'done' ? 'ბოლო 2 კვირაში დასრულებული არაფერია.' : 'გასაკეთებელი არაფერია. ახალი დავალება „+ დავალება“-თი დაამატე.'}</li>`;
-    $('#hotels').innerHTML = S.hotels.map(x => `<tr><td><b>${esc(x.name)}</b><small>${esc(x.city || '')} · ${esc(x.slug)}</small></td><td>${x.owner ? `<a href="mailto:${esc(x.owner)}">${esc(x.owner)}</a>` : '—'}</td><td>${esc(STATUS[x.status] || x.status)}${x.status === 'trial' && x.trialEnds ? `<br><small>${fmt(x.trialEnds)}-მდე</small>` : ''}</td><td>${x.paidUntil ? `${x.paidUntil < d && x.status === 'active' ? '<b style="color:var(--warn)">ვადა გავიდა</b>' : ''}<small>${fmt(x.paidUntil)}-მდე</small>` : '<small>—</small>'}<br><small>${x.monthly}₾ / თვე</small></td><td><button class="btn sm pri" type="button" data-open="${esc(x.slug)}">მართვა</button> <a href="${esc(x.site)}" target="_blank" rel="noopener">საიტი</a></td></tr>`).join('') || '<tr><td colspan="5" class="empty">სასტუმრო ჯერ არ არის.</td></tr>';
+    $('#hotels').innerHTML = S.hotels.map(x => `<tr><td><b>${esc(x.name)}</b><small>${esc(x.city || '')} · ${esc(x.slug)}</small></td><td>${x.owner ? `<a href="mailto:${esc(x.owner)}">${esc(x.owner)}</a>` : '—'}</td><td>${esc(STATUS[x.status] || x.status)}${x.status === 'trial' && x.trialEnds ? `<br><small>${fmt(x.trialEnds)}-მდე</small>` : ''}</td><td>${x.free ? '<b>მუდმივად უფასო</b>' : `${x.paidUntil ? `${x.paidUntil < d && x.status === 'active' ? '<b style="color:var(--warn)">ვადა გავიდა</b>' : ''}<small>${fmt(x.paidUntil)}-მდე</small>` : '<small>—</small>'}<br><small>${x.monthly}₾ / თვე</small>`}</td><td><button class="btn sm pri" type="button" data-open="${esc(x.slug)}">მართვა</button> <a href="${esc(x.site)}" target="_blank" rel="noopener">საიტი</a></td></tr>`).join('') || '<tr><td colspan="5" class="empty">სასტუმრო ჯერ არ არის.</td></tr>';
     $('#notes').innerHTML = S.notices.map(n => `<li><div>${esc(n.text)}<small>${fmt(n.from)} – ${fmt(n.to)}${n.to < d ? ' · დასრულდა' : n.from > d ? ' · მოგვიანებით' : ' · ახლა ჩანს'}</small></div><button class="btn sm" type="button" data-ndel="${esc(n.id)}">წაშლა</button></li>`).join('');
   }
 
@@ -268,7 +268,7 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
         <div class="row">საცდელი${h.trialEnds ? ` (${fmt(h.trialEnds)}-მდე)` : ''}: <input type="number" id="hTd" min="1" max="180" value="14" aria-label="დღე"> დღით <button class="btn" type="button" data-do="trial">გაგრძელება</button></div></div>
 
       <div class="box"><h3>სერვისები</h3>
-        <p class="mute">სისტემა და საიტი: ${S.prices.base}₾ / თვე.</p>
+        ${h.free ? `<p><b>მუდმივად უფასო.</b> ყველა სერვისი ჩართულია, საცდელი ვადა და გადახდა არ სჭირდება. <button class="btn sm" type="button" data-do="free" data-on="0">გაუქმება</button></p>` : `<p class="mute">სისტემა და საიტი: ${S.prices.base}₾ / თვე. <button class="btn sm" type="button" data-do="free" data-on="1">მუდმივად უფასო</button></p>`}
         <label class="chk"><input type="checkbox" data-addon="catalog"${h.addons.includes('catalog') ? ' checked' : ''}> ადგილი კატალოგში +${S.prices.addons.catalog}₾ <small class="mute">(პირველი 6 თვე ისედაც ჩანს)</small></label>
         <label class="chk"><input type="checkbox" data-addon="domain"${h.addons.includes('domain') ? ' checked' : ''}> საკუთარი დომენი +${S.prices.addons.domain}₾</label>
         <label class="chk"><input type="checkbox" data-addon="pay"${h.addons.includes('pay') ? ' checked' : ''}> ონლაინ წინასწარი გადახდა სასტუმროს ბანკით${S.prices.addons.pay ? ' +' + S.prices.addons.pay + '₾' : ''} <small class="mute">(ბანკს სასტუმრო თავად აერთებს ადმინში)</small></label>
@@ -309,6 +309,7 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
     if (body.do === 'pay-del') body.id = b.dataset.pdel;
     if (body.do === 'delete') body.confirm = $('#dC').value.trim();
     if (body.do === 'domain-add') body.host = $('#dHost').value.trim();
+    if (body.do === 'free') { body.on = b.dataset.on === '1'; if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = body.on ? 'დიახ, მუდმივად უფასო' : 'დიახ, გავაუქმო'; return; } }
     if (body.do === 'domain-del') { body.host = b.dataset.host; if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, მოხსენი'; return; } }
     if (body.do === 'password' && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, შევქმნა ახალი პაროლი'; return; }
     if (body.do === 'pay-del' && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, წაშალე'; return; }
@@ -318,7 +319,7 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
     if (body.do === 'enter') { window.open(o.url, '_blank', 'noopener'); b.disabled = false; return; }
     if (body.do === 'delete') { hd.close(); load(); return; }
     const slug = H.slug; await openHotel(slug);
-    pw = o.password || ''; said = { status: 'მდგომარეობა შეინახა.', trial: `საცდელი გაგრძელდა ${fmt(o.until || '')}-მდე.`, addons: 'სერვისები შეინახა.', pay: 'გადახდა ჩაიწერა.', 'pay-del': 'გადახდა წაიშალა.', 'domain-add': 'დომენი მიება. თუ Cloudflare-ში უკვე მიბმულია, საიტი რამდენიმე წუთში გაიხსნება.', 'domain-del': 'დომენი მოიხსნა.', password: '' }[body.do] || '';
+    pw = o.password || ''; said = { status: 'მდგომარეობა შეინახა.', trial: `საცდელი გაგრძელდა ${fmt(o.until || '')}-მდე.`, addons: 'სერვისები შეინახა.', pay: 'გადახდა ჩაიწერა.', 'pay-del': 'გადახდა წაიშალა.', 'domain-add': 'დომენი მიება. თუ Cloudflare-ში უკვე მიბმულია, საიტი რამდენიმე წუთში გაიხსნება.', 'domain-del': 'დომენი მოიხსნა.', free: 'შეინახა.', password: '' }[body.do] || '';
     drawHotel(); load();
   });
   $('#hotels').addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b) openHotel(b.dataset.open); });

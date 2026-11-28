@@ -27,7 +27,7 @@ const icalKey = async (secret, t, room) => (await hmac(secret, 'ical|' + t.id + 
 // ---------- prepayment through the hotel's own bank ----------
 // on only where Visit2 turned the service on, the owner connected a bank and chose prepayment for instant bookings
 async function payReady(env, t, site) {
-  if (!(t.addons || []).includes('pay') || !site.instant?.on || !site.instant?.pay?.on) return null;
+  if (!(t.plan === 'free' || (t.addons || []).includes('pay')) || !site.instant?.on || !site.instant?.pay?.on) return null;
   return getAccount(env.DB, t, encKey(env));
 }
 // opens the bank's payment page for a booking that holds its room; the guest comes back to their booking link
@@ -229,7 +229,7 @@ export async function hotelApi(request, env, t, { dev = false, base = '/' } = {}
   }
   // the hotel's bank for prepayment: Visit2 turns the service on; the owner enters the bank's credentials here
   if (route === 'pay') {
-    const addon = (t.addons || []).includes('pay'), ready = !!encKey(env);
+    const addon = t.plan === 'free' || (t.addons || []).includes('pay'), ready = !!encKey(env);
     if (m === 'GET') return json({ ok: true, addon, ready, banks: BANKS, account: await accountInfo(db, t) });
     if (!u.owner || u.support) return json({ ok: false, msg: 'ბანკს მხოლოდ მფლობელი აერთებს' }, 403);
     if (!addon) return json({ ok: false, msg: 'ონლაინ გადახდის სერვისს Visit2.ge რთავს. მოგვწერეთ და ჩაგირთავთ.' }, 403);

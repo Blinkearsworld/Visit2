@@ -16,7 +16,7 @@ export async function catalog(db, { siteOf, from = '', to = '', guests = 2, room
   const out = [], free = new Date(Date.now() - 183 * 864e5).toISOString();
   for (const row of r.results || []) {
     // a place in the catalogue: free for the first 6 months, then the paid "catalog" service (switched in Visit2's admin)
-    if (!(row.created >= free || String(row.addons || '').includes('"catalog"'))) continue;
+    if (!(row.created >= free || row.plan === 'free' || String(row.addons || '').includes('"catalog"'))) continue;
     const t = { id: row.id, slug: row.slug, name: row.name, city: row.city };
     const [{ content }, st] = await Promise.all([getContent(db, t), loadState(db, t)]);
     const s = content.site || {};

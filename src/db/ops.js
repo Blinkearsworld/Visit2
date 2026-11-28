@@ -30,13 +30,14 @@ export async function opsUser(db, request, secret) {
 
 // every hotel with its owner's email (for calling), newest first
 export async function allHotels(db) {
-  const r = await db.prepare(`SELECT t.id, t.slug, t.name, t.city, t.status, t.trial_ends, t.paused_until, t.paid_until, t.addons, t.closed_at, t.created,
+  const r = await db.prepare(`SELECT t.id, t.slug, t.name, t.city, t.status, t.plan, t.trial_ends, t.paused_until, t.paid_until, t.addons, t.closed_at, t.created,
       (SELECT u.email FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.tenant_id = t.id AND m.role = 'owner' LIMIT 1) AS owner
     FROM tenants t ORDER BY t.created DESC`).all();
   return (r.results || []).map(x => {
     let addons = []; try { addons = JSON.parse(x.addons || '[]'); } catch (e) { /* none */ }
-    return { slug: x.slug, name: x.name, city: x.city, status: x.status, trialEnds: x.trial_ends, pausedUntil: x.paused_until, paidUntil: x.paid_until, addons, closedAt: x.closed_at, created: x.created, owner: x.owner || '',
-      monthly: x.status === 'paused' ? PAUSE_PRICE : BASE_PRICE + addons.reduce((s, a) => s + (ADDONS[a] || 0), 0) };
+    const free = x.plan === 'free';
+    return { slug: x.slug, name: x.name, city: x.city, status: x.status, free, trialEnds: x.trial_ends, pausedUntil: x.paused_until, paidUntil: x.paid_until, addons, closedAt: x.closed_at, created: x.created, owner: x.owner || '',
+      monthly: free ? 0 : x.status === 'paused' ? PAUSE_PRICE : BASE_PRICE + addons.reduce((s, a) => s + (ADDONS[a] || 0), 0) };
   });
 }
 
@@ -44,6 +45,8 @@ export async function allHotels(db) {
 export async function autoTasks(db, hotels, day = today()) {
   const st = [];
   for (const h of hotels) {
+    // a hotel we keep free for good: no calls about trials or payments
+    if (h.free && h.status !== 'closed') { if (h.created && h.created.slice(0, 10) >= addDays(day, -2)) st.push(['welcome:' + h.slug, 'მიესალმე და დაეხმარე დაწყებაში', h.slug, 'ახალი რეგისტრაცია', addDays(h.created.slice(0, 10), 1), h.owner]); continue; }
     if (h.status === 'trial' && h.trialEnds && h.trialEnds >= day && h.trialEnds <= addDays(day, 3))
       st.push(['trial:' + h.slug + ':' + h.trialEnds, 'დაურეკე', h.slug, `უფასო პერიოდი მთავრდება ${h.trialEnds}-ს`, h.trialEnds, h.owner]);
     // the terms promise: a closed hotel's data is deleted within 90 days of closing
@@ -109,8 +112,8 @@ export async function hotelDetail(db, t) {
   let site = {}; try { site = JSON.parse(photo?.v || '{}').site || {}; } catch (e) { /* none */ }
   const team2 = (team.results || []).map(x => ({ name: x.name, email: x.email, owner: x.role === 'owner', active: !!x.active, lastLogin: x.last_login }));
   return {
-    slug: t.slug, name: t.name, city: t.city, status: t.status, trialEnds: t.trialEnds, pausedUntil: t.pausedUntil, paidUntil: t.paidUntil, addons: t.addons, created: t.created,
-    monthly: t.status === 'paused' ? PAUSE_PRICE : BASE_PRICE + t.addons.reduce((s, a) => s + (ADDONS[a] || 0), 0),
+    slug: t.slug, name: t.name, city: t.city, status: t.status, free: t.plan === 'free', trialEnds: t.trialEnds, pausedUntil: t.pausedUntil, paidUntil: t.paidUntil, addons: t.addons, created: t.created,
+    monthly: t.plan === 'free' ? 0 : t.status === 'paused' ? PAUSE_PRICE : BASE_PRICE + t.addons.reduce((s, a) => s + (ADDONS[a] || 0), 0),
     team: team2, lastLogin: team2.map(x => x.lastLogin).filter(Boolean).sort().pop() || null,
     requests30: req?.n || 0, confirmed30: conf?.n || 0,
     site: { photo: !!site.hero?.img, about: !!site.about?.text, gallery: (site.gallery || []).length, pin: !!site.pin, theme: site.theme || 'opal' },
@@ -142,6 +145,15 @@ export async function removeDomain(db, t, me, host) {
   await db.batch([
     db.prepare("DELETE FROM domains WHERE tenant_id = ? AND kind = 'custom' AND host IN (?, ?)").bind(t.id, host, 'www.' + host),
     note(db, t, me, 'დომენი', host + ' მოიხსნა'),
+  ]);
+  forgetTenants();
+}
+
+// free for good (a partner hotel): every service on, no trial end, no payments; can be taken back
+export async function setFree(db, t, me, on) {
+  await db.batch([
+    db.prepare("UPDATE tenants SET plan = ?, status = CASE WHEN ? = 1 AND status IN ('trial', 'paused') THEN 'active' ELSE status END, paused_until = CASE WHEN ? = 1 THEN NULL ELSE paused_until END WHERE id = ?").bind(on ? 'free' : null, on ? 1 : 0, on ? 1 : 0, t.id),
+    note(db, t, me, 'ფასი', on ? 'მუდმივად უფასო: ყველა სერვისი ჩართულია, გადახდა არ სჭირდება' : 'მუდმივად უფასო გაუქმდა'),
   ]);
   forgetTenants();
 }

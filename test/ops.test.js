@@ -77,3 +77,19 @@ describe('a hotel\'s own domain', () => {
     expect(await tenantByHost(env.DB, 'myhotel.ge')).toBeNull();
   });
 });
+
+describe('a hotel free for good', () => {
+  it('has no price, no trial calls, and every service', async () => {
+    const { createTenant, tenantById } = await import('../src/db/tenants.js');
+    const { setFree, allHotels, hotelDetail } = await import('../src/db/ops.js');
+    const { env } = await import('cloudflare:workers');
+    const A = await createTenant(env.DB, { slug: 'free-a', name: 'Free A' });
+    await setFree(env.DB, A, { id: 'ops', name: 'Ops' }, true);
+    const t = await tenantById(env.DB, A.id);
+    expect(t).toMatchObject({ plan: 'free', status: 'active' });
+    expect((await allHotels(env.DB)).find(h => h.slug === 'free-a')).toMatchObject({ free: true, monthly: 0 });
+    expect((await hotelDetail(env.DB, t)).monthly).toBe(0);
+    await setFree(env.DB, t, { id: 'ops', name: 'Ops' }, false);
+    expect((await tenantById(env.DB, A.id)).plan).toBeNull();
+  });
+});
