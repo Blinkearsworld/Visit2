@@ -7,7 +7,7 @@ import { json, readJson } from './lib/http.js';
 import { signUp, signUpsFrom, noteSignUp, SIGNUP_LIMIT } from './db/signup.js';
 import { ROOT_DOMAIN } from './db/tenants.js';
 import { tooManyFails, noteFail, clearFails } from './db/users.js';
-import { opsLogin, opsCookie, opsClear, opsUser, allHotels, autoTasks, listTasks, saveTask, deleteTask,
+import { opsSetPassword, opsLogin, opsCookie, opsClear, opsUser, allHotels, autoTasks, listTasks, saveTask, deleteTask,
   hotelDetail, setStatus, extendTrial, setAddons, addPayment, deletePayment, resetOwnerPassword, helpUntil, deleteHotel, addDomain, removeDomain, setFree, listNotices, saveNotice, deleteNotice, ADDONS, BASE_PRICE, PAUSE_PRICE, guestCount, limitTask, GUEST_LIMIT } from './db/ops.js';
 import { tenantBySlug } from './db/tenants.js';
 import { supportToken } from './db/users.js';
@@ -55,6 +55,15 @@ async function opsApi(request, env, url, preview) {
     if (!u) { await noteFail(db, ip); return json({ ok: false, msg: 'ელფოსტა ან პაროლი არ ემთხვევა.' }, 401); }
     await clearFails(db, ip);
     return json({ ok: true }, 200, { 'set-cookie': await opsCookie(secret, u, secure) });
+  }
+  if (p === 'setup' && m === 'POST') {
+    const ip = request.headers.get('cf-connecting-ip') || 'local';
+    if (await tooManyFails(db, ip)) return json({ ok: false, msg: 'ბევრი მცდელობა. სცადე 15 წუთში.' }, 429);
+    try {
+      const u = await opsSetPassword(db, env.OPS_SETUP, (await readJson(request)) || {});
+      await clearFails(db, ip);
+      return json({ ok: true }, 200, { 'set-cookie': await opsCookie(secret, u, secure) });
+    } catch (e) { await noteFail(db, ip); return json({ ok: false, msg: e.message }, 400); }
   }
   if (p === 'logout' && m === 'POST') return json({ ok: true }, 200, { 'set-cookie': opsClear() });
   const me = await opsUser(db, request, secret);

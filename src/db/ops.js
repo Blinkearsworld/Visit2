@@ -1,7 +1,7 @@
 // Visit2's own admin (/ops): every hotel at a glance and a to-do list.
 // Only people marked platform = 1 in users may use it. Guests' personal data is not read here.
 import { nowIso, addDays, today } from '../lib/time.js';
-import { normEmail, hashPw, same, hmac, newSalt } from './users.js';
+import { normEmail, hashPw, same, hmac, newSalt, pwProblem } from './users.js';
 import { forgetTenants } from './tenants.js';
 
 export const OPS_COOKIE = 'v2_ops';
@@ -13,6 +13,22 @@ export async function opsLogin(db, email, password) {
   const u = await db.prepare('SELECT id, name, email, salt, hash, ver, platform FROM users WHERE email = ?').bind(email).first();
   if (!u || !u.platform || !u.hash || !same(await hashPw(password, u.salt), u.hash)) return null;
   return { id: u.id, name: u.name, email: u.email, ver: u.ver };
+}
+// First sign-in, or a forgotten password: the person proves they can change the Worker's settings by typing
+// the code they put in the Cloudflare Secret OPS_SETUP. Only the founder's address or an existing Visit2 person.
+export const OPS_OWNER = 'visit2ge@gmail.com';
+export async function opsSetPassword(db, setupCode, { email, code, password }) {
+  if (!setupCode || String(setupCode).length < 12) throw new Error('Cloudflare-ში ჯერ ჩაწერე OPS_SETUP (მინიმუმ 12 სიმბოლო).');
+  if (!same(String(code || ''), String(setupCode))) throw new Error('კოდი არ ემთხვევა OPS_SETUP-ს.');
+  email = normEmail(email);
+  const p = pwProblem(password); if (p) throw new Error(p);
+  const u = await db.prepare('SELECT id, platform FROM users WHERE email = ?').bind(email).first();
+  if (!(email === OPS_OWNER || u?.platform)) throw new Error('ამ ელფოსტას Visit2-ის ადმინში შესვლის უფლება არ აქვს.');
+  const salt = newSalt(), hash = await hashPw(password, salt);
+  if (u) await db.prepare('UPDATE users SET salt = ?, hash = ?, ver = ver + 1, platform = 1 WHERE id = ?').bind(salt, hash, u.id).run();
+  else await db.prepare('INSERT INTO users (id, email, name, salt, hash, platform, created) VALUES (?, ?, ?, ?, ?, 1, ?)')
+    .bind(crypto.randomUUID(), email, 'Visit2', salt, hash, nowIso()).run();
+  return opsLogin(db, email, password);
 }
 export async function opsCookie(secret, u, secure = true) {
   const exp = Date.now() + DAYS * 864e5, body = `${u.id}.${u.ver}.${exp}`;

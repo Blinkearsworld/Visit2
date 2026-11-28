@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { env, exports } from 'cloudflare:workers';
 import { createTenant } from '../src/db/tenants.js';
+import { opsSetPassword } from '../src/db/ops.js';
 import { addMember } from '../src/db/users.js';
 import { today, addDays } from '../src/lib/time.js';
 
@@ -91,5 +92,17 @@ describe('a hotel free for good', () => {
     expect((await hotelDetail(env.DB, t)).monthly).toBe(0);
     await setFree(env.DB, t, { id: 'ops', name: 'Ops' }, false);
     expect((await tenantById(env.DB, A.id)).plan).toBeNull();
+  });
+});
+
+describe("first sign-in to Visit2's own admin", () => {
+  it('needs the OPS_SETUP code and only the founder or Visit2 staff', async () => {
+    await expect(opsSetPassword(env.DB, '', { email: 'visit2ge@gmail.com', code: 'x', password: 'new-password' })).rejects.toThrow(/OPS_SETUP/);
+    await expect(opsSetPassword(env.DB, 'long-setup-code-123', { email: 'visit2ge@gmail.com', code: 'wrong', password: 'new-password' })).rejects.toThrow(/არ ემთხვევა/);
+    await expect(opsSetPassword(env.DB, 'long-setup-code-123', { email: 'stranger@x.test', code: 'long-setup-code-123', password: 'new-password' })).rejects.toThrow(/უფლება/);
+    const u = await opsSetPassword(env.DB, 'long-setup-code-123', { email: 'visit2ge@gmail.com', code: 'long-setup-code-123', password: 'new-password' });
+    expect(u.email).toBe('visit2ge@gmail.com');
+    const r = await call('/api/ops/login', { method: 'POST', body: { email: 'visit2ge@gmail.com', password: 'new-password' } });
+    expect(r.status).toBe(200);
   });
 });
