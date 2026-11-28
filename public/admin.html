@@ -924,7 +924,7 @@ function printBill(b){
  const w=window.open('','_blank');if(!w){flash('ბრაუზერმა ახალი ფანჯარა დაბლოკა. დაუშვით და სცადეთ თავიდან.');return}w.document.write(html);w.document.close();
 }
 /* --- the hotel's list of services --- */
-const SVQ=[['საუზმე','guest_night'],['სადილი','guest_night'],['ვახშამი','guest_night'],['მინიბარი','item'],['დამატებითი დალაგება','stay'],['ტრანსფერი','stay'],['სარეცხი','item'],['საუნა','item'],['ცხენით გასეირნება','guest'],['ნავის ქირა','item'],['ტური','guest'],['ველოსიპედის ქირა','item']];
+const SVQ=[['საუზმე','guest_night'],['სადილი','guest_night'],['ვახშამი','guest_night'],['მინიბარი','item'],['დამატებითი დალაგება','stay'],['ტრანსფერი','stay'],['სარეცხი','item'],['საუნა','item'],['პარკინგი','night'],['აუზი','guest'],['ცხენით გასეირნება','guest'],['ნავის ქირა','item'],['ტური','guest'],['ველოსიპედის ქირა','item']];
 let svcDraft=null,svcDirty=false;
 function renderServices(){
  if(!svcDraft)svcDraft=J.services.map(x=>({...x}));
