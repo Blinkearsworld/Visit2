@@ -274,6 +274,11 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
         <label class="chk"><input type="checkbox" data-addon="pay"${h.addons.includes('pay') ? ' checked' : ''}> ონლაინ წინასწარი გადახდა სასტუმროს ბანკით${S.prices.addons.pay ? ' +' + S.prices.addons.pay + '₾' : ''} <small class="mute">(ბანკს სასტუმრო თავად აერთებს ადმინში)</small></label>
         <div class="row"><button class="btn" type="button" data-do="addons">შენახვა</button></div></div>
 
+      <div class="box"><h3>საიტის მისამართი</h3>
+        <ul class="list">${(h.domains || []).map(x => `<li><span><a href="https://${esc(x.host)}/" target="_blank" rel="noopener">${esc(x.host)}</a>${x.kind === 'sub' ? ' <small class="mute">(Visit2.ge-ის ქვედომენი, ყოველთვის მუშაობს)</small>' : ''}</span>${x.kind === 'custom' && !x.host.startsWith('www.') ? `<button class="btn sm" type="button" data-do="domain-del" data-host="${esc(x.host)}">მოხსნა</button>` : ''}</li>`).join('')}</ul>
+        <p class="mute">საკუთარი დომენი: ჯერ Cloudflare-ში დომენი Visit2-ის Worker-ზე მიაბი (Workers → visit2 → Settings → Domains &amp; Routes → Add → Custom domain: დომენი და www.დომენი), მერე აქ ჩაწერე.</p>
+        <div class="row"><input class="grow" id="dHost" placeholder="hotel.ge" autocomplete="off" inputmode="url"><button class="btn" type="button" data-do="domain-add">მიბმა</button></div></div>
+
       <div class="box"><h3>გადახდები</h3>
         <p>${h.paidUntil ? `გადახდილია <b>${fmt(h.paidUntil)}</b>-მდე${h.paidUntil < d ? ' · <b style="color:var(--warn)">ვადა გავიდა</b>' : ''}` : 'გადახდა ჯერ არ ჩაწერილა.'}</p>
         <div class="row"><input type="number" id="pA" min="1" value="${h.monthly}" aria-label="თანხა">₾
@@ -303,6 +308,8 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
     if (body.do === 'pay') Object.assign(body, { amount: +$('#pA').value, until: $('#pU').value, method: $('#pM').value, note: $('#pN').value });
     if (body.do === 'pay-del') body.id = b.dataset.pdel;
     if (body.do === 'delete') body.confirm = $('#dC').value.trim();
+    if (body.do === 'domain-add') body.host = $('#dHost').value.trim();
+    if (body.do === 'domain-del') { body.host = b.dataset.host; if (b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, მოხსენი'; return; } }
     if (body.do === 'password' && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, შევქმნა ახალი პაროლი'; return; }
     if (body.do === 'pay-del' && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = 'დიახ, წაშალე'; return; }
     b.disabled = true;
@@ -311,7 +318,7 @@ dialog.hd::backdrop{background:rgba(31,26,23,.45)}
     if (body.do === 'enter') { window.open(o.url, '_blank', 'noopener'); b.disabled = false; return; }
     if (body.do === 'delete') { hd.close(); load(); return; }
     const slug = H.slug; await openHotel(slug);
-    pw = o.password || ''; said = { status: 'მდგომარეობა შეინახა.', trial: `საცდელი გაგრძელდა ${fmt(o.until || '')}-მდე.`, addons: 'სერვისები შეინახა.', pay: 'გადახდა ჩაიწერა.', 'pay-del': 'გადახდა წაიშალა.', password: '' }[body.do] || '';
+    pw = o.password || ''; said = { status: 'მდგომარეობა შეინახა.', trial: `საცდელი გაგრძელდა ${fmt(o.until || '')}-მდე.`, addons: 'სერვისები შეინახა.', pay: 'გადახდა ჩაიწერა.', 'pay-del': 'გადახდა წაიშალა.', 'domain-add': 'დომენი მიება. თუ Cloudflare-ში უკვე მიბმულია, საიტი რამდენიმე წუთში გაიხსნება.', 'domain-del': 'დომენი მოიხსნა.', password: '' }[body.do] || '';
     drawHotel(); load();
   });
   $('#hotels').addEventListener('click', e => { const b = e.target.closest('[data-open]'); if (b) openHotel(b.dataset.open); });

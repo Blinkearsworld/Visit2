@@ -114,8 +114,36 @@ export async function hotelDetail(db, t) {
     team: team2, lastLogin: team2.map(x => x.lastLogin).filter(Boolean).sort().pop() || null,
     requests30: req?.n || 0, confirmed30: conf?.n || 0,
     site: { photo: !!site.hero?.img, about: !!site.about?.text, gallery: (site.gallery || []).length, pin: !!site.pin, theme: site.theme || 'opal' },
+    domains: await hotelDomains(db, t),
     payments: pays.results || [], helpUntil: acc?.until > Date.now() ? acc.until : null, ourLog: log.results || [],
   };
+}
+
+// the hotel's own domain (example.ge and www.example.ge) shows its site; the address must already point to Visit2 in Cloudflare
+const goodHost = h => /^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/.test(h) && !/(^|\.)visit2\.ge$/.test(h);
+export async function hotelDomains(db, t) {
+  const r = await db.prepare('SELECT host, kind FROM domains WHERE tenant_id = ? ORDER BY kind DESC, host').bind(t.id).all();
+  return r.results || [];
+}
+export async function addDomain(db, t, me, host) {
+  host = String(host || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/^www\./, '');
+  if (!goodHost(host)) throw new Error('ჩაწერე დომენი, მაგალითად: hotel.ge');
+  const taken = await db.prepare('SELECT tenant_id FROM domains WHERE host IN (?, ?)').bind(host, 'www.' + host).all();
+  if ((taken.results || []).some(x => x.tenant_id !== t.id)) throw new Error('ეს დომენი სხვა სასტუმროზეა მიბმული');
+  await db.batch([
+    db.prepare("INSERT OR IGNORE INTO domains (host, tenant_id, kind, verified, created) VALUES (?, ?, 'custom', 1, ?)").bind(host, t.id, nowIso()),
+    db.prepare("INSERT OR IGNORE INTO domains (host, tenant_id, kind, verified, created) VALUES (?, ?, 'custom', 1, ?)").bind('www.' + host, t.id, nowIso()),
+    note(db, t, me, 'დომენი', host + ' და www.' + host + ' მიება საიტს'),
+  ]);
+  forgetTenants();
+}
+export async function removeDomain(db, t, me, host) {
+  host = String(host || '').trim().toLowerCase().replace(/^www\./, '');
+  await db.batch([
+    db.prepare("DELETE FROM domains WHERE tenant_id = ? AND kind = 'custom' AND host IN (?, ?)").bind(t.id, host, 'www.' + host),
+    note(db, t, me, 'დომენი', host + ' მოიხსნა'),
+  ]);
+  forgetTenants();
 }
 
 export async function setStatus(db, t, me, status, pausedUntil) {
