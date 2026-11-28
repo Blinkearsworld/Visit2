@@ -64,6 +64,7 @@
         <details class="mypw"><summary><b>ჩემი პაროლის შეცვლა</b></summary>
           <label class="fld"><b>ახლანდელი პაროლი</b><input class="cin" id="tOld" type="password" autocomplete="current-password"></label>
           <label class="fld"><b>ახალი პაროლი</b><input class="cin" id="tNew" type="password" autocomplete="new-password" minlength="8"><span class="hint">მინიმუმ 8 სიმბოლო. შეცვლის შემდეგ ყველა მოწყობილობიდან გამოხვალთ და ახალი პაროლით შეხვალთ.</span></label>
+          <label class="fld"><b>ახალი პაროლი კიდევ ერთხელ</b><input class="cin" id="tNew2" type="password" autocomplete="new-password" minlength="8"></label>
           <button type="button" class="btn" id="tMyPw">პაროლის შეცვლა</button></details></div>
       <h2>თანამშრომლები</h2>
       ${users.length ? users.map(u => `<div class="card2 tuser${u.active ? '' : ' off'}" data-id="${u.id}">
@@ -150,7 +151,7 @@
     if (e.target.id === 'tCsv') { csv(); return; }
     if (e.target.id === 'tGen') $('tPw').value = genPw();
     else if (e.target.id === 'tMyPw') {
-      act(async () => { await call({ op: 'mypass', old: $('tOld').value, password: $('tNew').value }); alert('პაროლი შეიცვალა. შედით ახალი პაროლით.'); location.reload(); });
+      act(async () => { if ($('tNew').value !== $('tNew2').value) throw new Error('ახალი პაროლი ორჯერ ერთნაირად ჩაწერეთ.'); await call({ op: 'mypass', old: $('tOld').value, password: $('tNew').value }); alert('პაროლი შეიცვალა. შედით ახალი პაროლით.'); location.reload(); });
     }
     else if (e.target.id === 'tOwnerSave') act(() => call({ op: 'owner', name: $('tOwner').value }), 'სახელი შეიცვალა. ზემოთ ახალი სახელი გამოჩნდება გვერდის განახლების შემდეგ.');
     else if (e.target.id === 'tAdd') {
