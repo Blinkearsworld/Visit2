@@ -58,7 +58,10 @@ window.JIJI = (() => {
   // who is signed in to the admin (the demo is always the main admin) and who changed which booking
   let me = { id: 'owner', name: 'მფლობელი', owner: true, perms: ['book', 'money', 'price', 'site'] }, actlog = [];
   // Which season the site opens in. 'auto' follows the winter date range (MM-DD, may wrap the year).
-  const DEFAULT_SETTINGS = { seasonMode: 'auto', winterFrom: '11-15', winterTo: '03-31', gapDiscount: '10' };
+  const DEFAULT_SETTINGS = { seasonMode: 'auto', winterFrom: '11-15', winterTo: '03-31', gapDiscount: '10',
+    // browser-only demo: sample price plans and cancellation rule (each hotel sets its own in admin)
+    plans: JSON.stringify([{ id: 'bb', name: 'საუზმით', pct: 0, add: 20, perGuest: true, refundable: true }, { id: 'nr', name: 'დაუბრუნებელი', pct: 10, add: 0, perGuest: false, refundable: false }]),
+    cancelRule: JSON.stringify({ days: 7, pct: 50 }) };
   // capacity of a type = its largest guest version
   function syncCap(k) {
     const t = state.types[k];
@@ -332,20 +335,21 @@ window.JIJI = (() => {
   }
 
   // ---------- actions ----------
-  function createRequest({ from, to, guests, name, phone, source, type, price, note, wish, deal, children, rooms, instant, kidRule, payRule, extras }) {
+  function createRequest({ from, to, guests, name, phone, source, type, price, note, wish, deal, children, rooms, instant, kidRule, payRule, extras, plan: planId }) {
     rooms = Math.max(1, Math.min(10, guests, parseInt(rooms) || 1));
     const ext = pickExtras(extras, { from, to, guests });
+    const plan = planId ? plans().find(p => p.id === planId) || null : null, pn = nights(from, to), P = window.V2PLANS;
     if (rooms > 1) {
       // several rooms: one row per room, tied by grp (the server builds the same rows)
       const o = roomsOffer(from, to, guests, rooms, Math.max(0, parseInt(children) || 0), kidRule || null);
       if (!o.parts) return { saved: Promise.resolve({ ok: false, free: o.free }) };
       const grp = uid(), created = new Date().toISOString(); let kids = Math.max(0, parseInt(children) || 0);
       const rows = o.parts.map(x => { const c = Math.min(kids, x.guests - 1); kids -= c;
-        return { id: uid(), room: null, type: x.type, from, to, guests: x.guests, name, phone, status: 'pending', source, price: x.total, note: '', wish: String(wish || '').trim().slice(0, 500), remark: '', wantRoom: '', children: c, grp, created }; });
+        return { id: uid(), room: null, type: x.type, from, to, guests: x.guests, name, phone, status: 'pending', source, price: P.planPrice(x.total, plan, x.guests, pn), note: plan ? plan.name : '', plan: P.planTag(plan), wish: String(wish || '').trim().slice(0, 500), remark: '', wantRoom: '', children: c, grp, created }; });
       state.bookings.push(...rows); addExtras(rows[0].id, ext); save();
       const req = { id: grp, grp, rows };
       req.saved = mode === 'api'
-        ? sendRequest({ from, to, guests, name, phone, source, rooms, wish: rows[0].wish, children, instant: instant === true, extras: ext.map(x => ({ id: x.service, qty: x.qty })) }).then(out => {
+        ? sendRequest({ from, to, guests, name, phone, source, rooms, wish: rows[0].wish, children, instant: instant === true, plan: plan ? plan.id : undefined, extras: ext.map(x => ({ id: x.service, qty: x.qty })) }).then(out => {
             if (!out.ok) { state.bookings = state.bookings.filter(x => x.grp !== grp); save(); emit(); }
             return out;
           })
@@ -355,13 +359,14 @@ window.JIJI = (() => {
     // a short offer (deal key): price, note and the offered room come from it (the server recomputes them)
     const D = deal ? deals().find(x => x.key === deal && x.from === from && x.to === to) : null;
     if (D) { type = D.type; price = dealTotal(D, guests); note = dealNote(D); }
+    if (plan) { const t0 = type || (findOffer(from, to, guests) || {}).type; if (price == null && t0) price = kidPrice(t0, from, to, guests, Math.max(0, parseInt(children) || 0), kidRule || null); if (price != null) price = P.planPrice(price, plan, guests, pn); note = [note, plan.name].filter(Boolean).join(' · '); }
     const offer = type ? { type } : findOffer(from, to, guests);
     const t = offer ? offer.type : (Object.keys(state.types).find(k => rateFor(k, guests)) || Object.keys(state.types)[0]);
-    const req = { id: uid(), room: null, type: t, from, to, guests, name, phone, status: 'pending', source, price: price ?? null, note: note || '', wish: String(wish || '').trim().slice(0, 500), remark: '', wantRoom: D ? D.room : '', children: Math.max(0, Math.min(guests - 1, parseInt(children) || 0)), created: new Date().toISOString() };
+    const req = { id: uid(), room: null, type: t, from, to, guests, name, phone, status: 'pending', source, price: price ?? null, note: note || '', wish: String(wish || '').trim().slice(0, 500), remark: '', wantRoom: D ? D.room : '', children: Math.max(0, Math.min(guests - 1, parseInt(children) || 0)), plan: P.planTag(plan), created: new Date().toISOString() };
     state.bookings.push(req); addExtras(req.id, ext); save();
     // on the real site the request counts as sent only when the server confirms it; otherwise it is taken back
     req.saved = mode === 'api'
-      ? sendRequest({ from, to, guests, name, phone, source, type: t, deal: D ? D.key : undefined, wish: req.wish, children: req.children, instant: instant === true, extras: ext.map(x => ({ id: x.service, qty: x.qty })) }).then(out => {
+      ? sendRequest({ from, to, guests, name, phone, source, type: t, deal: D ? D.key : undefined, wish: req.wish, children: req.children, instant: instant === true, plan: plan ? plan.id : undefined, extras: ext.map(x => ({ id: x.service, qty: x.qty })) }).then(out => {
           if (!out.ok) { state.bookings = state.bookings.filter(x => x !== req); save(); emit(); }
           return out;
         })
@@ -509,7 +514,8 @@ window.JIJI = (() => {
 
   // ---------- money: agreed price, payments, what is left ----------
   const METHODS = { card: 'ბარათი', transfer: 'პირადზე ჩარიცხვა', cash: 'ქეში' };
-  const priceOf = b => b.price ?? quote(b.type, b.from, b.to, b.guests);
+  // a cancelled booking owes only its cancellation fee
+  const priceOf = b => (b.status === 'cancelled' ? (+b.fee || 0) : b.price ?? quote(b.type, b.from, b.to, b.guests));
   const paymentsOf = id => state.payments.filter(x => x.booking === id).sort((a, b) => a.date < b.date ? -1 : 1);
   const paidOf = id => paymentsOf(id).reduce((s, x) => s + x.amount, 0);
   // what the guest owes: the room price plus services charged to the stay (breakfast, minibar...)
@@ -522,7 +528,7 @@ window.JIJI = (() => {
   const UNITS = { stay: 'ერთჯერადად', night: 'ღამეში', guest: 'ერთ სტუმარზე', guest_night: 'სტუმარზე ღამეში', item: 'რაოდენობით (ცალი, საათი)' };
   const services = () => state.services || [];
   const itemsOf = id => (state.items || []).filter(x => x.booking === id);
-  const extrasOf = id => itemsOf(id).reduce((s, x) => s + (+x.amount || 0), 0);
+  const extrasOf = id => { const b = state.bookings.find(x => x.id === id); return b && b.status === 'cancelled' ? 0 : itemsOf(id).reduce((s, x) => s + (+x.amount || 0), 0); };
   function unitsFor(unit, stay, qty) {
     const n = Math.max(1, nights(stay.from, stay.to) || 1), g = Math.max(1, +stay.guests || 1);
     return unit === 'stay' ? 1 : unit === 'night' ? n : unit === 'guest' ? g : unit === 'guest_night' ? n * g : Math.max(1, Math.min(99, parseInt(qty) || 1));
@@ -587,6 +593,37 @@ window.JIJI = (() => {
       b.invoice = { no: no || '', company, code: String(code || '').trim().slice(0, 20), address: String(address || '').trim().slice(0, 160), issued: (b.invoice && b.invoice.issued) || today() };
     }
     save(); post('api/admin/action', { op: 'invoice', id, company, code, address }); return { ok: true };
+  }
+  // price plans, cancelling, messages to guests
+  const plans = () => (window.V2PLANS ? window.V2PLANS.readPlans(state.settings) : []);
+  const allPlans = () => { try { return JSON.parse(state.settings.plans || '[]') || []; } catch (e) { return []; } };
+  const cancelRule = () => { try { return JSON.parse(state.settings.cancelRule || '{}') || {}; } catch (e) { return {}; } };
+  const feeFor = b => (window.V2PLANS ? window.V2PLANS.cancelFee(state.settings, { from: b.from, price: priceOf(b) + extrasOf(b.id), plan: b.plan }, today()) : 0);
+  function cancelBooking(id, fee) {
+    const b = state.bookings.find(x => x.id === id); if (!b || !['confirmed', 'pending'].includes(b.status)) return { ok: false, msg: 'ჯავშანი ვერ მოიძებნა' };
+    fee = fee === '' || fee == null ? feeFor(b) : Math.max(0, Math.round(+fee || 0));
+    b.prevStatus = b.status; b.status = 'cancelled'; b.cancelledAt = nowIso(); b.fee = fee;
+    save(); post('api/admin/action', { op: 'cancel', id, fee }); return { ok: true, fee, refund: Math.max(0, paidOf(id) - fee) };
+  }
+  function uncancel(id) {
+    const b = state.bookings.find(x => x.id === id); if (!b || b.status !== 'cancelled') return { ok: false, msg: 'ჯავშანი ვერ მოიძებნა' };
+    const back = b.prevStatus === 'pending' ? 'pending' : 'confirmed';
+    if (back === 'confirmed' && b.room && !roomFree(b.room, b.from, b.to, b.id)) return { ok: false, msg: 'ნომერი ' + b.room + ' ამ თარიღებზე უკვე დაკავებულია' };
+    b.status = back; b.prevStatus = null; b.cancelledAt = ''; b.fee = null; save(); post('api/admin/action', { op: 'uncancel', id }); return { ok: true };
+  }
+  // ready messages for the guest, with the booking's details filled in
+  const TPL = {
+    confirm: { title: 'ჯავშნის დადასტურება', ka: 'გამარჯობა, {name}! თქვენი ჯავშანი {hotel}-ში დადასტურებულია: {dates}, ნომერი {room}. სულ {total} ₾. გელოდებით!', en: 'Hello {name}! Your booking at {hotel} is confirmed: {dates}, room {room}. Total {total} GEL. See you soon!', ru: 'Здравствуйте, {name}! Ваше бронирование в {hotel} подтверждено: {dates}, номер {room}. Итого {total} GEL. Ждём вас!' },
+    arrive: { title: 'შესვლის ინსტრუქცია', ka: 'გამარჯობა, {name}! ხვალ გელოდებით {hotel}-ში. შესვლა 14:00-დან. მისამართი და გზა: … დაგვირეკეთ: {phone}', en: 'Hello {name}! We look forward to seeing you at {hotel} tomorrow. Check-in from 14:00. Address and directions: … Call us: {phone}', ru: 'Здравствуйте, {name}! Ждём вас завтра в {hotel}. Заезд с 14:00. Адрес и как добраться: … Звоните: {phone}' },
+    pay: { title: 'გადახდის შეხსენება', ka: 'გამარჯობა, {name}! შეგახსენებთ, რომ ჯავშანზე ({dates}) დარჩენილია გადასახდელი {left} ₾.', en: 'Hello {name}! A reminder: {left} GEL is left to pay for your booking ({dates}).', ru: 'Здравствуйте, {name}! Напоминаем: по бронированию ({dates}) осталось оплатить {left} GEL.' },
+    thanks: { title: 'მადლობა', ka: 'გმადლობთ, {name}, რომ {hotel}-ში დაისვენეთ! ისევ გელოდებით.', en: 'Thank you for staying at {hotel}, {name}! We hope to see you again.', ru: 'Спасибо, {name}, что отдыхали в {hotel}! Будем рады видеть вас снова.' },
+  };
+  const templates = () => { let own = {}; try { own = JSON.parse(state.settings.msgTpl || '{}') || {}; } catch (e) { own = {}; }
+    return Object.fromEntries(Object.keys(TPL).map(k => [k, { title: TPL[k].title, ka: (own[k] && own[k].ka) || TPL[k].ka, en: (own[k] && own[k].en) || TPL[k].en, ru: (own[k] && own[k].ru) || TPL[k].ru }])); };
+  function fillTpl(text, b, contactPhone, lang) {
+    const p = payState(b), m = MONTHS_BY[lang] || MONTHS_BY.ka, f = s => { const d = toD(s); return d.getUTCDate() + ' ' + m[d.getUTCMonth()]; };
+    const v = { name: String(b.name || '').trim().split(/\s+/)[0] || '', hotel: hotel.name || '', dates: f(b.from) + ' – ' + f(b.to), room: b.room || '', total: p.price, left: p.left, phone: contactPhone || '' };
+    return String(text || '').replace(/\{(\w+)\}/g, (a, k) => (k in v ? v[k] : a));
   }
   const billFrom = () => { try { return JSON.parse(state.settings.billFrom || '{}') || {}; } catch (e) { return {}; } };
   function removeItem(id) { state.items = (state.items || []).filter(x => x.id !== id); save(); post('api/admin/action', { op: 'unitem', id }); }
@@ -781,6 +818,7 @@ window.JIJI = (() => {
     ROOMS, SEASONS, get hotel() { return hotel; }, priceTable, get settings() { return state.settings; }, setSetting, siteSeason, get types() { return state.types; }, get bookings() { return state.bookings; },
     today, addDays, nights, fmt, fmtRange, weekday, seasonOf, quote, rateFor, fromPrice, findOffer, roomsOffer, kidPrice, nextOffer, partialOffer, splitOffer, groupOffer, fitsOne, gaps, gapDiscount, deals, dealTotal, dealNote, gapKey, gapEdits, promos, setJSON, bestRoom, roomFree,
     get payments() { return state.payments; }, METHODS, priceOf, paymentsOf, paidOf, payState, setPrice, addPayment, removePayment,
+    plans, allPlans, cancelRule, feeFor, cancelBooking, uncancel, templates, fillTpl,
     checkIn, checkOut, HK, hkOf, setHk, get blocks() { return state.blocks || []; }, addBlock, removeBlock, setInvoice, billFrom,
     UNITS, get services() { return services(); }, onlineServices, serviceName, unitsFor, itemsOf, extrasOf, setServices, addItem, removeItem,
     createRequest, localBooking, demoPaid, demoBank, confirm, setRemark, editBooking, moveRoom, decline, addManual, restore, purge, wipe, guests, guestBefore, guestNote, setGuestNote, setGuest, daysToBday, guestKey, setRate, addRate, removeRate, remove, reset, onChange, onError, reload: load,

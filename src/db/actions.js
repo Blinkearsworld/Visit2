@@ -5,9 +5,10 @@ import { bestRoom, roomFree, quote } from '../lib/availability.js';
 import { loadState, bumpRev, uid } from './hotel.js';
 import { can, logAct } from './users.js';
 import { saveServices, addItem, getItem, removeItem } from './services.js';
+import { cancelFee } from '../lib/plans.js';
 
 // which section each change belongs to (see admin → გუნდი); 'owner' = only the owner
-const NEED = { remark: 'book', edit: 'book', confirm: 'book', decline: 'book', remove: 'book', restore: 'book', add: 'book', price: 'book', pay: 'book', unpay: 'book', move: 'book', guestnote: 'book', purge: 'owner', wipe: 'owner', rates: 'price', setting: 'price', services: 'price', item: 'book', unitem: 'book', checkin: 'book', checkout: 'book', hk: 'book|clean', block: 'book', unblock: 'book', invoice: 'book' };
+const NEED = { remark: 'book', edit: 'book', confirm: 'book', decline: 'book', remove: 'book', restore: 'book', add: 'book', price: 'book', pay: 'book', unpay: 'book', move: 'book', guestnote: 'book', purge: 'owner', wipe: 'owner', rates: 'price', setting: 'price', services: 'price', item: 'book', unitem: 'book', checkin: 'book', checkout: 'book', hk: 'book|clean', block: 'book', unblock: 'book', invoice: 'book', cancel: 'book', uncancel: 'book' };
 const HK = { clean: 'დალაგებულია', dirty: 'დასალაგებელია', inspect: 'შესამოწმებელია' };
 const METHOD = { card: 'ბარათით', transfer: 'გადარიცხვით', cash: 'ქეშით' };
 const NO = msg => ({ ok: false, msg });
@@ -45,6 +46,8 @@ export async function adminAction(db, t, u, b) {
       hk: `ნომერი ${b.room} · ${HK[b.state] || ''}`,
       block: `ნომერი ${b.room} · ${isDate(b.from) && isDate(b.to) ? fmtRange(b.from, b.to) : ''}${b.reason ? ' · ' + String(b.reason).slice(0, 60) : ''}`,
       unblock: `ნომერი ${out.room || ''} გაიხსნა`,
+      cancel: `${who} · ${out.fee ? `საფასური ${out.fee} ₾` : 'უფასოდ'}`,
+      uncancel: `${who} · ნომერი ${out.room || ''}`,
       invoice: `${who} · ინვოისი ${out.invoice?.no || ''}${out.invoice?.company ? ' · ' + out.invoice.company : ''}`,
       item: `${who} · ${out.item ? `${out.item.name} × ${out.item.qty} = ${out.item.amount} ₾` : ''}`,
       unitem: `${who} · წაიშალა: ${b._item ? `${b._item.name} × ${b._item.qty} = ${b._item.amount} ₾` : ''}`,
@@ -220,6 +223,21 @@ async function run(db, t, b) {
       await db.prepare('UPDATE bookings SET invoice = ? WHERE tenant_id = ? AND id = ?').bind(JSON.stringify(invoice), T, r.id).run();
       return { ok: true, invoice };
     }
+    // the guest cancels: the room is free again; the booking stays with what cancelling costs (the hotel's rule, or as agreed)
+    case 'cancel': {
+      const r = find(b.id); if (!r || !['confirmed', 'pending'].includes(r.status)) return NO('ჯავშანი ვერ მოიძებნა');
+      const paid = st.payments.filter(p => p.booking === r.id).reduce((a, p) => a + p.amount, 0);
+      const fee = b.fee != null && b.fee !== '' ? Math.max(0, Math.round(+b.fee || 0)) : cancelFee(st.settings, r, today());
+      await db.prepare("UPDATE bookings SET prev_status = status, status = 'cancelled', cancelled_at = ?, fee = ? WHERE tenant_id = ? AND id = ?").bind(nowIso(), fee, T, r.id).run();
+      return { ok: true, fee, refund: Math.max(0, paid - fee) };
+    }
+    case 'uncancel': {
+      const r = find(b.id); if (!r || r.status !== 'cancelled') return NO('ჯავშანი ვერ მოიძებნა');
+      const back = r.prevStatus === 'pending' ? 'pending' : 'confirmed';
+      if (back === 'confirmed' && r.room && !roomFree(st, r.room, r.from, r.to, r.id)) return NO('ნომერი ' + r.room + ' ამ თარიღებზე უკვე დაკავებულია');
+      await db.prepare('UPDATE bookings SET status = ?, prev_status = NULL, cancelled_at = NULL, fee = NULL WHERE tenant_id = ? AND id = ?').bind(back, T, r.id).run();
+      return { ok: true, room: r.room };
+    }
     case 'rates': {
       if (!st.types[b.type] || !Array.isArray(b.rates)) return NO('bad type');
       const ids = st.seasons.map(s => s.id);
@@ -255,7 +273,7 @@ async function run(db, t, b) {
       await db.prepare('DELETE FROM payments WHERE tenant_id = ? AND id = ?').bind(T, b.id).run();
       return { ok: true };
     case 'setting': {
-      const big = ['gapEdits', 'promos', 'billFrom'].includes(b.k); // JSON: edits of short gaps, the hotel's promotions, the hotel's details on bills
+      const big = ['gapEdits', 'promos', 'billFrom', 'plans', 'cancelRule', 'msgTpl'].includes(b.k); // JSON: edits of short gaps, the hotel's promotions, the hotel's details on bills
       if (!big && !['seasonMode', 'winterFrom', 'winterTo', 'gapDiscount'].includes(b.k)) return NO('bad setting');
       let v = String(b.v ?? '');
       if (big) { try { JSON.parse(v); } catch (e) { return NO('bad value'); } if (v.length > 20000) return NO('too long'); }

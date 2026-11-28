@@ -227,6 +227,8 @@ h2{font-size:17px;font-weight:600;margin:28px 0 12px}
 .pend th.room{background:#fffaf0}
 .pc{display:grid;place-items:center;height:100%;font-weight:600;color:var(--wait)}
 .pcard{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;background:#fbfcfd}
+.snav{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid var(--line)}.snav button{min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:22px;background:#fff;font:inherit;font-size:14px;cursor:pointer}.snav button[aria-selected=true]{background:var(--ink,#1F1A17);color:#fff;border-color:transparent}
+.tplc{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcfd;margin-bottom:12px}.tplc h2{font-size:15px;margin:0 0 8px}.tplc label{display:grid;gap:4px;font-size:13px;color:var(--mute);margin-top:8px}.tplc textarea{width:100%;min-height:72px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:15px;box-sizing:border-box}
 .svq{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}.svq button{min-height:40px;padding:0 12px;border:1px dashed var(--line);border-radius:20px;background:#fff;font:inherit;font-size:14px;cursor:pointer}
 .svlist{display:grid;gap:10px}.svrow{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfcfd;display:grid;grid-template-columns:minmax(0,2fr) 110px minmax(0,1.4fr) auto auto;gap:10px;align-items:end}
 .svrow label{display:grid;gap:4px;font-size:13px;color:var(--mute)}.svrow input[type=text],.svrow input[type=number],.svrow select{min-height:44px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font:inherit;font-size:15px;background:#fff;min-width:0;width:100%}
@@ -442,8 +444,7 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 <button class="tab" role="tab" aria-selected="false" data-tab="hk" id="t-hk">დალაგება</button>
 <button class="tab" role="tab" aria-selected="false" data-tab="money" id="t-money">შემოსავალი</button>
 <button class="tab" role="tab" aria-selected="false" data-tab="guests" id="t-guests">სტუმრები</button>
-<button class="tab" role="tab" aria-selected="false" data-tab="price" id="t-price">ფასები და სეზონი</button>
-<button class="tab" role="tab" aria-selected="false" data-tab="svc" id="t-svc">სერვისები</button>
+<button class="tab" role="tab" aria-selected="false" data-tab="price" id="t-price">პარამეტრები</button>
 </div>
 <main>
 <section class="panel" id="p-day" role="tabpanel" aria-labelledby="t-day">
@@ -488,6 +489,14 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 </section>
 
 <section class="panel" id="p-price" role="tabpanel" aria-labelledby="t-price" hidden>
+<div class="snav" role="tablist" aria-label="პარამეტრები">
+<button type="button" role="tab" data-sec="prices" aria-selected="true">ფასები და სეზონი</button>
+<button type="button" role="tab" data-sec="plans" aria-selected="false">გეგმები და გაუქმება</button>
+<button type="button" role="tab" data-sec="svc" aria-selected="false">სერვისები</button>
+<button type="button" role="tab" data-sec="msg" aria-selected="false">შეტყობინებები</button>
+<button type="button" role="tab" data-sec="req" aria-selected="false">რეკვიზიტები</button>
+</div>
+<div class="sec" data-sec="prices">
 <h1>ფასები ღამეში, ₾</h1>
 <p class="sub">თითო ნომერს რამდენიმე ფასის ვერსია აქვს სტუმრების რაოდენობის მიხედვით. საიტი და ჩატბოტი ჯგუფისთვის უმცირეს შესაფერის ვერსიას იყენებს: თუ 3 სტუმრის ვერსია არ არის, 4-ის ფასი ჩაითვლება. ახალი წელი: 25 დეკ – 7 იან; ზამთარი: დეკ–მარ; ზაფხული: ივნ–აგვ.</p>
 <div class="pcard" id="seasonCard">
@@ -518,6 +527,41 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 </div>
 <div id="prices"></div>
 <p class="note" id="demoNote">ფასები, ნომრების განაწილება და ჯავშნები სანიმუშოა. მონაცემები ამ ბრაუზერში ინახება. <button class="btn" id="resetBtn" style="margin-left:8px">დემოს თავიდან დაწყება</button></p>
+</div>
+<div class="sec" data-sec="svc" hidden>
+<h1>სერვისები</h1>
+<p class="sub">ყველაფერი, რასაც ნომრის გარდა ყიდით: საუზმე, ვახშამი, მინიბარი, დამატებითი დალაგება, ტრანსფერი, ცხენით გასეირნება, ნავის ქირა, ტური და სხვა. ჩაწერეთ სახელი და ფასი. სტუმრის ანგარიშს სერვისს ჯავშნის ფანჯრიდან დაამატებთ, და ის გადასახდელ თანხაში ჩაითვლება.</p>
+<div class="svq" id="svcQuick" aria-label="სწრაფი დამატება"></div>
+<div id="svcList" class="svlist"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn" id="svcAdd">+ სერვისის დამატება</button><button type="button" class="btn pri" id="svcSave">შენახვა</button></div>
+<p class="msg" id="svcMsg" hidden></p>
+
+<p class="note" style="margin-top:14px">„საიტზე“ მონიშნული სერვისი სტუმარს ჯავშნისას შესთავაზება თქვენს საიტზე და Visit2.ge-ზე, იმავე ფასით. მინიბარი და მსგავსი რამ ჩვეულებრივ მხოლოდ ადმინში ემატება.</p>
+</div>
+<div class="sec" data-sec="plans" hidden>
+<h1>ფასის გეგმები</h1>
+<p class="sub">ერთი და იგივე ნომერი სხვა ფასით: მაგალითად „საუზმით“ (+20 ₾ სტუმარზე ღამეში) ან „დაუბრუნებელი“ (−10%). სტუმარი გეგმას ჯავშნისას ირჩევს. ფასი ნომრის ფასიდან ითვლება.</p>
+<div id="plList" class="svlist"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn" id="plAdd">+ გეგმის დამატება</button><button type="button" class="btn pri" id="plSave">შენახვა</button></div>
+<p class="msg" id="plMsg" hidden></p>
+<div class="pcard" style="margin-top:18px"><h2 style="margin:0 0 6px">გაუქმების წესი</h2>
+<p class="sub" style="margin:0 0 12px">უფასო გაუქმება შესვლამდე რამდენიმე დღით ადრე; მერე საფასური ჯავშნის თანხის პროცენტით. დაუბრუნებელ გეგმაზე საფასური მთელი თანხაა. ჯავშნის გაუქმებისას სისტემა ამ წესით გამოთვლილ თანხას გთავაზობთ, შეცვლაც შეგიძლიათ.</p>
+<div class="pform"><label>უფასოდ, შესვლამდე დღეები<input id="crDays" type="number" min="0" max="60" step="1" inputmode="numeric"></label><label>მერე საფასური, %<input id="crPct" type="number" min="0" max="100" step="1" inputmode="numeric"></label></div>
+<p class="msg" id="crMsg" hidden></p><button type="button" class="btn" id="crSave" style="margin-top:8px">წესის შენახვა</button></div>
+</div>
+<div class="sec" data-sec="msg" hidden>
+<h1>შეტყობინებები სტუმრისთვის</h1>
+<p class="sub">მზა ტექსტები WhatsApp-ით ან SMS-ით გასაგზავნად. ჯავშნის ფანჯარაში აირჩევთ ტექსტს და ენას, სახელი, თარიღები და თანხა თავისით ჩაიწერება. გაგზავნა თქვენი ტელეფონიდან ხდება. ჩასმა შეგიძლიათ: {name} სახელი, {dates} თარიღები, {room} ნომერი, {total} სულ, {left} დარჩა, {hotel} სასტუმრო, {phone} თქვენი ტელეფონი.</p>
+<div id="tplList"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn pri" id="tplSave">შენახვა</button></div>
+<p class="msg" id="tplMsg" hidden></p>
+</div>
+<div class="sec" data-sec="req" hidden>
+<div class="pcard"><h2 style="margin:0 0 6px">რეკვიზიტები ანგარიშსა და ინვოისზე</h2><p class="sub" style="margin:0 0 12px">ეს ჩანს სტუმრის ანგარიშსა და კომპანიის ინვოისზე. შეავსეთ ერთხელ.</p>
+<div class="pform"><label>კომპანიის ან მეწარმის სახელი<input id="bfName" maxlength="120"></label><label>საიდენტიფიკაციო კოდი<input id="bfCode" maxlength="20" inputmode="numeric"></label><label>მისამართი<input id="bfAddr" maxlength="160"></label><label>ბანკი<input id="bfBank" maxlength="60" placeholder="მაგ.: თიბისი ბანკი"></label><label>ანგარიშის ნომერი (IBAN)<input id="bfIban" maxlength="34" placeholder="GE00TB0000000000000000"></label></div>
+<p class="msg" id="bfMsg" hidden></p><button type="button" class="btn" id="bfSave" style="margin-top:8px">რეკვიზიტების შენახვა</button></div>
+</div>
+
 </section>
 <section class="panel" id="p-hk" role="tabpanel" aria-labelledby="t-hk" hidden>
 <h1>დალაგება და ნომრები</h1>
@@ -533,18 +577,7 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 <div id="blList" class="glist" style="margin-top:12px"></div>
 </div>
 </section>
-<section class="panel" id="p-svc" role="tabpanel" aria-labelledby="t-svc" hidden>
-<h1>სერვისები</h1>
-<p class="sub">ყველაფერი, რასაც ნომრის გარდა ყიდით: საუზმე, ვახშამი, მინიბარი, დამატებითი დალაგება, ტრანსფერი, ცხენით გასეირნება, ნავის ქირა, ტური და სხვა. ჩაწერეთ სახელი და ფასი. სტუმრის ანგარიშს სერვისს ჯავშნის ფანჯრიდან დაამატებთ, და ის გადასახდელ თანხაში ჩაითვლება.</p>
-<div class="svq" id="svcQuick" aria-label="სწრაფი დამატება"></div>
-<div id="svcList" class="svlist"></div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn" id="svcAdd">+ სერვისის დამატება</button><button type="button" class="btn pri" id="svcSave">შენახვა</button></div>
-<p class="msg" id="svcMsg" hidden></p>
-<div class="pcard" style="margin-top:18px"><h2 style="margin:0 0 6px">რეკვიზიტები ანგარიშსა და ინვოისზე</h2><p class="sub" style="margin:0 0 12px">ეს ჩანს სტუმრის ანგარიშსა და კომპანიის ინვოისზე. შეავსეთ ერთხელ.</p>
-<div class="pform"><label>კომპანიის ან მეწარმის სახელი<input id="bfName" maxlength="120"></label><label>საიდენტიფიკაციო კოდი<input id="bfCode" maxlength="20" inputmode="numeric"></label><label>მისამართი<input id="bfAddr" maxlength="160"></label><label>ბანკი<input id="bfBank" maxlength="60" placeholder="მაგ.: თიბისი ბანკი"></label><label>ანგარიშის ნომერი (IBAN)<input id="bfIban" maxlength="34" placeholder="GE00TB0000000000000000"></label></div>
-<p class="msg" id="bfMsg" hidden></p><button type="button" class="btn" id="bfSave" style="margin-top:8px">რეკვიზიტების შენახვა</button></div>
-<p class="note" style="margin-top:14px">„საიტზე“ მონიშნული სერვისი სტუმარს ჯავშნისას შესთავაზება თქვენს საიტზე და Visit2.ge-ზე, იმავე ფასით. მინიბარი და მსგავსი რამ ჩვეულებრივ მხოლოდ ადმინში ემატება.</p>
-</section>
+
 <section class="panel" id="p-guests" role="tabpanel" aria-labelledby="t-guests" hidden>
 <h1>სტუმრები</h1>
 <p class="sub">ყველა სტუმარი ჯავშნებიდან, ტელეფონის ნომრით გაერთიანებული. დააჭირეთ სტუმარს მისი ისტორიისა და შენიშვნისთვის.</p>
@@ -650,6 +683,7 @@ main select,dialog select{background-color:#fff;color:var(--ink)}
 
 <script src="site/hotels.js?v=20261127a"></script>
 <script src="js/i18n.js?v=20261127a"></script>
+<script src="js/plans.js?v=20261127a"></script>
 <script src="js/store.js?v=20261127a"></script>
 <script src="js/content.js?v=20261127a"></script>
 <script>
@@ -663,7 +697,7 @@ const typeName=t=>J.types[t]?.name||t;
 const unlock=()=>{$('gate').hidden=true;$('app').hidden=false;applyPerms();renderAll();checkNew()};
 /* what the signed-in admin may see: set by the main admin in გუნდი */
 function applyPerms(){
- const can=J.can,me=J.me,show={day:'book',req:'book',cal:'book',hk:'book|clean',guests:'book',money:'money',price:'price',svc:'price'};
+ const can=J.can,me=J.me,show={day:'book',req:'book',cal:'book',hk:'book|clean',guests:'book',money:'money',price:'price'};
  tabs.forEach(t=>{t.hidden=!String(show[t.dataset.tab]).split('|').some(p=>can(p))});
  const cur=tabs.find(t=>t.getAttribute('aria-selected')==='true');
  if(!cur||cur.hidden){const f=tabs.find(t=>!t.hidden);if(f)f.click()}
@@ -679,7 +713,7 @@ function applyPerms(){
 }
 J.onChange(()=>{if(!$('app').hidden)applyPerms()});
 /* who changed a booking: from the activity log */
-const VERB={wipe:'გაასუფთავა ყველა ჯავშანი და ჟურნალი',remark:'შეცვალა ჩვენი შენიშვნა',edit:'შეცვალა თარიღი/სტუმრები',confirm:'დაადასტურა',decline:'უარყო',add:'დაამატა',remove:'წაშალა',restore:'აღადგინა',purge:'სამუდამოდ წაშალა',price:'შეცვალა ფასი',pay:'მიიღო გადახდა',unpay:'წაშალა გადახდა',move:'გადაიყვანა სხვა ნომერში',guestnote:'შეცვალა შენიშვნა',hk:'შეცვალა დალაგება',block:'დახურა ნომერი',unblock:'გახსნა ნომერი',item:'დაამატა სერვისი',checkin:'მონიშნა შესვლა',checkout:'მონიშნა გასვლა',invoice:'შეცვალა ინვოისი',unitem:'წაშალა სერვისი',services:'შეცვალა სერვისების სია'};
+const VERB={wipe:'გაასუფთავა ყველა ჯავშანი და ჟურნალი',remark:'შეცვალა ჩვენი შენიშვნა',edit:'შეცვალა თარიღი/სტუმრები',confirm:'დაადასტურა',decline:'უარყო',add:'დაამატა',remove:'წაშალა',restore:'აღადგინა',purge:'სამუდამოდ წაშალა',price:'შეცვალა ფასი',pay:'მიიღო გადახდა',unpay:'წაშალა გადახდა',move:'გადაიყვანა სხვა ნომერში',guestnote:'შეცვალა შენიშვნა',hk:'შეცვალა დალაგება',block:'დახურა ნომერი',unblock:'გახსნა ნომერი',item:'დაამატა სერვისი',checkin:'მონიშნა შესვლა',cancel:'გააუქმა (სტუმარმა)',uncancel:'აღადგინა გაუქმებული',checkout:'მონიშნა გასვლა',invoice:'შეცვალა ინვოისი',unitem:'წაშალა სერვისი',services:'შეცვალა სერვისების სია'};
 const logOf=id=>J.actlog.filter(x=>x.target==='bk:'+id);
 const decidedBy=b=>{const l=logOf(b.id).filter(x=>['confirm','decline','add'].includes(x.op)).pop();return l?l.who:''};
 const at=s=>{const d=new Date(s);if(isNaN(d))return '';const p=n=>String(n).padStart(2,'0');return J.fmt(`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`)+', '+p(d.getHours())+':'+p(d.getMinutes())};
@@ -927,19 +961,20 @@ function reviewAsk(b){
  return `<div class="rvask"><span>⭐ შეფასების თხოვნა WhatsApp-ით${b.to<=J.today()?'':' (გასვლის დღეს)'}</span><div>${L.map(([l,t])=>`<a class="btn" target="_blank" rel="noopener" href="https://wa.me/${n}?text=${encodeURIComponent(REVIEW_TXT[l](firstName(b.name)))}">${t}</a>`).join('')}</div></div>`;
 }
 /* --- services charged to a stay: list, add, the guest's bill --- */
+let xOpen=false;document.addEventListener('toggle',e=>{if(e.target.id==='xBox')xOpen=e.target.open},true);
 const unitTxt=u=>({stay:'ერთჯერადად',night:'ღამეში',guest:'სტუმარზე',guest_night:'სტუმარზე ღამეში',item:'ცალი/საათი'}[u]||'');
 function drawExtras(b,dead){
  const it=J.itemsOf(b.id),sv=J.services.filter(x=>x.active!==0);
  const list=it.length?`<ul class="plist">${it.map(x=>`<li><span>${x.date?J.fmt(x.date):'ჯავშნისას'}</span><span>${esc(x.name)}${x.qty>1?` × ${x.qty}`:''}${x.source==='site'?' <small class="src">· საიტიდან</small>':''}</span><b>${money(x.amount)}</b>${dead?'':`<button type="button" class="x" data-unitem="${x.id}" aria-label="წაშლა: ${esc(x.name)}">×</button>`}</li>`).join('')}</ul>`:'';
  if(dead)return it.length?`<h2 style="margin:16px 0 4px;font-size:15px">სერვისები</h2>${list}`:'';
- return `<h2 style="margin:16px 0 4px;font-size:15px">სერვისები და დამატებითი ხარჯები</h2>${list||'<p class="src" style="margin:0">ჯერ არაფერი. აქ ემატება საუზმე, მინიბარი, დალაგება, ტური და სხვა.</p>'}
- <div class="xadd"><label>რა<select id="xSvc"><option value="">აირჩიეთ…</option>${sv.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} · ${x.price} ₾ ${unitTxt(x.unit)}</option>`).join('')}<option value="_">სხვა (ჩაწერეთ)</option></select></label>
+ return `<h2 style="margin:16px 0 4px;font-size:15px">სერვისები და დამატებითი ხარჯები</h2>${list}
+ <details class="redit" id="xBox"${xOpen?' open':''}><summary>+ სერვისის დამატება (საუზმე, მინიბარი, დალაგება…)</summary><div class="xadd"><label>რა<select id="xSvc"><option value="">აირჩიეთ…</option>${sv.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} · ${x.price} ₾ ${unitTxt(x.unit)}</option>`).join('')}<option value="_">სხვა (ჩაწერეთ)</option></select></label>
  <label>რაოდენობა<input id="xQty" type="number" min="1" max="999" step="1" inputmode="numeric" value="1"></label>
  <label>ფასი, ₾<input id="xPrice" type="number" min="0" step="1" inputmode="numeric"></label>
  <label class="xn" hidden>სახელი<input id="xName" type="text" maxlength="60" placeholder="მაგ.: სარეცხი"></label>
  <label>დღე<input id="xDate" type="date" value="${J.today()<b.from?b.from:J.today()>b.to?b.to:J.today()}"></label></div>
  <p class="msg" id="xMsg" hidden></p>
- <button type="button" class="btn" id="xAdd" style="margin-top:8px">ანგარიშში დამატება</button>${sv.length?'':` <span class="src">სერვისების სია შეავსეთ ჩანართში „სერვისები“.</span>`}`;
+ <button type="button" class="btn" id="xAdd" style="margin-top:8px">ანგარიშში დამატება</button>${sv.length?'':` <span class="src">სერვისების სია შეავსეთ: პარამეტრები → სერვისები.</span>`}</details>`;
 }
 function printBill(b){
  if(!b)return;const p=J.payState(b),it=J.itemsOf(b.id),pays=J.paymentsOf(b.id),h=J.hotel||{};
@@ -953,6 +988,44 @@ function printBill(b){
  <button onclick="print()">დაბეჭდვა</button></body></html>`;
  const w=window.open('','_blank');if(!w){flash('ბრაუზერმა ახალი ფანჯარა დაბლოკა. დაუშვით და სცადეთ თავიდან.');return}w.document.write(html);w.document.close();
 }
+/* --- messages to the guest (sent from the hotel's own phone: WhatsApp or SMS) --- */
+let siteContact=null;
+const hotelPhone=()=>siteContact||'';
+fetch('api/admin/content',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(o=>{siteContact=(o&&o.content&&o.content.site&&o.content.site.contact&&o.content.site.contact.phone)||''}).catch(()=>{});
+function msgBox(b){
+ if(!b.phone)return'';const T=J.templates(),t=J.today();
+ const def=b.status==='pending'?'confirm':b.to<=t?'thanks':b.from>t?(J.addDays(t,1)>=b.from?'arrive':(J.payState(b).left?'pay':'confirm')):J.payState(b).left?'pay':'arrive';
+ return `<details class="redit" style="margin-top:8px"><summary>შეტყობინება სტუმარს</summary><div class="pform" style="margin-top:8px"><label>ტექსტი<select id="mTpl">${Object.entries(T).map(([k,v])=>`<option value="${k}"${k===def?' selected':''}>${esc(v.title)}</option>`).join('')}</select></label><label>ენა<span class="meth" style="margin:0">${[['ka','ქართ.'],['en','EN'],['ru','RU']].map(([l,n])=>`<button type="button" class="btn" data-msgl="${l}">${n}</button>`).join('')}</span></label></div>
+ <textarea id="mText" data-l="ka" rows="4" style="width:100%;box-sizing:border-box;margin-top:8px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:15px">${esc(J.fillTpl(T[def].ka,b,hotelPhone()))}</textarea>
+ <div class="stay" id="mLinks">${msgLinkHtml(b,J.fillTpl(T[def].ka,b,hotelPhone()))}</div></details>`;
+}
+function msgLinkHtml(b,txt){const n=waNum(b.phone),tel=String(b.phone||'').replace(/[^\d+]/g,'');return `${n.length>=10?`<a class="btn okb" target="_blank" rel="noopener" href="https://wa.me/${n}?text=${encodeURIComponent(txt)}">WhatsApp</a>`:''}<a class="btn" href="sms:${esc(tel)}?&body=${encodeURIComponent(txt)}">SMS</a><button type="button" class="btn" id="mCopy">კოპირება</button>`}
+function msgLinks(b){const l=$('mLinks');if(l)l.innerHTML=msgLinkHtml(b,$('mText').value)}
+document.addEventListener('input',e=>{if(e.target.id==='mText'&&infoId){const b=J.bookings.find(x=>x.id===infoId);if(b)msgLinks(b)}});
+/* --- settings: one tab, a few sections --- */
+const secBtns=[...document.querySelectorAll('.snav [data-sec]')];
+secBtns.forEach(bt=>bt.addEventListener('click',()=>{secBtns.forEach(x=>x.setAttribute('aria-selected',x===bt));document.querySelectorAll('#p-price .sec').forEach(x=>{x.hidden=x.dataset.sec!==bt.dataset.sec});window.scrollTo({top:0})}));
+let plDraft=null,plDirty=false;
+function renderPlans(){
+ if(!plDraft)plDraft=J.allPlans().map(x=>({...x}));
+ $('plList').innerHTML=plDraft.length?plDraft.map((x,i)=>`<div class="svrow" data-i="${i}"><label>სახელი<input type="text" data-p="name" maxlength="40" value="${esc(x.name||'')}" placeholder="მაგ.: საუზმით"></label>
+ <label>ფასდაკლება, %<input type="number" data-p="pct" min="-100" max="90" step="1" inputmode="numeric" value="${x.pct??''}" placeholder="0"></label>
+ <label class="su">დამატება ღამეში, ₾<span style="display:flex;gap:8px;align-items:center"><input type="number" data-p="add" min="0" step="1" inputmode="numeric" value="${x.add??''}" placeholder="0" style="max-width:110px"><span class="ck" style="min-height:0"><input type="checkbox" data-p="perGuest"${x.perGuest?' checked':''}> სტუმარზე</span></span></label>
+ <label class="ck"><input type="checkbox" data-p="nonref"${x.refundable===false?' checked':''}>დაუბრუნებელი</label>
+ <button type="button" class="btn nob" data-pldel="${i}" aria-label="წაშლა: ${esc(x.name||'')}">✕</button></div>`).join(''):'<p class="src" style="margin:0">გეგმა ჯერ არ არის. სტუმარი ნომრის ჩვეულებრივ ფასს ხედავს.</p>';
+ const r=J.cancelRule();if(document.activeElement!==$('crDays'))$('crDays').value=r.days??'';if(document.activeElement!==$('crPct'))$('crPct').value=r.pct??'';
+}
+const plSet=e=>{const r=e.target.closest('.svrow'),f=e.target.dataset.p;if(!r||!f)return;const x=plDraft[+r.dataset.i];if(f==='nonref')x.refundable=!e.target.checked;else x[f]=e.target.type==='checkbox'?e.target.checked:e.target.value;plDirty=true};
+$('plList').addEventListener('input',plSet);$('plList').addEventListener('change',plSet);
+$('plList').addEventListener('click',e=>{const d=e.target.closest('[data-pldel]');if(!d)return;plDraft.splice(+d.dataset.pldel,1);plDirty=true;renderPlans()});
+$('plAdd').addEventListener('click',()=>{plDraft.push({id:Math.random().toString(36).slice(2,8),name:'',pct:'',add:'',perGuest:true});plDirty=true;renderPlans();const ins=$('plList').querySelectorAll('[data-p=name]');ins[ins.length-1]?.focus()});
+$('plSave').addEventListener('click',()=>{const list=plDraft.filter(x=>String(x.name||'').trim()).map(x=>({id:x.id||Math.random().toString(36).slice(2,8),name:String(x.name).trim().slice(0,40),pct:Math.round(+x.pct||0),add:Math.max(0,Math.round(+x.add||0)),perGuest:!!x.perGuest,refundable:x.refundable===false?false:true}));
+ J.setSetting('plans',JSON.stringify(list));plDraft=null;plDirty=false;renderPlans();const m=$('plMsg');m.hidden=false;m.className='msg good';m.textContent='შენახულია: '+list.length+' გეგმა.'});
+$('crSave').addEventListener('click',()=>{J.setSetting('cancelRule',JSON.stringify({days:Math.max(0,Math.round(+$('crDays').value||0)),pct:Math.max(0,Math.min(100,Math.round(+$('crPct').value||0)))}));const m=$('crMsg');m.hidden=false;m.className='msg good';m.textContent='გაუქმების წესი შეინახა.'});
+let tplDirty=false;
+function renderTpl(){if(tplDirty)return;const T=J.templates();$('tplList').innerHTML=Object.entries(T).map(([k,v])=>`<div class="tplc"><h2>${esc(v.title)}</h2>${[['ka','ქართულად'],['en','English'],['ru','Русский']].map(([l,n])=>`<label>${n}<textarea data-tk="${k}" data-tl="${l}" rows="3">${esc(v[l])}</textarea></label>`).join('')}</div>`).join('')}
+$('tplList').addEventListener('input',()=>{tplDirty=true});
+$('tplSave').addEventListener('click',()=>{const o={};$('tplList').querySelectorAll('[data-tk]').forEach(t=>{(o[t.dataset.tk]=o[t.dataset.tk]||{})[t.dataset.tl]=t.value.trim().slice(0,1000)});J.setSetting('msgTpl',JSON.stringify(o));tplDirty=false;renderTpl();const m=$('tplMsg');m.hidden=false;m.className='msg good';m.textContent='ტექსტები შეინახა.'});
 /* --- housekeeping and closed rooms --- */
 function renderHk(){
  const t=J.today(),conf=J.bookings.filter(b=>b.status==='confirmed'),cb=J.can('book');
@@ -996,25 +1069,27 @@ $('svcSave').addEventListener('click',()=>{const m=$('svcMsg');m.hidden=false;
  const saved=J.setServices(svcDraft);svcDraft=null;svcDirty=false;renderServices();m.className='msg good';m.textContent='შენახულია: '+saved.length+' სერვისი.'});
 function drawInfo(){
  const b=J.bookings.find(x=>x.id===infoId);if(!b)return;
- const p=J.payState(b),list=J.paymentsOf(b.id),q=J.quote(b.type,b.from,b.to,b.guests),dead=b.status==='deleted'||b.status==='declined';
+ const p=J.payState(b),list=J.paymentsOf(b.id),q=J.quote(b.type,b.from,b.to,b.guests),dead=b.status==='deleted'||b.status==='declined',canc=b.status==='cancelled',lock=dead||canc;
  const delBy=logOf(b.id).filter(x=>x.op===(b.status==='deleted'?'remove':'decline')).pop();
  const btn=$('infoDel');if(b.status==='deleted'){btn.value='restore';btn.textContent='აღდგენა';btn.className='btn okb'}else{btn.value='del';btn.textContent='ჯავშნის წაშლა';btn.className='btn nob'}
- $('infoBody').innerHTML=`${dead?`<p class="msg" style="margin:0 0 12px">${b.status==='deleted'?'🗑 ეს ჯავშანი წაშლილია':'ეს მოთხოვნა უარყოფილია'}${b.status==='deleted'&&b.deletedAt?' '+J.fmt(b.deletedAt.slice(0,10)):''}${delBy?' · '+esc(delBy.who):''}. ${b.status==='deleted'?'შესაცვლელად ჯერ აღადგინეთ.':''}</p>`:''}<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><h1 style="font-size:19px">${esc(b.name)}</h1><p class="sub" style="margin:0">${esc(b.phone||'')}</p></div><span class="pill ${PSC[p.status]}">${PS[p.status]}</span></div>
+ $('infoBody').innerHTML=`${canc?`<div class="msg" style="margin:0 0 12px">✕ ჯავშანი გაუქმებულია${b.cancelledAt?' '+esc(at(b.cancelledAt)):''} · საფასური ${money(+b.fee||0)}${p.paid>(+b.fee||0)?` · დასაბრუნებელი ${money(p.paid-(+b.fee||0))}`:''}. ნომერი გათავისუფლდა. <button type="button" class="btn" id="iUncancel" style="margin-left:6px">აღდგენა</button></div>`:''}${dead?`<p class="msg" style="margin:0 0 12px">${b.status==='deleted'?'🗑 ეს ჯავშანი წაშლილია':'ეს მოთხოვნა უარყოფილია'}${b.status==='deleted'&&b.deletedAt?' '+J.fmt(b.deletedAt.slice(0,10)):''}${delBy?' · '+esc(delBy.who):''}. ${b.status==='deleted'?'შესაცვლელად ჯერ აღადგინეთ.':''}</p>`:''}<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><h1 style="font-size:19px">${esc(b.name)}</h1><p class="sub" style="margin:0">${esc(b.phone||'')}</p></div><span class="pill ${PSC[p.status]}">${PS[p.status]}</span></div>
  ${backPill(b)?`<p style="margin:6px 0 0">${backPill(b)} <button type="button" class="btn" style="min-height:34px;padding:0 10px;font-size:13px" data-guest="${esc(J.guestKey(b.phone))}">სტუმრის ისტორია</button></p>`:''}${J.guestNote(b.phone)?`<div class="gnote">📝 ${esc(J.guestNote(b.phone))}</div>`:''}
  ${b.status==='confirmed'?`<details class="redit" style="margin-top:10px"><summary>თარიღის ან სტუმრების შეცვლა</summary><div class="rpick3"><label class="dpl">თარიღი<button type="button" class="btn dpb" id="iPick" data-from="${b.from}" data-to="${b.to}">📅 ${J.fmtRange(b.from,b.to)} · ${J.nights(b.from,b.to)} ღამე</button></label><label>სულ სტუმარი<input type="number" id="iGuests" min="1" max="20" step="1" inputmode="numeric" value="${b.guests||1}" style="${pin}"></label><label>მათ შორის ბავშვი (2–12)<input type="number" id="iKids" min="0" max="19" step="1" inputmode="numeric" value="${+b.children||0}" style="${pin}"></label></div><button type="button" class="btn" id="iDates" style="margin-top:8px">ცვლილების შენახვა</button></details>`:''}
  ${b.status==='confirmed'?`<label style="display:grid;gap:6px;font-size:14px;color:var(--mute);margin-top:12px">ნომერი (შეცვლა შეიძლება)<select id="iRoom" style="min-height:46px;padding:0 10px;border:1px solid var(--line);border-radius:8px;font-size:16px;max-width:320px">${roomOpts(b,b.room)}</select></label>`:''}
- <p style="margin:8px 0 0">ნომერი ${b.room||'—'} · ${esc(typeName(b.type))} · ${gTxt(b)}<br>${J.fmtRange(b.from,b.to)} · ${J.nights(b.from,b.to)} ღამე · ${SRC[b.source]||esc(b.source)}${b.note?' · '+esc(b.note):''}</p>
+ <p style="margin:8px 0 0">ნომერი ${b.room||'—'} · ${esc(typeName(b.type))} · ${gTxt(b)}${b.plan?` · <b>${esc(b.plan.name)}</b>${b.plan.refundable===false?' (დაუბრუნებელი)':''}`:''}<br>${J.fmtRange(b.from,b.to)} · ${J.nights(b.from,b.to)} ღამე · ${SRC[b.source]||esc(b.source)}${b.note?' · '+esc(b.note):''}</p>
  ${payLine(b)}
  ${b.status==='confirmed'?`<div class="stay">${b.checkedIn?`<span class="done">✓ შემოვიდა ${esc(at(b.checkedIn))}</span>${b.checkedOut?'':`<button type="button" class="btn" data-cundo="in">გაუქმება</button>`}`:`<button type="button" class="btn okb" id="iCin">შემოვიდა</button>`}${b.checkedIn?(b.checkedOut?`<span class="done">✓ გავიდა ${esc(at(b.checkedOut))}</span><button type="button" class="btn" data-cundo="out">გაუქმება</button>`:`<button type="button" class="btn okb" id="iCout">გავიდა</button>`):''}</div>`:''}
  ${reviewAsk(b)}
  ${b.wish?`<div class="wish"><small>სტუმრის მოთხოვნა</small>💬 ${esc(b.wish)}</div>`:''}
  ${dead?(b.remark?`<div class="remark">📌 ${esc(b.remark)}</div>`:''):`<label class="rml">ჩვენი შენიშვნა (სტუმარი ვერ ხედავს)<textarea id="iRemark" rows="2" maxlength="500" placeholder="მაგ.: ბავშვის საწოლი, გვიან ჩამოსვლა 23:00-ზე">${esc(b.remark||'')}</textarea></label>`}
- ${dead?'':`<label style="display:grid;gap:6px;font-size:14px;color:var(--mute);margin-top:14px">ნომრის შეთანხმებული ფასი, ₾<input id="iPrice" type="number" min="0" step="1" inputmode="numeric" value="${p.room}" style="min-height:46px;padding:0 12px;border:1px solid var(--line);border-radius:8px;font-size:16px;max-width:180px"></label>`}
- ${p.room!==q?`<p class="src" style="margin:4px 0 0">ფასების ცხრილით: ${money(q)}</p>`:''}
- ${drawExtras(b,dead)}
- <div class="money${p.extras?' m5':''}">${p.extras?`<div><small>ნომერი</small><b>${money(p.room)}</b></div><div><small>სერვისები</small><b>${money(p.extras)}</b></div>`:''}<div><small>${p.extras?'სულ':'ფასი'}</small><b>${money(p.price)}</b></div><div class="done"><small>გადახდილი</small><b>${money(p.paid)}</b></div><div class="${p.left?'left':''}"><small>დარჩა</small><b>${money(p.left)}</b></div></div>
+ ${lock?'':`<label style="display:grid;gap:6px;font-size:14px;color:var(--mute);margin-top:14px">ნომრის შეთანხმებული ფასი, ₾<input id="iPrice" type="number" min="0" step="1" inputmode="numeric" value="${p.room}" style="min-height:46px;padding:0 12px;border:1px solid var(--line);border-radius:8px;font-size:16px;max-width:180px"></label>`}
+ ${!canc&&p.room!==q?`<p class="src" style="margin:4px 0 0">ფასების ცხრილით: ${money(q)}</p>`:''}
+ ${drawExtras(b,lock)}
+ <div class="money${p.extras?' m5':''}">${p.extras?`<div><small>ნომერი</small><b>${money(p.room)}</b></div><div><small>სერვისები</small><b>${money(p.extras)}</b></div>`:''}<div><small>${canc?'საფასური':p.extras?'სულ':'ფასი'}</small><b>${money(p.price)}</b></div><div class="done"><small>გადახდილი</small><b>${money(p.paid)}</b></div><div class="${p.left?'left':''}"><small>დარჩა</small><b>${money(p.left)}</b></div></div>
  <p style="margin:6px 0 0"><button type="button" class="btn" id="iBill">🧾 ${b.invoice?'ინვოისი № '+esc(b.invoice.no||''):'ანგარიში სტუმრისთვის'}</button></p>
- ${dead?'':`<details class="redit" style="margin-top:8px"${b.invoice?' open':''}><summary>ინვოისი კომპანიისთვის</summary><div class="pform" style="margin-top:8px"><label>კომპანია<input id="ivCo" maxlength="120" value="${esc(b.invoice?.company||'')}" placeholder="მაგ.: შპს მთის ტური"></label><label>საიდენტიფიკაციო კოდი<input id="ivCode" maxlength="20" inputmode="numeric" value="${esc(b.invoice?.code||'')}"></label><label style="grid-column:1/-1">მისამართი<input id="ivAddr" maxlength="160" value="${esc(b.invoice?.address||'')}"></label></div><button type="button" class="btn" id="ivSave" style="margin-top:8px">${b.invoice?'ინვოისის განახლება':'ინვოისის შექმნა'}</button>${b.invoice?` <button type="button" class="btn nob" id="ivDel">ინვოისის გაუქმება</button>`:''}${J.billFrom().name?'':'<p class="src" style="margin:6px 0 0">თქვენი რეკვიზიტები შეავსეთ ჩანართში „სერვისები“.</p>'}</details>`}
+ ${dead?'':msgBox(b)}
+ ${dead?'':`<details class="redit" style="margin-top:8px"${b.invoice?' open':''}><summary>ინვოისი კომპანიისთვის</summary><div class="pform" style="margin-top:8px"><label>კომპანია<input id="ivCo" maxlength="120" value="${esc(b.invoice?.company||'')}" placeholder="მაგ.: შპს მთის ტური"></label><label>საიდენტიფიკაციო კოდი<input id="ivCode" maxlength="20" inputmode="numeric" value="${esc(b.invoice?.code||'')}"></label><label style="grid-column:1/-1">მისამართი<input id="ivAddr" maxlength="160" value="${esc(b.invoice?.address||'')}"></label></div><button type="button" class="btn" id="ivSave" style="margin-top:8px">${b.invoice?'ინვოისის განახლება':'ინვოისის შექმნა'}</button>${b.invoice?` <button type="button" class="btn nob" id="ivDel">ინვოისის გაუქმება</button>`:''}${J.billFrom().name?'':'<p class="src" style="margin:6px 0 0">თქვენი რეკვიზიტები შეავსეთ: პარამეტრები → რეკვიზიტები.</p>'}</details>`}
+ ${['confirmed','pending'].includes(b.status)?`<p style="margin:14px 0 0"><button type="button" class="btn nob" id="iCancel">სტუმარმა გააუქმა</button> <span class="src">ნომერი გათავისუფლდება; საფასური თქვენი წესით: ${money(J.feeFor(b))}</span></p>`:''}
  ${list.length?`<ul class="plist">${list.map(x=>`<li><span>${J.fmt(x.date)}</span><span>${J.METHODS[x.method]}${(()=>{const w=J.actlog.find(l=>l.op==='pay'&&l.ref===x.id);return w?` <small class="src">· მიიღო ${esc(w.who)}</small>`:''})()}</span><b>${money(x.amount)}</b>${dead?'':`<button type="button" class="x" data-unpay="${x.id}" aria-label="გადახდის წაშლა: ${money(x.amount)}, ${J.fmt(x.date)}">×</button>`}</li>`).join('')}</ul>`:''}
  ${dead?'':` <h2 style="margin:18px 0 8px;font-size:15px">გადახდის დამატება</h2>
  <div class="meth" role="radiogroup" aria-label="გადახდის ხერხი">${Object.entries(J.METHODS).map(([k,v])=>`<label><input type="radio" name="pm" value="${k}" ${k===payMethod?'checked':''}><span>${v}</span></label>`).join('')}</div>
@@ -1029,6 +1104,7 @@ $('infoBody').addEventListener('change',e=>{
  if(e.target.id==='iPrice'){J.setPrice(infoId,e.target.value);drawInfo();renderAll()}
  if(e.target.id==='iRoom'){const r=J.moveRoom(infoId,e.target.value);drawInfo();renderAll();const m2=$('iMsg');m2.hidden=false;m2.className='msg'+(r.ok?' good':'');m2.textContent=r.ok?'სტუმარი გადავიდა ნომერში '+r.room+'. ფასი იგივე დარჩა; საჭიროების შემთხვევაში შეცვალეთ ზემოთ.':r.msg}
  if(e.target.name==='pm')payMethod=e.target.value;
+ if(e.target.id==='mTpl'){const b=J.bookings.find(x=>x.id===infoId),l=$('mText').dataset.l||'ka';$('mText').value=J.fillTpl(J.templates()[e.target.value][l],b,hotelPhone(),l);msgLinks(b)}
  if(e.target.id==='xSvc'){const b=J.bookings.find(x=>x.id===infoId),sv=J.services.find(x=>x.id===e.target.value);$('xName').closest('label').hidden=e.target.value!=='_';
   $('xPrice').value=sv?sv.price:'';$('xQty').value=sv?J.unitsFor(sv.unit,b):1}
 });
@@ -1048,6 +1124,10 @@ $('infoBody').addEventListener('click',async e=>{
   if(!r.ok){const m=$('xMsg');m.hidden=false;m.className='msg';m.textContent=r.msg;return}
   drawInfo();renderAll();const m=$('xMsg');m.hidden=false;m.className='msg good';m.textContent='დაემატა: '+r.item.name+' × '+r.item.qty+' = '+r.item.amount+' ₾';return}
  if(e.target.id==='iBill'){printBill(J.bookings.find(x=>x.id===infoId));return}
+ if(e.target.id==='iCancel'){const b=J.bookings.find(x=>x.id===infoId),f=J.feeFor(b),v=prompt('გაუქმების საფასური, ₾ (თქვენი წესით: '+f+' ₾). 0 — უფასოდ.',f);if(v===null)return;const r=J.cancelBooking(infoId,v);drawInfo();renderAll();flash(r.ok?('ჯავშანი გაუქმდა. საფასური '+r.fee+' ₾'+(r.refund?'; სტუმარს დასაბრუნებელია '+r.refund+' ₾':'')+'.'):r.msg,r.ok);return}
+ if(e.target.id==='iUncancel'){const r=J.uncancel(infoId);drawInfo();renderAll();flash(r.ok?'ჯავშანი აღდგა.':r.msg,r.ok);return}
+ const mg=e.target.closest('[data-msgl]');if(mg){const b=J.bookings.find(x=>x.id===infoId),k=$('mTpl').value,T=J.templates()[k],txt=J.fillTpl(T[mg.dataset.msgl],b,hotelPhone(),mg.dataset.msgl);$('mText').value=txt;$('mText').dataset.l=mg.dataset.msgl;msgLinks(b);return}
+ if(e.target.id==='mCopy'){navigator.clipboard?.writeText($('mText').value).then(()=>flash('ტექსტი დაკოპირდა.',true),()=>{});return}
  if(e.target.id==='iCin'){J.checkIn(infoId);drawInfo();renderAll();return}
  if(e.target.id==='iCout'){const b=J.bookings.find(x=>x.id===infoId),left=J.payState(b).left;if(left&&!confirm('სტუმარს დარჩა გადასახდელი '+left+' ₾. მაინც მოვნიშნოთ გასვლა?'))return;J.checkOut(infoId);drawInfo();renderAll();return}
  const cu=e.target.closest('[data-cundo]');if(cu){cu.dataset.cundo==='in'?J.checkIn(infoId,true):J.checkOut(infoId,true);drawInfo();renderAll();return}
@@ -1059,7 +1139,7 @@ $('infoBody').addEventListener('click',async e=>{
  if(!r.ok){$('iMsg').textContent=r.msg;$('iMsg').hidden=false;return}
  drawInfo();renderAll();
 });
-$('info').addEventListener('close',()=>{if($('info').returnValue==='restore'&&infoId){const o=J.restore(infoId);flash(o.ok?'ჯავშანი აღდგა.':o.msg,o.ok);renderAll()}
+$('info').addEventListener('close',()=>{xOpen=false;if($('info').returnValue==='restore'&&infoId){const o=J.restore(infoId);flash(o.ok?'ჯავშანი აღდგა.':o.msg,o.ok);renderAll()}
  if($('info').returnValue==='del'&&infoId){J.remove(infoId);renderAll();flash('ჯავშანი გადავიდა „წაშლილებში". აღდგენა შეგიძლიათ „მოთხოვნების" გვერდის ბოლოში.',true)}infoId=null});
 
 /* --- prices: versions by number of guests --- */
@@ -1150,7 +1230,8 @@ function renderMoney(){
  document.querySelectorAll('#mRange [data-pr]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pr===mPreset));
  const byId=Object.fromEntries(J.bookings.map(b=>[b.id,b]));
  const pays=livePays().filter(p=>p.date>=from&&p.date<=to).sort((a,b)=>a.date<b.date?1:-1);
- const books=J.bookings.filter(b=>b.status==='confirmed'&&b.from>=from&&b.from<=to).map(b=>({b,...J.payState(b),n:J.nights(b.from,b.to)}));
+ // cancelled bookings count only with their cancellation fee (no nights)
+ const books=J.bookings.filter(b=>(b.status==='confirmed'||b.status==='cancelled'&&+b.fee>0)&&b.from>=from&&b.from<=to).map(b=>({b,...J.payState(b),n:b.status==='cancelled'?0:J.nights(b.from,b.to)}));
  const got=sum(pays,p=>p.amount),price=sum(books,x=>x.price),paid=sum(books,x=>x.paid),left=sum(books,x=>x.left),nights=sum(books,x=>x.n);
  const roomNights=J.ROOMS.length*(J.nights(from,J.addDays(to,1)));
  $('mK').innerHTML=`<div class="kpi main"><small>მიღებული თანხა</small><b>${money(got)}</b><span>${pays.length} გადახდა</span></div>
@@ -1199,7 +1280,7 @@ function downloadCsv(name,rows){
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=name;
  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
 }
-const STATUS={pending:'მოლოდინში',confirmed:'დადასტურებული',declined:'უარყოფილი',deleted:'წაშლილი'};
+const STATUS={pending:'მოლოდინში',confirmed:'დადასტურებული',declined:'უარყოფილი',deleted:'წაშლილი',cancelled:'გაუქმებული'};
 $('dlBook').addEventListener('click',()=>{const[a,b]=period();
  const rows=[['სტუმარი','ტელეფონი','შესვლა','გასვლა','ღამე','სტუმრები','მათ შორის 10 წლამდე','ნომერი','ტიპი','წყარო','სტატუსი','ფასი ₾','გადახდილი ₾','დარჩა ₾','გადახდა','შენიშვნა','შემოვიდა']];
  J.bookings.filter(x=>x.from>=a&&x.from<=b).sort((x,y)=>x.from<y.from?-1:1).forEach(x=>{const p=J.payState(x);
@@ -1289,7 +1370,7 @@ function renderGuests(){
 function openGuest(k){
  const g=J.guests().find(x=>x.k===k);if(!g)return;
  const tel=g.phone.replace(/[^\d+]/g,''),wa=waNum(g.phone);
- const rows=g.bookings.slice().sort((a,b)=>a.from<b.from?1:-1).map(b=>{const p=J.payState(b);return`<tr data-open="${b.id}" tabindex="0"><td class="d">${J.fmtRange(b.from,b.to)}</td><td>${b.room||'—'}</td><td>${{pending:'მოლოდინში',confirmed:'დადასტურებული',declined:'უარყოფილი'}[b.status]||b.status}</td><td>${money(p.price)}</td><td>${b.status==='confirmed'?`<span class="pill ${PSC[p.status]}">${PS[p.status]}</span>`:''}</td></tr>`}).join('');
+ const rows=g.bookings.slice().sort((a,b)=>a.from<b.from?1:-1).map(b=>{const p=J.payState(b);return`<tr data-open="${b.id}" tabindex="0"><td class="d">${J.fmtRange(b.from,b.to)}</td><td>${b.room||'—'}</td><td>${{pending:'მოლოდინში',confirmed:'დადასტურებული',declined:'უარყოფილი',cancelled:'გაუქმებული'}[b.status]||b.status}</td><td>${money(p.price)}</td><td>${b.status==='confirmed'?`<span class="pill ${PSC[p.status]}">${PS[p.status]}</span>`:''}</td></tr>`}).join('');
  $('gBody').innerHTML=`<h1 style="font-size:20px;margin:0">${esc(g.name)}</h1>${g.names.length>1?`<p class="src" style="margin:2px 0 0">სხვა სახელით: ${esc(g.names.slice(0,-1).join(', '))}</p>`:''}
  ${bdayTag(g.bday)?`<p style="margin:6px 0 0">${bdayTag(g.bday)}</p>`:''}<p style="margin:8px 0 0"><a href="tel:${esc(tel)}">${esc(g.phone)}</a> · <a href="https://wa.me/${esc(wa)}" target="_blank" rel="noopener">WhatsApp</a></p>
  <div class="money"><div><small>ვიზიტი</small><b>${g.visits}</b>${g.upcoming?`<small>+${g.upcoming} დაჯავშნილი</small>`:''}</div><div><small>ღამე</small><b>${g.nights}</b></div><div class="done"><small>გადახდილი</small><b>${money(g.paid)}</b></div></div>
@@ -1309,7 +1390,7 @@ $('infoBody').addEventListener('click',e=>{const g=e.target.closest('[data-guest
 $('dlGuests').addEventListener('click',()=>{const rows=[['სახელი','ტელეფონი','ვიზიტი','ღამე','გადახდილი ₾','პირველი','ბოლო','დაბადების დღე','შენიშვნა']];
  J.guests().sort((a,b)=>b.visits-a.visits).forEach(g=>rows.push([g.name,g.phone,g.visits,g.nights,g.paid,g.first||'',g.last||'',g.bday||'',g.note]));
  downloadCsv(`${(J.hotel&&J.hotel.slug)||'hotel'}-stumrebi-${J.today()}.csv`,rows)});
-function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderSeason();renderGaps();renderMoney();renderGuests();renderHk();renderBillFrom();if(!svcDirty){svcDraft=null;renderServices()}}
+function renderAll(){renderDay();renderReqs();renderCal();renderPrices();renderSeason();renderGaps();renderMoney();renderGuests();renderHk();renderBillFrom();if(!plDirty){plDraft=null;renderPlans()}renderTpl();if(!svcDirty){svcDraft=null;renderServices()}}
 J.onChange(()=>{if(!$('app').hidden){renderAll();checkNew()}});
 }
 </script>
