@@ -47,6 +47,7 @@
     newH: ['ახალი Visit2.ge-ზე', 'New on Visit2.ge', 'Новые на Visit2.ge'], newSub: ['ახლახან შემოგვიერთდნენ', 'Just joined us', 'Недавно присоединились'],
     saved: ['შენახული', 'Saved', 'Сохранённые'], saveIt: ['შენახვა', 'Save', 'Сохранить'], unsave: ['შენახულიდან ამოღება', 'Remove from saved', 'Убрать из сохранённых'],
     perNight: ['ღამე', 'night', 'ночь'], fromP: ['{p} ₾-დან', 'from {p} ₾', 'от {p} ₾'], totalN: ['{n} ღამე', '{n} nights', 'ночей: {n}'], busy: ['ამ თარიღებზე დაკავებულია', 'Booked on these dates', 'На эти даты занято'],
+    skipDates: ['თარიღის გარეშე: ყველა სასტუმრო', 'Without dates: all stays', 'Без дат: все варианты'],
     freeN: ['თავისუფალია: {n}', 'Available: {n}', 'Свободно: {n}'], pickDates: ['აირჩიე თარიღები, რომ ნახო თავისუფალი ნომრები და ფასი', 'Add dates to see free rooms and the price', 'Выберите даты, чтобы увидеть свободные номера и цену'],
     allStays: ['ყველა სასტუმრო', 'All places to stay', 'Всё жильё'], none: ['აქ სასტუმრო ჯერ არ არის. სცადე ახლომდებარე ადგილი.', 'Nothing here yet. Try a place nearby.', 'Здесь пока ничего нет. Попробуйте место рядом.'],
     mapOpen: ['რუკაზე', 'On the map', 'На карте'], mapHint: ['დააჭირე რუკაზე ადგილს, სადაც სასტუმრო გინდა', 'Tap the place on the map where you want to stay', 'Нажмите на карте место, где хотите остановиться'],
@@ -151,6 +152,8 @@
   $('#sheetBack').addEventListener('click', () => show('main'));
   sheet.addEventListener('close', summary);
   $('#doSearch').addEventListener('click', () => { sheet.close(); showResults(true); });
+  // a place without dates: every stay there now, dates can be added later from the results
+  $('#calSkip').addEventListener('click', () => { Q.from.value = Q.to.value = ''; sheet.close(); summary(); showResults(true); });
 
   // where: popular places first, then every place; typing filters
   function drawTowns() {
